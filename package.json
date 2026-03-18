@@ -1,0 +1,37 @@
+{
+  "name": "remotiontest",
+  "version": "1.0.0",
+  "description": "Premier League 2013/14 infographic animation",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render PremierLeagueTable out/video.mp4",
+    "upgrade": "remotion upgrade",
+    "postinstall": "patch-package"
+  },
+  "dependencies": {
+    "@nivo/bar": "^0.99.0",
+    "@nivo/line": "^0.99.0",
+    "@remotion/animation-utils": "4.0.435",
+    "@remotion/cli": "4.0.435",
+    "@remotion/google-fonts": "4.0.435",
+    "@remotion/motion-blur": "4.0.435",
+    "@remotion/noise": "4.0.435",
+    "@remotion/shapes": "4.0.435",
+    "@remotion/transitions": "4.0.435",
+    "d3": "^7.9.0",
+    "framer-motion": "^12.35.2",
+    "lottie-react": "^2.4.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "remotion": "4.0.435"
+  },
+  "devDependencies": {
+    "@types/d3": "^7.4.3",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "patch-package": "^8.0.1",
+    "typescript": "^5.0.0"
+  },
+  "license": "MIT"
+}
