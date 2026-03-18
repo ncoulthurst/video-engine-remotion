@@ -1,0 +1,10 @@
+node_modules/
+out/
+output/
+build/
+.env
+*.log
+*.deb
+*Zone.Identifier
+public/clips/
+src/*.mp4
