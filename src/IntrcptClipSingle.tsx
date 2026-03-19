@@ -20,6 +20,10 @@ export const IntrcptClipSinglePropsSchema = z.object({
   clip:    z.string().default(""),
   title:   z.string().default(""),
   bgColor: z.string().default("#f0ece4"),
+  /** Frame offset in the source file to start from (for splice support) */
+  trimIn:  z.number().int().min(0).optional(),
+  /** Frame offset in the source file to end at (for splice support) */
+  trimOut: z.number().int().optional(),
 });
 export type IntrcptClipSingleProps = z.infer<typeof IntrcptClipSinglePropsSchema>;
 
@@ -79,7 +83,7 @@ const BorderGlow: React.FC<{
 };
 
 export const IntrcptClipSingle: React.FC<IntrcptClipSingleProps> = ({
-  label, clip, title, bgColor,
+  label, clip, title, bgColor, trimIn, trimOut,
 }) => {
   const frame   = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -143,6 +147,8 @@ export const IntrcptClipSingle: React.FC<IntrcptClipSingleProps> = ({
                 src={staticFile(clip)}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 muted
+                startFrom={trimIn ?? 0}
+                {...(trimOut !== undefined ? { endAt: trimOut } : {})}
               />
             ) : isImage && clip ? (
               <SmartImg src={clip} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
