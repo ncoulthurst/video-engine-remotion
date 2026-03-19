@@ -24,6 +24,8 @@ export const IntrcptClipSinglePropsSchema = z.object({
   trimIn:  z.number().int().min(0).optional(),
   /** Frame offset in the source file to end at (for splice support) */
   trimOut: z.number().int().optional(),
+  /** Enable audio track on the clip — muted by default */
+  soundOn: z.boolean().default(false),
 });
 export type IntrcptClipSingleProps = z.infer<typeof IntrcptClipSinglePropsSchema>;
 
@@ -83,7 +85,7 @@ const BorderGlow: React.FC<{
 };
 
 export const IntrcptClipSingle: React.FC<IntrcptClipSingleProps> = ({
-  label, clip, title, bgColor, trimIn, trimOut,
+  label, clip, title, bgColor, trimIn, trimOut, soundOn = false,
 }) => {
   const frame   = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -146,7 +148,7 @@ export const IntrcptClipSingle: React.FC<IntrcptClipSingleProps> = ({
               <Video
                 src={staticFile(clip)}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                muted
+                muted={!soundOn}
                 startFrom={trimIn ?? 0}
                 {...(trimOut !== undefined ? { endAt: trimOut } : {})}
               />
