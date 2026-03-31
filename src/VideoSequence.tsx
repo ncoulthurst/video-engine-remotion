@@ -38,6 +38,12 @@ import { DisciplinaryRecord } from "./DisciplinaryRecord";
 import { QuoteCard } from "./QuoteCard";
 import { ArticleHeadline } from "./ArticleHeadline";
 import { AttackingRadar } from "./AttackingRadar";
+import { MapCallout } from "./MapCallout";
+import { AnimatedFactCard } from "./AnimatedFactCard";
+import { TitleCard } from "./TitleCard";
+import { AnnotatedImage } from "./AnnotatedImage";
+import { SplitComparison } from "./SplitComparison";
+import { TimelineScroll } from "./TimelineScroll";
 
 // ── Transitions ────────────────────────────────────────────────────────────────
 import {
@@ -81,6 +87,12 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   QuoteCard,
   ArticleHeadline,
   AttackingRadar,
+  MapCallout,
+  AnimatedFactCard,
+  TitleCard,
+  AnnotatedImage,
+  SplitComparison,
+  TimelineScroll,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

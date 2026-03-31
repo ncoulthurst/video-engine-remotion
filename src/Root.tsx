@@ -28,6 +28,12 @@ import { IntrcptScatterPlot, IntrcptScatterPlotPropsSchema } from "./IntrcptScat
 import { AttackingRadar, AttackingRadarPropsSchema } from "./AttackingRadar";
 import { PlayerTrio, PlayerTrioPropsSchema } from "./PlayerTrio";
 import { TrioFeature, TrioFeaturePropsSchema } from "./TrioFeature";
+import { MapCallout, MapCalloutPropsSchema } from "./MapCallout";
+import { AnimatedFactCard, AnimatedFactCardPropsSchema } from "./AnimatedFactCard";
+import { TitleCard, TitleCardPropsSchema } from "./TitleCard";
+import { AnnotatedImage, AnnotatedImagePropsSchema } from "./AnnotatedImage";
+import { SplitComparison, SplitComparisonPropsSchema } from "./SplitComparison";
+import { TimelineScroll, TimelineScrollPropsSchema } from "./TimelineScroll";
 import {
   VideoSequence,
   VideoSequencePropsSchema,
@@ -645,6 +651,135 @@ export const Root: React.FC = () => {
           byline:         "Luis Suárez · 2013–14",
           highlightColor: "#f5d020",
           bgColor:        "#f0ece4",
+        }}
+      />
+
+      {/* ── Motion Design Components ──────────────────────────────────────── */}
+      <Composition
+        id="MapCallout"
+        component={MapCallout}
+        schema={MapCalloutPropsSchema}
+        durationInFrames={270}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:            "Where it all began",
+          titleSize:        64,
+          calloutCity:      "bournemouth",
+          calloutText:      "Bournemouth",
+          calloutDirection: "left",
+          accentColor:      "#DA291C",
+          bgColor:          "#f0ece4",
+          darkMode:         false,
+          pins: [
+            { city: "manchester",  label: "Manchester",  highlighted: false },
+            { city: "liverpool",   label: "Liverpool",   highlighted: false },
+            { city: "london",      label: "London",      highlighted: false },
+            { city: "bournemouth", label: "Bournemouth", highlighted: true  },
+          ],
+        }}
+      />
+      <Composition
+        id="AnimatedFactCard"
+        component={AnimatedFactCard}
+        schema={AnimatedFactCardPropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          fact:            "31 goals in a single Premier League season.",
+          highlightPhrase: "31 goals",
+          subtext:         "A record that stood for over a decade.",
+          source:          "Premier League · 2013–14",
+          accentColor:     "#C8102E",
+          bgColor:         "#f0ece4",
+          darkMode:        false,
+        }}
+      />
+      <Composition
+        id="TitleCard"
+        component={TitleCard}
+        schema={TitleCardPropsSchema}
+        durationInFrames={180}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          chapter:     "Act II",
+          title:       "The Rise",
+          subtitle:    "From relegation battlers to title contenders",
+          accentColor: "#C8102E",
+          style:       "bold",
+        }}
+      />
+      <Composition
+        id="AnnotatedImage"
+        component={AnnotatedImage}
+        schema={AnnotatedImagePropsSchema}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          imageSrc:     "",
+          title:        "Anfield — Capacity 61,276",
+          subtitle:     "The Kop end holds 12,390 standing supporters",
+          accentColor:  "#C8102E",
+          bgColor:      "#f0ece4",
+          kenBurns:     true,
+          annotations: [
+            { x: 50, y: 35, label: "The Pitch",     direction: "up",   color: "#ffffff" },
+            { x: 15, y: 55, label: "The Kop",       direction: "right", color: "#C8102E" },
+            { x: 82, y: 55, label: "Anfield Road",  direction: "left",  color: "#ffffff" },
+          ],
+        }}
+      />
+      <Composition
+        id="SplitComparison"
+        component={SplitComparison}
+        schema={SplitComparisonPropsSchema}
+        durationInFrames={270}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          label:        "THEN vs NOW",
+          leftLabel:    "1992",
+          rightLabel:   "2024",
+          leftValue:    "22 Clubs",
+          rightValue:   "20 Clubs",
+          leftSubtext:  "Original Premier League with 22 founding members",
+          rightSubtext: "Reduced to 20 clubs from 1995 onwards",
+          leftColor:    "#C8102E",
+          rightColor:   "#034694",
+          bgColor:      "#f0ece4",
+          stats:        [],
+        }}
+      />
+      <Composition
+        id="TimelineScroll"
+        component={TimelineScroll}
+        schema={TimelineScrollPropsSchema}
+        durationInFrames={830}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:       "The Premier League Era",
+          subtitle:    "How English football was transformed",
+          dwellFrames: 120,
+          accentColor: "#3D0099",
+          bgColor:     "#f0ece4",
+          darkMode:    false,
+          events: [
+            { year: "1992", title: "Premier League founded",    description: "22 clubs breakaway from the Football League.",         highlight: true  },
+            { year: "1995", title: "Bosman ruling",             description: "Freedom of movement transforms the transfer market.",  highlight: false },
+            { year: "2003", title: "Roman Abramovich",          description: "Chelsea's transformation begins.",                     highlight: false },
+            { year: "2012", title: "Financial Fair Play",       description: "UEFA introduces new spending regulations.",           highlight: false },
+            { year: "2017", title: "£5bn TV deal",              description: "Record broadcast rights reshape the game.",           highlight: true  },
+          ],
         }}
       />
 
