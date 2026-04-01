@@ -50,6 +50,7 @@ import { MatchMoment } from "./MatchMoment";
 import { TransferProfit } from "./TransferProfit";
 import { ScoutReport } from "./ScoutReport";
 import { ValueCurve } from "./ValueCurve";
+import { IntrcptTransferProfit } from "./IntrcptTransferProfit";
 
 // ── Transitions ────────────────────────────────────────────────────────────────
 import {
@@ -105,6 +106,7 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   TransferProfit,
   ScoutReport,
   ValueCurve,
+  IntrcptTransferProfit,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
