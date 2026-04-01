@@ -44,6 +44,9 @@ import { TitleCard } from "./TitleCard";
 import { AnnotatedImage } from "./AnnotatedImage";
 import { SplitComparison } from "./SplitComparison";
 import { TimelineScroll } from "./TimelineScroll";
+import { CountdownReveal } from "./CountdownReveal";
+import { StatPulse } from "./StatPulse";
+import { MatchMoment } from "./MatchMoment";
 
 // ── Transitions ────────────────────────────────────────────────────────────────
 import {
@@ -93,6 +96,9 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   AnnotatedImage,
   SplitComparison,
   TimelineScroll,
+  CountdownReveal,
+  StatPulse,
+  MatchMoment,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

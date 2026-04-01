@@ -34,6 +34,9 @@ import { TitleCard, TitleCardPropsSchema } from "./TitleCard";
 import { AnnotatedImage, AnnotatedImagePropsSchema } from "./AnnotatedImage";
 import { SplitComparison, SplitComparisonPropsSchema } from "./SplitComparison";
 import { TimelineScroll, TimelineScrollPropsSchema } from "./TimelineScroll";
+import { CountdownReveal, CountdownRevealPropsSchema } from "./CountdownReveal";
+import { StatPulse, StatPulsePropsSchema } from "./StatPulse";
+import { MatchMoment, MatchMomentPropsSchema } from "./MatchMoment";
 import {
   VideoSequence,
   VideoSequencePropsSchema,
@@ -780,6 +783,89 @@ export const Root: React.FC = () => {
             { year: "2012", title: "Financial Fair Play",       description: "UEFA introduces new spending regulations.",           highlight: false },
             { year: "2017", title: "£5bn TV deal",              description: "Record broadcast rights reshape the game.",           highlight: true  },
           ],
+        }}
+      />
+
+      <Composition
+        id="CountdownReveal"
+        component={CountdownReveal}
+        schema={CountdownRevealPropsSchema}
+        durationInFrames={980}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:       "The Top 10",
+          subtitle:    "Premier League goals in a single season",
+          dwellFrames: 90,
+          accentColor: "#C8102E",
+          bgColor:     "#f0ece4",
+          darkMode:    false,
+          items: [
+            { name: "Alan Shearer",      detail: "1994/95 · Blackburn",      value: "34 goals" },
+            { name: "Andrew Cole",       detail: "1993/94 · Newcastle",      value: "34 goals" },
+            { name: "Erling Haaland",    detail: "2022/23 · Man City",       value: "36 goals" },
+            { name: "Mohamed Salah",     detail: "2017/18 · Liverpool",      value: "32 goals" },
+            { name: "Luis Suárez",       detail: "2013/14 · Liverpool",      value: "31 goals" },
+            { name: "Cristiano Ronaldo", detail: "2007/08 · Man Utd",        value: "31 goals" },
+            { name: "Alan Shearer",      detail: "1995/96 · Newcastle",      value: "31 goals" },
+            { name: "Kevin Phillips",    detail: "1999/00 · Sunderland",     value: "30 goals" },
+            { name: "Harry Kane",        detail: "2016/17 · Spurs",          value: "29 goals" },
+            { name: "Thierry Henry",     detail: "2004/05 · Arsenal",        value: "25 goals" },
+          ],
+        }}
+      />
+      <Composition
+        id="StatPulse"
+        component={StatPulse}
+        schema={StatPulsePropsSchema}
+        durationInFrames={600}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:       "Goals Per Season",
+          subtitle:    "Luis Suárez · career trajectory",
+          unit:        "goals",
+          accentColor: "#C8102E",
+          bgColor:     "#f0ece4",
+          darkMode:    false,
+          showArea:    true,
+          dwellFrames: 55,
+          dataPoints: [
+            { label: "07/08", value: 23  },
+            { label: "08/09", value: 28  },
+            { label: "09/10", value: 35, annotation: "Ajax peak" },
+            { label: "10/11", value: 49  },
+            { label: "11/12", value: 17  },
+            { label: "12/13", value: 23  },
+            { label: "13/14", value: 31, annotation: "Golden Boot" },
+            { label: "14/15", value: 25  },
+            { label: "15/16", value: 59, annotation: "All-time record" },
+            { label: "16/17", value: 37  },
+          ],
+        }}
+      />
+      <Composition
+        id="MatchMoment"
+        component={MatchMoment}
+        schema={MatchMomentPropsSchema}
+        durationInFrames={270}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          homeTeam:    "Liverpool",
+          awayTeam:    "Barcelona",
+          homeScore:   4,
+          awayScore:   0,
+          competition: "UEFA Champions League",
+          date:        "7 May 2019",
+          context:     "Semi-Final · Second Leg",
+          accentColor: "#C8102E",
+          bgColor:     "#0a0a0a",
+          homeColor:   "#C8102E",
+          awayColor:   "#004D98",
         }}
       />
 
