@@ -80,7 +80,7 @@ const COL3_R     = W - ROW_PAD_R;          // 1880
 
 const INTRO_DUR  = 30;
 const PAN_DUR    = 24;
-const OUTRO_DUR  = 70;
+const OUTRO_DUR  = 180;   // 6s — enough for viewer to read the total profit
 
 export const calculateMetadata: CalculateMetadataFunction<TransferProfitProps> = ({ props }) => {
   const n     = props.players.length;
@@ -180,8 +180,10 @@ export const TransferProfit: React.FC<TransferProfitProps> = ({
   const tx = W / 2 * (1 - zoom);
   const ty = H / 2 - finalPanY * zoom;
 
-  // ── Header ────────────────────────────────────────────────────────────────
-  const headerProg = clamp01(spring({ frame, fps, config: SPRINGS.header }));
+  // ── Header — fades in on load, then fades out once first player appears ──
+  const headerProg  = clamp01(spring({ frame, fps, config: SPRINGS.header }));
+  const firstReveal = clamp01(spring({ frame: frame - revealF(0), fps, config: { damping: 22, stiffness: 50 } }));
+  const headerOpacity = headerProg * (1 - firstReveal);
 
   // ── Spine line (vertical, left edge, draws downward) ─────────────────────
   const lastRevealed = players.reduce((acc, _, i) => (frame >= revealF(i) - 4 ? i : acc), -1);
@@ -206,7 +208,7 @@ export const TransferProfit: React.FC<TransferProfitProps> = ({
         top:       40,
         left:      COL1_L,
         zIndex:    30,
-        opacity:   headerProg,
+        opacity:   headerOpacity,
         transform: `translateY(${interpolate(headerProg, [0, 1], [-10, 0])}px)`,
       }}>
         <div style={{ fontFamily: serifFontFamily, fontSize: 52, fontWeight: 900, color: textColor, letterSpacing: -2, lineHeight: 1 }}>
@@ -231,14 +233,15 @@ export const TransferProfit: React.FC<TransferProfitProps> = ({
         zIndex:          10,
       }}>
 
-        {/* Vertical spine line — draws downward alongside photos */}
-        <svg style={{ position: "absolute", left: 0, top: 0, overflow: "visible" }} width={W} height={H}>
+        {/* Spine line — only visible during payoff overview, not during narration close-ups */}
+        <svg style={{ position: "absolute", left: 0, top: 0, overflow: "visible", pointerEvents: "none" }} width={W} height={H}>
           {lastRevealed >= 0 && (
             <line
               x1={PHOTO_CX} y1={nY(0) - PHOTO_R}
-              x2={PHOTO_CX} y2={spineEndY + PHOTO_R}
-              stroke={darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}
+              x2={PHOTO_CX} y2={nY(n - 1) + PHOTO_R}
+              stroke={darkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}
               strokeWidth={2}
+              opacity={zoomOutProg}
             />
           )}
         </svg>
@@ -253,7 +256,6 @@ export const TransferProfit: React.FC<TransferProfitProps> = ({
           const as        = itemActive(i);
           const mutedMult = 0.28 + 0.72 * as;
           const cy        = nY(i);
-          const photoR    = (PHOTO_R - 6 + 6 * as) * rowProg;
 
           const profit = player.sold && player.sellFee > 0 ? Math.round(player.sellFee - player.buyFee) : 0;
           const roi    = player.sold ? roiStr(player.buyFee, player.sellFee) : "";
@@ -274,36 +276,43 @@ export const TransferProfit: React.FC<TransferProfitProps> = ({
                 }} />
               )}
 
-              {/* ── Photo circle ────────────────────────────────────────── */}
+              {/* ── Photo circle ─────────────────────────────────────────
+                   Fixed size (PHOTO_R always) — entrance via scale transform
+                   so image is always rendered at full resolution. Never resized
+                   per-frame (that was causing blur). Initials only if no image. */}
               <div style={{
-                position:     "absolute",
-                left:         PHOTO_CX - photoR,
-                top:          cy - photoR,
-                width:        photoR * 2,
-                height:       photoR * 2,
-                borderRadius: "50%",
-                overflow:     "hidden",
-                opacity:      rowProg * mutedMult,
-                border:       `${2 + 1.5 * as}px solid ${as > 0.5 ? accentColor : (darkMode ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)")}`,
-                boxShadow:    as > 0.3 ? `0 0 0 ${4 * as}px ${rgbaFromHex(accentColor, 0.15 * as)}` : "none",
-                background:   nodeBgFill,
+                position:        "absolute",
+                left:            PHOTO_CX - PHOTO_R,
+                top:             cy - PHOTO_R,
+                width:           PHOTO_R * 2,
+                height:          PHOTO_R * 2,
+                borderRadius:    "50%",
+                overflow:        "hidden",
+                opacity:         mutedMult,
+                transform:       `scale(${rowProg})`,
+                transformOrigin: "center center",
+                border:          `${2 + 1.5 * as}px solid ${as > 0.5 ? accentColor : (darkMode ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)")}`,
+                boxShadow:       as > 0.3 ? `0 0 0 ${4 * as}px ${rgbaFromHex(accentColor, 0.15 * as)}` : "none",
+                background:      nodeBgFill,
               }}>
-                {/* Initials fallback */}
-                <div style={{
-                  position:   "absolute",
-                  inset:      0,
-                  display:    "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontFamily: serifFontFamily,
-                  fontSize:   photoR * 0.60,
-                  fontWeight: 900,
-                  color:      accentColor,
-                  opacity:    0.30,
-                  userSelect: "none",
-                }}>
-                  {player.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
-                </div>
+                {/* Initials — only rendered when there is no image src */}
+                {!player.imageSrc && (
+                  <div style={{
+                    position:   "absolute",
+                    inset:      0,
+                    display:    "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily: serifFontFamily,
+                    fontSize:   PHOTO_R * 0.60,
+                    fontWeight: 900,
+                    color:      accentColor,
+                    opacity:    0.35,
+                    userSelect: "none",
+                  }}>
+                    {player.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+                  </div>
+                )}
                 {player.imageSrc && (
                   <SmartImg
                     src={player.imageSrc}
@@ -474,42 +483,42 @@ export const TransferProfit: React.FC<TransferProfitProps> = ({
             </React.Fragment>
           );
         })}
-      </div>
 
-      {/* ── Total profit (fixed, outside camera, appears after payoff) ───── */}
-      {showTotal && (() => {
-        const tp = clamp01(spring({ frame: frame - totalRevealF, fps, config: SPRINGS.feature }));
-        if (tp < 0.01) return null;
-        return (
-          <div style={{
-            position:   "absolute",
-            bottom:     24,
-            left:       COL1_L,
-            right:      ROW_PAD_R,
-            display:    "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            opacity:    tp,
-            transform:  `translateY(${interpolate(tp, [0, 1], [14, 0])}px)`,
-            borderTop:  `1px solid ${divColor}`,
-            paddingTop: 16,
-            zIndex:     30,
-          }}>
+        {/* ── Total profit — inside camera so it aligns with the rows ──── */}
+        {showTotal && (() => {
+          const tp = clamp01(spring({ frame: frame - totalRevealF, fps, config: SPRINGS.feature }));
+          if (tp < 0.01) return null;
+          const footerY = topOffset + n * ITEM_H + 20;
+          return (
             <div style={{
-              fontFamily, fontSize: 14, fontWeight: 700,
-              color: mutedColor, letterSpacing: 2, textTransform: "uppercase",
+              position:   "absolute",
+              left:       COL1_L,
+              right:      ROW_PAD_R,
+              top:        footerY,
+              display:    "flex",
+              alignItems: "baseline",
+              justifyContent: "space-between",
+              opacity:    tp,
+              transform:  `translateY(${interpolate(tp, [0, 1], [14, 0])}px)`,
+              borderTop:  `1px solid ${divColor}`,
+              paddingTop: 18,
             }}>
-              Total profit · {soldPlayers.length} players sold
+              <div style={{
+                fontFamily, fontSize: 14, fontWeight: 700,
+                color: mutedColor, letterSpacing: 2, textTransform: "uppercase",
+              }}>
+                Total profit · {soldPlayers.length} players sold
+              </div>
+              <div style={{
+                fontFamily: serifFontFamily, fontSize: 58, fontWeight: 900,
+                color: profitColor, letterSpacing: -3, lineHeight: 1,
+              }}>
+                +{currency}{TOTAL_PROFIT}m
+              </div>
             </div>
-            <div style={{
-              fontFamily: serifFontFamily, fontSize: 58, fontWeight: 900,
-              color: profitColor, letterSpacing: -3, lineHeight: 1,
-            }}>
-              +{currency}{TOTAL_PROFIT}m
-            </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
+      </div>
     </AbsoluteFill>
   );
 };
