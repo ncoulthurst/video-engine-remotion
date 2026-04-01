@@ -10,6 +10,7 @@
  */
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import type { CalculateMetadataFunction } from "remotion";
 import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SPRINGS } from "./shared";
 
@@ -46,6 +47,18 @@ export const CountdownRevealPropsSchema = z.object({
 });
 
 export type CountdownRevealProps = z.infer<typeof CountdownRevealPropsSchema>;
+
+// ── Dynamic duration — computed from item count + dwellFrames ─────────────────
+const _INTRO = 28;
+const _PAN   = 20;
+const _OUTRO = 60;
+
+export const calculateMetadata: CalculateMetadataFunction<CountdownRevealProps> = ({ props }) => {
+  const n     = props.items.length;
+  const phase = props.dwellFrames + _PAN;
+  const outroStart = _INTRO + (n - 1) * phase + props.dwellFrames;
+  return { durationInFrames: outroStart + _OUTRO };
+};
 
 // ══════════════════════════════════════════════════════════════════════════════
 // LAYOUT

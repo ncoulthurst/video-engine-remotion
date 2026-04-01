@@ -47,6 +47,9 @@ import { TimelineScroll } from "./TimelineScroll";
 import { CountdownReveal } from "./CountdownReveal";
 import { StatPulse } from "./StatPulse";
 import { MatchMoment } from "./MatchMoment";
+import { TransferProfit } from "./TransferProfit";
+import { ScoutReport } from "./ScoutReport";
+import { ValueCurve } from "./ValueCurve";
 
 // ── Transitions ────────────────────────────────────────────────────────────────
 import {
@@ -99,6 +102,9 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   CountdownReveal,
   StatPulse,
   MatchMoment,
+  TransferProfit,
+  ScoutReport,
+  ValueCurve,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

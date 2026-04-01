@@ -34,9 +34,12 @@ import { TitleCard, TitleCardPropsSchema } from "./TitleCard";
 import { AnnotatedImage, AnnotatedImagePropsSchema } from "./AnnotatedImage";
 import { SplitComparison, SplitComparisonPropsSchema } from "./SplitComparison";
 import { TimelineScroll, TimelineScrollPropsSchema } from "./TimelineScroll";
-import { CountdownReveal, CountdownRevealPropsSchema } from "./CountdownReveal";
+import { CountdownReveal, CountdownRevealPropsSchema, calculateMetadata as countdownCalculateMetadata } from "./CountdownReveal";
 import { StatPulse, StatPulsePropsSchema } from "./StatPulse";
 import { MatchMoment, MatchMomentPropsSchema } from "./MatchMoment";
+import { TransferProfit, TransferProfitPropsSchema } from "./TransferProfit";
+import { ScoutReport, ScoutReportPropsSchema } from "./ScoutReport";
+import { ValueCurve, ValueCurvePropsSchema } from "./ValueCurve";
 import {
   VideoSequence,
   VideoSequencePropsSchema,
@@ -790,7 +793,8 @@ export const Root: React.FC = () => {
         id="CountdownReveal"
         component={CountdownReveal}
         schema={CountdownRevealPropsSchema}
-        durationInFrames={980}
+        calculateMetadata={countdownCalculateMetadata}
+        durationInFrames={1200}
         fps={30}
         width={1920}
         height={1080}
@@ -866,6 +870,91 @@ export const Root: React.FC = () => {
           bgColor:     "#0a0a0a",
           homeColor:   "#C8102E",
           awayColor:   "#004D98",
+        }}
+      />
+
+      {/* ── Brentford / Transfer Model Components ───────────────────────────── */}
+      <Composition
+        id="TransferProfit"
+        component={TransferProfit}
+        schema={TransferProfitPropsSchema}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:       "The Brentford Model",
+          subtitle:    "buy smart · develop · sell for profit",
+          currency:    "£",
+          accentColor: "#E30613",
+          bgColor:     "#f0ece4",
+          darkMode:    false,
+          showTotal:   true,
+          players: [
+            { name: "Neal Maupay",   buyFee: 1.6,  sellFee: 20,  buyYear: 2017, sellYear: 2019, toClub: "Brighton",    origin: "St Étienne",   sold: true  },
+            { name: "Ollie Watkins", buyFee: 1.8,  sellFee: 28,  buyYear: 2017, sellYear: 2020, toClub: "Aston Villa", origin: "Exeter City",   sold: true  },
+            { name: "Said Benrahma", buyFee: 1.2,  sellFee: 25,  buyYear: 2018, sellYear: 2021, toClub: "West Ham",    origin: "OGC Nice",      sold: true  },
+            { name: "Ivan Toney",    buyFee: 10,   sellFee: 40,  buyYear: 2020, sellYear: 2024, toClub: "Al-Ahli",     origin: "Peterborough",  sold: true  },
+            { name: "Bryan Mbeumo",  buyFee: 1.0,  sellFee: 0,   buyYear: 2019, sellYear: 0,    toClub: "",            origin: "Troyes",        sold: false },
+          ],
+        }}
+      />
+      <Composition
+        id="ScoutReport"
+        component={ScoutReport}
+        schema={ScoutReportPropsSchema}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          playerName:   "Ollie Watkins",
+          origin:       "Exeter City",
+          league:       "EFL League Two",
+          signingFee:   "£1.8m",
+          signingYear:  "2017",
+          playerAge:    21,
+          headline:     "25 goals in 35 Championship appearances",
+          headlineStat: "25",
+          headlineUnit: "Championship goals",
+          accentColor:  "#E30613",
+          bgColor:      "#0f0f0f",
+          lightMode:    false,
+          metrics: [
+            { label: "Goals",       value: "25",    detail: "Championship 19/20",  bar: 92 },
+            { label: "Assists",     value: "7",     detail: "same season",         bar: 78 },
+            { label: "Shots/90",    value: "3.4",   detail: "top 5% in league",    bar: 96 },
+            { label: "Dribbles/90", value: "2.1",   detail: "direct runner",       bar: 85 },
+            { label: "Age signed",  value: "21",    detail: "high sell-on value",  bar: 70 },
+            { label: "Fee paid",    value: "£1.8m", detail: "below market value",  bar: 12 },
+          ],
+        }}
+      />
+      <Composition
+        id="ValueCurve"
+        component={ValueCurve}
+        schema={ValueCurvePropsSchema}
+        durationInFrames={360}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          playerName:  "Ollie Watkins",
+          buyFee:      1.8,
+          sellFee:     28.0,
+          buySeason:   "2017",
+          sellSeason:  "2020",
+          currency:    "£",
+          accentColor: "#E30613",
+          bgColor:     "#f0ece4",
+          darkMode:    false,
+          dataPoints: [
+            { label: "Sign",    value: 1.8  },
+            { label: "2017/18", value: 3.5  },
+            { label: "2018/19", value: 8.0  },
+            { label: "2019/20", value: 18.0, annotation: "25 Championship goals" },
+            { label: "Sale",    value: 28.0 },
+          ],
         }}
       />
 
