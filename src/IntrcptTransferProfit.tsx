@@ -379,44 +379,38 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
       </div>
 
       {/* ── Bottom strip — running total during narration, final reveal at outro ── */}
-      {stripProg > 0.01 && (
+      {stripOpacity > 0.01 && (
         <div
           style={{
-            position:   "absolute",
-            bottom:     52,
-            left:       140,
-            zIndex:     12,
-            opacity:    stripOpacity,
-            transform:  `translateY(${interpolate(stripProg, [0, 1], [12, 0])}px)`,
-            display:    "flex",
-            alignItems: "flex-end",
-            gap:        16,
-            borderTop:  "1px solid rgba(0,0,0,0.10)",
+            position:  "absolute",
+            bottom:    52,
+            left:      140,
+            zIndex:    12,
+            opacity:   stripOpacity,
+            // No translateY — any transform on this element causes per-frame repaints
+            // that appear as jitter. Opacity-only reveal is stable.
+            height:    64,  // fixed height so nothing inside can shift it
+            width:     hasSide ? CONTENT_MAX_W - 280 : 1640,
+            borderTop: "1px solid rgba(0,0,0,0.10)",
             paddingTop: 16,
-            width:      hasSide ? CONTENT_MAX_W - 280 : 1640,
+            boxSizing: "border-box",
+            display:   "flex",
+            alignItems: "center",
+            gap:       16,
           }}
         >
-          {/* Label: "running total" fades out, "Total profit" types in */}
-          <div style={{ position: "relative", minWidth: 120 }}>
-            <div style={{
-              fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted,
-              letterSpacing: 2, textTransform: "uppercase",
-              opacity: Math.max(0, 1 - labelTransProg),
-              position: "absolute", whiteSpace: "nowrap",
-            }}>
-              running total
-            </div>
-            <div style={{
-              fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted,
-              letterSpacing: 2, textTransform: "uppercase",
-              opacity: labelTransProg,
-              whiteSpace: "nowrap",
-            }}>
-              {typewriter("Total profit", totalRevealF, 0.9)}
-            </div>
+          {/* Label — single div, text swaps at outro boundary, no layout change */}
+          <div style={{
+            fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted,
+            letterSpacing: 2, textTransform: "uppercase", whiteSpace: "nowrap",
+            width: 120, flexShrink: 0,
+          }}>
+            {labelTransProg < 0.5
+              ? "running total"
+              : typewriter("Total profit", totalRevealF, 0.9)}
           </div>
 
-          {/* Number — always runningProfit, pops at outro via scale only (no fontSize change = no layout shift) */}
+          {/* Number — fixed font size, scale-only pop */}
           <div style={{
             fontFamily:      serifFontFamily,
             fontSize:        48,
@@ -424,16 +418,20 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             color:           profitColor,
             letterSpacing:   -2,
             lineHeight:      1,
-            display:         "inline-block",
+            flexShrink:      0,
+            width:           200,  // fixed width prevents siblings shifting as digits change
             transform:       `scale(${popScale})`,
-            transformOrigin: "left bottom",
+            transformOrigin: "left center",
             textShadow:      glowRadius > 0.5 ? `0 0 ${glowRadius}px ${profitColor}` : "none",
           }}>
             +£{runningProfit}m
           </div>
 
-          {/* "across N signings" types in at outro */}
-          <div style={{ fontFamily, fontSize: 15, fontWeight: 500, color: COLORS.muted, opacity: labelTransProg }}>
+          {/* "across N signings" — only visible at outro */}
+          <div style={{
+            fontFamily, fontSize: 15, fontWeight: 500, color: COLORS.muted,
+            opacity: labelTransProg, flexShrink: 0,
+          }}>
             {typewriter(`across ${n} signings`, totalRevealF + 12, 0.9)}
           </div>
         </div>
