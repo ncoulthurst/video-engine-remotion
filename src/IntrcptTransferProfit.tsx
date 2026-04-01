@@ -391,7 +391,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             opacity:    stripOpacity,
             transform:  `translateY(${interpolate(stripProg, [0, 1], [12, 0])}px)`,
             display:    "flex",
-            alignItems: "baseline",
+            alignItems: "flex-end",
             gap:        16,
             borderTop:  "1px solid rgba(0,0,0,0.10)",
             paddingTop: 16,
