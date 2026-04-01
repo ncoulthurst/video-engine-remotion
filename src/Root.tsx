@@ -887,15 +887,16 @@ export const Root: React.FC = () => {
           subtitle:    "buy smart · develop · sell for profit",
           currency:    "£",
           accentColor: "#E30613",
+          profitColor: "#C9A84C",
           bgColor:     "#f0ece4",
           darkMode:    false,
           showTotal:   true,
           players: [
-            { name: "Neal Maupay",   buyFee: 1.6,  sellFee: 20,  buyYear: 2017, sellYear: 2019, toClub: "Brighton",    origin: "St Étienne",   sold: true  },
-            { name: "Ollie Watkins", buyFee: 1.8,  sellFee: 28,  buyYear: 2017, sellYear: 2020, toClub: "Aston Villa", origin: "Exeter City",   sold: true  },
-            { name: "Said Benrahma", buyFee: 1.2,  sellFee: 25,  buyYear: 2018, sellYear: 2021, toClub: "West Ham",    origin: "OGC Nice",      sold: true  },
-            { name: "Ivan Toney",    buyFee: 10,   sellFee: 40,  buyYear: 2020, sellYear: 2024, toClub: "Al-Ahli",     origin: "Peterborough",  sold: true  },
-            { name: "Bryan Mbeumo",  buyFee: 1.0,  sellFee: 0,   buyYear: 2019, sellYear: 0,    toClub: "",            origin: "Troyes",        sold: false },
+            { name: "Neal Maupay",   imageSrc: "maupay.png",   origin: "St Étienne",   buyFee: 1.6,  sellFee: 20,  buyYear: 2017, sellYear: 2019, toClub: "Brighton",    sold: true,  estValue: 0 },
+            { name: "Ollie Watkins", imageSrc: "watkins.png",  origin: "Exeter City",  buyFee: 1.8,  sellFee: 28,  buyYear: 2017, sellYear: 2020, toClub: "Aston Villa", sold: true,  estValue: 0 },
+            { name: "Said Benrahma", imageSrc: "benrahma.png", origin: "OGC Nice",     buyFee: 1.2,  sellFee: 25,  buyYear: 2018, sellYear: 2021, toClub: "West Ham",    sold: true,  estValue: 0 },
+            { name: "Ivan Toney",    imageSrc: "toney.png",    origin: "Peterborough", buyFee: 10,   sellFee: 40,  buyYear: 2020, sellYear: 2024, toClub: "Al-Ahli",     sold: true,  estValue: 0 },
+            { name: "Bryan Mbeumo",  imageSrc: "mbeumo.png",   origin: "Troyes",       buyFee: 1.0,  sellFee: 65,  buyYear: 2019, sellYear: 2025, toClub: "Man Utd",     sold: true,  estValue: 0 },
           ],
         }}
       />
