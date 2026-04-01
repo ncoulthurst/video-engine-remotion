@@ -153,7 +153,6 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
         const src = t.sideImage || globalImage || "";
         if (!src) return null;
         const op = Math.max(imgOpacity(i), i === 0 ? preOpacity : 0);
-        if (op < 0.01) return null;
         return (
           <div
             key={i}
