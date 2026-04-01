@@ -37,7 +37,7 @@ import { TimelineScroll, TimelineScrollPropsSchema } from "./TimelineScroll";
 import { CountdownReveal, CountdownRevealPropsSchema, calculateMetadata as countdownCalculateMetadata } from "./CountdownReveal";
 import { StatPulse, StatPulsePropsSchema } from "./StatPulse";
 import { MatchMoment, MatchMomentPropsSchema } from "./MatchMoment";
-import { TransferProfit, TransferProfitPropsSchema } from "./TransferProfit";
+import { TransferProfit, TransferProfitPropsSchema, calculateMetadata as transferProfitCalculateMetadata } from "./TransferProfit";
 import { ScoutReport, ScoutReportPropsSchema } from "./ScoutReport";
 import { ValueCurve, ValueCurvePropsSchema } from "./ValueCurve";
 import {
@@ -878,7 +878,8 @@ export const Root: React.FC = () => {
         id="TransferProfit"
         component={TransferProfit}
         schema={TransferProfitPropsSchema}
-        durationInFrames={300}
+        calculateMetadata={transferProfitCalculateMetadata}
+        durationInFrames={1900}
         fps={30}
         width={1920}
         height={1080}
@@ -891,6 +892,7 @@ export const Root: React.FC = () => {
           bgColor:     "#f0ece4",
           darkMode:    false,
           showTotal:   true,
+          dwellFrames: 300,
           players: [
             { name: "Neal Maupay",   imageSrc: "maupay.png",   origin: "St Étienne",   buyFee: 1.6,  sellFee: 20,  buyYear: 2017, sellYear: 2019, toClub: "Brighton",    sold: true,  estValue: 0 },
             { name: "Ollie Watkins", imageSrc: "watkins.png",  origin: "Exeter City",  buyFee: 1.8,  sellFee: 28,  buyYear: 2017, sellYear: 2020, toClub: "Aston Villa", sold: true,  estValue: 0 },
