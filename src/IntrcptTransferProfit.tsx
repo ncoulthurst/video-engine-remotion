@@ -1,10 +1,10 @@
 /**
  * IntrcptTransferProfit — Brentford buy-low / sell-high transfer record.
  *
- * Identical layout feel to IntrcptTransferRecord but each row shows
- * TWO bars: buy price (muted) + sell price (accent), stacked, so the
- * viewer instantly sees the spread.  Profit chip animates in after the
- * bars settle.
+ * Narration-paced: each row reveals on its own frame window so the presenter
+ * can talk through each player before the next appears. Inactive rows dim.
+ * Two bars per row (sell = accent red, buy = muted blue) + fixed-width gold
+ * profit chip on the right. Side image crossfades as active player changes.
  */
 import React from "react";
 import {
@@ -13,6 +13,7 @@ import {
   spring,
   useCurrentFrame,
   useVideoConfig,
+  CalculateMetadataFunction,
 } from "remotion";
 import { z } from "zod";
 import {
@@ -33,41 +34,52 @@ const TransferSchema = z.object({
   player:    z.string(),
   fromClub:  z.string().default(""),
   toClub:    z.string().default(""),
-  buyFee:    z.string(),          // e.g. "£1.8m"
-  buyValue:  z.number(),          // numeric, same unit as sellValue
-  sellFee:   z.string(),          // e.g. "£28m"
+  buyFee:    z.string(),
+  buyValue:  z.number(),
+  sellFee:   z.string(),
   sellValue: z.number(),
   highlight: z.boolean().default(false),
-  sideImage: z.string().optional(), // per-player image (overrides global)
+  sideImage: z.string().optional(),
 });
 
 export const IntrcptTransferProfitPropsSchema = z.object({
-  title:      z.string().default("the brentford model"),
-  subtitle:   z.string().default("buy cheap. develop. sell big."),
-  sideImage:  z.string().optional(),   // global fallback image
-  accentColor: z.string().default("#E30613"),  // sell bar / profit chip
-  buyColor:   z.string().default("#4a6fa5"),   // buy bar colour
-  bgColor:    z.string().default("#f0ece4"),
-  transfers:  z.array(TransferSchema).default([
-    { year: "2017", player: "Ollie Watkins",  fromClub: "Exeter City",   toClub: "Aston Villa",    buyFee: "£1.8m",  buyValue: 1.8,  sellFee: "£28m",  sellValue: 28,  highlight: true  },
-    { year: "2015", player: "Andre Gray",     fromClub: "Luton Town",    toClub: "Burnley",         buyFee: "£0.9m",  buyValue: 0.9,  sellFee: "£18m",  sellValue: 18,  highlight: false },
-    { year: "2018", player: "Neal Maupay",    fromClub: "Saint-Étienne", toClub: "Brighton",        buyFee: "£1.6m",  buyValue: 1.6,  sellFee: "£20m",  sellValue: 20,  highlight: false },
-    { year: "2020", player: "Saïd Benrahma",  fromClub: "Nice",          toClub: "West Ham",        buyFee: "£1.5m",  buyValue: 1.5,  sellFee: "£25m",  sellValue: 25,  highlight: false },
-    { year: "2018", player: "Ivan Toney",     fromClub: "Peterborough",  toClub: "Nottm Forest",    buyFee: "£5m",    buyValue: 5,    sellFee: "£40m",  sellValue: 40,  highlight: true  },
-  ]),
+  title:       z.string().default("the brentford model"),
+  subtitle:    z.string().default("buy cheap. develop. sell big."),
+  sideImage:   z.string().optional(),
+  accentColor: z.string().default("#E30613"),
+  buyColor:    z.string().default("#4a6fa5"),
+  profitColor: z.string().default("#C9A84C"),
+  bgColor:     z.string().default("#f0ece4"),
+  dwellFrames: z.number().int().default(150),
+  transfers:   z.array(TransferSchema).default([]),
 });
 
 export type IntrcptTransferProfitProps = z.infer<typeof IntrcptTransferProfitPropsSchema>;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Constants
+// calculateMetadata — total duration driven by dwellFrames × n players
 // ─────────────────────────────────────────────────────────────────────────────
 
-const ROW_START   = 18;
-const ROW_STAGGER = 12;
+const INTRO_F  = 60;
+const OUTRO_F  = 90;
+
+export const calculateMetadata: CalculateMetadataFunction<IntrcptTransferProfitProps> = ({
+  props,
+}) => {
+  const n = props.transfers.length || 1;
+  return { durationInFrames: INTRO_F + n * props.dwellFrames + OUTRO_F };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Layout constants
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ROW_H       = 108;
 const BAR_H_SELL  = 14;
 const BAR_H_BUY   = 8;
-const BAR_GAP     = 7;
+const BAR_GAP     = 8;
+const PROFIT_W    = 130;  // fixed-width right column for profit chip
+const ACCENT_STRIPE_W = 3;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
@@ -79,98 +91,118 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   sideImage: globalImage,
   accentColor,
   buyColor,
+  profitColor,
   bgColor,
+  dwellFrames,
   transfers,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const maxSell  = Math.max(...transfers.map(t => t.sellValue));
-  const hasSide  = transfers.some(t => t.sideImage) || !!globalImage;
-  const BAR_MAX_W = hasSide ? 500 : 900;
+  const n       = transfers.length;
+  const maxSell = Math.max(...transfers.map(t => t.sellValue), 1);
+  const hasSide = transfers.some(t => t.sideImage) || !!globalImage;
+  const BAR_MAX_W = hasSide ? 480 : 860;
 
+  // ── Header ────────────────────────────────────────────────────────────────
   const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
-  const imageProg  = spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
 
-  // Which image to show in the side panel — use the most recently revealed
-  // player's image if available, else the global sideImage.
-  const activeIdx = (() => {
-    let last = -1;
-    for (let i = 0; i < transfers.length; i++) {
-      const p = spring({ frame: frame - (ROW_START + i * ROW_STAGGER), fps, config: { damping: 24, stiffness: 60 } });
-      if (p > 0.05) last = i;
-    }
-    return last;
-  })();
+  // ── Per-row reveal frame ──────────────────────────────────────────────────
+  const revealF = (i: number) => INTRO_F + i * dwellFrames;
 
-  const activeSideImage =
-    (activeIdx >= 0 && transfers[activeIdx].sideImage) || globalImage;
+  // Active state: spring that rises when row i reveals and falls when row i+1 reveals.
+  // Gives a smooth 0→1→0 arc for each row while it's "active".
+  const activeState = (i: number) => {
+    const rise = spring({ frame: frame - revealF(i),     fps, config: { damping: 26, stiffness: 40 } });
+    const fall = i < n - 1
+      ? spring({ frame: frame - revealF(i + 1), fps, config: { damping: 26, stiffness: 40 } })
+      : 0;
+    return Math.max(0, rise - fall);
+  };
+
+  // ── Side image: crossfade by blending each player's image at their active weight
+  // We stack them in z-order and opacity-blend.
+  const allImages: { src: string; opacity: number }[] = transfers.map((t, i) => {
+    const src = t.sideImage || globalImage || "";
+    const as  = activeState(i);
+    return { src, opacity: as };
+  });
+
+  // Ensure something is visible even before first reveal — use first image at low opacity
+  const imageProg = spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
 
   return (
     <AbsoluteFill>
       <PaperBackground color={bgColor} />
 
-      {/* ── Side image ─────────────────────────────────────────────────────── */}
-      {hasSide && activeSideImage && (
-        <div
-          style={{
-            position: "absolute",
-            right:    0,
-            top:      0,
-            bottom:   0,
-            width:    860,
-            opacity:  interpolate(imageProg, [0, 1], [0, 0.80]),
-            transform: `translateX(${interpolate(imageProg, [0, 1], [80, 0])}px)`,
-            WebkitMaskImage:
-              "linear-gradient(to right, transparent, black 300px, black 85%, transparent)",
-            maskImage:
-              "linear-gradient(to right, transparent, black 300px, black 85%, transparent)",
-            zIndex: 1,
-          }}
-        >
-          <SmartImg
-            src={activeSideImage}
+      {/* ── Side image layers (one per player, opacity driven by active state) */}
+      {hasSide && allImages.map(({ src, opacity }, i) => {
+        if (!src) return null;
+        // Before any row reveals, show first image at imageProg opacity
+        const resolvedOpacity = i === 0
+          ? Math.max(opacity * 0.85, imageProg * 0.35 * (1 - activeState(0 < n - 1 ? 1 : 0)))
+          : opacity * 0.85;
+        return (
+          <div
+            key={i}
             style={{
-              width:          "100%",
-              height:         "100%",
-              objectFit:      "cover",
-              objectPosition: "top center",
-              filter:         "contrast(1.05) brightness(1.02)",
+              position: "absolute",
+              right:    0,
+              top:      0,
+              bottom:   0,
+              width:    860,
+              opacity:  resolvedOpacity,
+              WebkitMaskImage:
+                "linear-gradient(to right, transparent, black 280px, black 88%, transparent)",
+              maskImage:
+                "linear-gradient(to right, transparent, black 280px, black 88%, transparent)",
+              zIndex: 1,
             }}
-          />
-        </div>
-      )}
+          >
+            <SmartImg
+              src={src}
+              style={{
+                width:          "100%",
+                height:         "100%",
+                objectFit:      "cover",
+                objectPosition: "top center",
+                filter:         "contrast(1.05) brightness(1.02)",
+              }}
+            />
+          </div>
+        );
+      })}
 
-      {/* ── Grain overlay ──────────────────────────────────────────────────── */}
+      {/* ── Grain ─────────────────────────────────────────────────────────── */}
       <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
         <Grain />
       </div>
 
-      {/* ── Content ────────────────────────────────────────────────────────── */}
+      {/* ── Content ───────────────────────────────────────────────────────── */}
       <div
         style={{
-          position:   "absolute",
-          inset:      0,
-          display:    "flex",
-          flexDirection: "column",
+          position:       "absolute",
+          inset:          0,
+          display:        "flex",
+          flexDirection:  "column",
           justifyContent: "center",
-          padding:    "0 140px",
-          maxWidth:   hasSide ? 1080 : 1920,
-          zIndex:     10,
+          padding:        "0 140px",
+          maxWidth:       hasSide ? 1080 : 1920,
+          zIndex:         10,
         }}
       >
         {/* Header */}
         <div
           style={{
-            opacity:   headerProg,
-            transform: `translateY(${interpolate(headerProg, [0, 1], [-20, 0])}px)`,
-            marginBottom: 48,
+            opacity:      headerProg,
+            transform:    `translateY(${interpolate(headerProg, [0, 1], [-18, 0])}px)`,
+            marginBottom: 44,
           }}
         >
           <div
             style={{
               fontFamily:    serifFontFamily,
-              fontSize:      68,
+              fontSize:      66,
               fontWeight:    900,
               color:         COLORS.primary,
               letterSpacing: -3,
@@ -183,78 +215,91 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             <div
               style={{
                 fontFamily,
-                fontSize:      20,
-                fontWeight:    500,
-                color:         COLORS.muted,
-                letterSpacing: 0.5,
-                marginTop:     12,
+                fontSize:   19,
+                fontWeight: 500,
+                color:      COLORS.muted,
+                marginTop:  10,
               }}
             >
               {subtitle}
             </div>
           )}
 
-          {/* Buy / sell legend */}
-          <div
-            style={{
-              display:    "flex",
-              alignItems: "center",
-              gap:        28,
-              marginTop:  18,
-            }}
-          >
+          {/* Legend */}
+          <div style={{ display: "flex", alignItems: "center", gap: 24, marginTop: 16 }}>
             <LegendDot color={accentColor} label="sold for" />
             <LegendDot color={buyColor}    label="bought for" />
+            <LegendDot color={profitColor} label="profit" diamond />
           </div>
         </div>
 
         {/* Rows */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column" }}>
           {transfers.map((t, i) => {
-            const prog = spring({
-              frame: frame - (ROW_START + i * ROW_STAGGER),
+            const rowProg = spring({
+              frame:  frame - revealF(i),
               fps,
               config: { damping: 24, stiffness: 60 },
             });
-            const opacity  = interpolate(prog, [0, 0.4], [0, 1], { extrapolateRight: "clamp" });
-            const sellBarW = interpolate(prog, [0, 1], [0, (t.sellValue / maxSell) * BAR_MAX_W], { extrapolateRight: "clamp" });
-            const buyBarW  = interpolate(prog, [0, 1], [0, (t.buyValue  / maxSell) * BAR_MAX_W], { extrapolateRight: "clamp" });
 
-            // Profit chip appears once bars are mostly drawn
+            // Has this row been revealed yet?
+            const revealed = rowProg > 0.01;
+            if (!revealed) return <div key={i} style={{ height: ROW_H }} />;
+
+            const as      = activeState(i);
+            const rowOpacity = interpolate(as, [0, 1], [0.22, 1]);
+            const entryOpacity = interpolate(rowProg, [0, 0.35], [0, 1], { extrapolateRight: "clamp" });
+            const opacity = rowOpacity * entryOpacity;
+
+            const sellBarW = interpolate(rowProg, [0, 1], [0, (t.sellValue / maxSell) * BAR_MAX_W], { extrapolateRight: "clamp" });
+            const buyBarW  = interpolate(rowProg, [0, 1], [0, (t.buyValue  / maxSell) * BAR_MAX_W], { extrapolateRight: "clamp" });
+
             const profitProg = spring({
-              frame: frame - (ROW_START + i * ROW_STAGGER + 18),
+              frame:  frame - revealF(i) - 22,
               fps,
               config: { damping: 22, stiffness: 70 },
             });
             const profitOpacity   = interpolate(profitProg, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
-            const profitTranslate = interpolate(profitProg, [0, 1], [6, 0]);
+            const profitTranslate = interpolate(profitProg, [0, 1], [8, 0]);
 
             const profit    = t.sellValue - t.buyValue;
-            const profitStr = `+£${profit % 1 === 0 ? profit : profit.toFixed(1)}m`;
+            const profitStr = `+£${Number.isInteger(profit) ? profit : profit.toFixed(1)}m`;
 
-            const nameColor = t.highlight ? COLORS.primary : COLORS.primary;
+            const nameSize = t.highlight ? 32 : 27;
 
             return (
               <div
                 key={i}
                 style={{
                   opacity,
-                  display:      "flex",
-                  alignItems:   "center",
-                  minHeight:    96,
-                  borderBottom: i < transfers.length - 1
-                    ? "1px solid rgba(0,0,0,0.06)"
-                    : "none",
-                  paddingTop:   8,
-                  paddingBottom: 8,
+                  display:       "flex",
+                  alignItems:    "center",
+                  height:        ROW_H,
+                  borderBottom:  i < n - 1 ? "1px solid rgba(0,0,0,0.06)" : "none",
+                  position:      "relative",
+                  paddingLeft:   ACCENT_STRIPE_W + 12,
                 }}
               >
+                {/* Active left stripe */}
+                <div
+                  style={{
+                    position:     "absolute",
+                    left:         0,
+                    top:          "20%",
+                    bottom:       "20%",
+                    width:        ACCENT_STRIPE_W,
+                    borderRadius: 2,
+                    background:   accentColor,
+                    opacity:      as,
+                  }}
+                />
+
                 {/* Year */}
                 <div
                   style={{
-                    width:         80,
+                    width:         72,
                     fontFamily,
-                    fontSize:      17,
+                    fontSize:      16,
                     fontWeight:    800,
                     color:         COLORS.muted,
                     letterSpacing: 0.5,
@@ -267,17 +312,17 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
                 {/* Player + clubs */}
                 <div
                   style={{
-                    width:      hasSide ? 320 : 380,
-                    flexShrink: 0,
-                    paddingRight: 24,
+                    width:       hasSide ? 310 : 370,
+                    flexShrink:  0,
+                    paddingRight: 20,
                   }}
                 >
                   <div
                     style={{
                       fontFamily:    serifFontFamily,
-                      fontSize:      t.highlight ? 32 : 27,
+                      fontSize:      nameSize,
                       fontWeight:    900,
-                      color:         nameColor,
+                      color:         COLORS.primary,
                       letterSpacing: -0.5,
                       lineHeight:    1.1,
                     }}
@@ -288,7 +333,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
                     <div
                       style={{
                         fontFamily,
-                        fontSize:   15,
+                        fontSize:   14,
                         fontWeight: 600,
                         color:      COLORS.muted,
                         marginTop:  4,
@@ -301,10 +346,10 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
                   )}
                 </div>
 
-                {/* Bars + fees */}
-                <div style={{ display: "flex", flexDirection: "column", gap: BAR_GAP, flex: 1 }}>
-                  {/* Sell bar */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                {/* Bars */}
+                <div style={{ display: "flex", flexDirection: "column", gap: BAR_GAP, flex: 1, minWidth: 0 }}>
+                  {/* Sell row */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div
                       style={{
                         width:        sellBarW,
@@ -317,7 +362,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
                     <span
                       style={{
                         fontFamily,
-                        fontSize:      t.highlight ? 26 : 22,
+                        fontSize:      t.highlight ? 24 : 20,
                         fontWeight:    900,
                         color:         accentColor,
                         letterSpacing: -0.5,
@@ -328,25 +373,25 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
                     </span>
                   </div>
 
-                  {/* Buy bar */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  {/* Buy row */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div
                       style={{
                         width:        buyBarW,
                         height:       BAR_H_BUY,
                         borderRadius: 4,
                         backgroundColor: buyColor,
-                        opacity:      0.55,
+                        opacity:      0.5,
                         flexShrink:   0,
                       }}
                     />
                     <span
                       style={{
                         fontFamily,
-                        fontSize:      17,
+                        fontSize:      15,
                         fontWeight:    700,
                         color:         COLORS.muted,
-                        letterSpacing: -0.3,
+                        letterSpacing: -0.2,
                         whiteSpace:    "nowrap",
                       }}
                     >
@@ -355,31 +400,38 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
                   </div>
                 </div>
 
-                {/* Profit chip */}
+                {/* Profit chip — fixed width, right-aligned column */}
                 <div
                   style={{
-                    opacity:   profitOpacity,
-                    transform: `translateX(${profitTranslate}px)`,
-                    marginLeft: 24,
-                    flexShrink: 0,
-                    background: `${accentColor}18`,
-                    border:     `1px solid ${accentColor}40`,
-                    borderRadius: 6,
-                    padding:    "4px 12px",
+                    width:       PROFIT_W,
+                    flexShrink:  0,
+                    display:     "flex",
+                    justifyContent: "flex-end",
+                    opacity:     profitOpacity,
+                    transform:   `translateX(${profitTranslate}px)`,
                   }}
                 >
-                  <span
+                  <div
                     style={{
-                      fontFamily,
-                      fontSize:      t.highlight ? 22 : 18,
-                      fontWeight:    800,
-                      color:         accentColor,
-                      letterSpacing: -0.3,
-                      whiteSpace:    "nowrap",
+                      background:   `${profitColor}1a`,
+                      border:       `1px solid ${profitColor}50`,
+                      borderRadius: 6,
+                      padding:      "5px 14px",
                     }}
                   >
-                    {profitStr}
-                  </span>
+                    <span
+                      style={{
+                        fontFamily,
+                        fontSize:      t.highlight ? 22 : 18,
+                        fontWeight:    800,
+                        color:         profitColor,
+                        letterSpacing: -0.3,
+                        whiteSpace:    "nowrap",
+                      }}
+                    >
+                      {profitStr}
+                    </span>
+                  </div>
                 </div>
               </div>
             );
@@ -394,10 +446,31 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
 // Legend dot
 // ─────────────────────────────────────────────────────────────────────────────
 
-const LegendDot: React.FC<{ color: string; label: string }> = ({ color, label }) => (
+const LegendDot: React.FC<{ color: string; label: string; diamond?: boolean }> = ({
+  color,
+  label,
+  diamond,
+}) => (
   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-    <div style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: color }} />
-    <span style={{ fontFamily, fontSize: 14, fontWeight: 600, color: COLORS.muted, letterSpacing: 0.5 }}>
+    <div
+      style={{
+        width:           10,
+        height:          10,
+        borderRadius:    diamond ? 2 : 2,
+        backgroundColor: color,
+        transform:       diamond ? "rotate(45deg)" : "none",
+        opacity:         diamond ? 0.9 : 1,
+      }}
+    />
+    <span
+      style={{
+        fontFamily,
+        fontSize:   13,
+        fontWeight: 600,
+        color:      COLORS.muted,
+        letterSpacing: 0.4,
+      }}
+    >
       {label}
     </span>
   </div>

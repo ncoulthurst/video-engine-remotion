@@ -40,7 +40,7 @@ import { MatchMoment, MatchMomentPropsSchema } from "./MatchMoment";
 import { TransferProfit, TransferProfitPropsSchema, calculateMetadata as transferProfitCalculateMetadata } from "./TransferProfit";
 import { ScoutReport, ScoutReportPropsSchema } from "./ScoutReport";
 import { ValueCurve, ValueCurvePropsSchema } from "./ValueCurve";
-import { IntrcptTransferProfit, IntrcptTransferProfitPropsSchema } from "./IntrcptTransferProfit";
+import { IntrcptTransferProfit, IntrcptTransferProfitPropsSchema, calculateMetadata as transferProfitV2CalculateMetadata } from "./IntrcptTransferProfit";
 import {
   VideoSequence,
   VideoSequencePropsSchema,
@@ -968,7 +968,8 @@ export const Root: React.FC = () => {
         id="IntrcptTransferProfit"
         component={IntrcptTransferProfit}
         schema={IntrcptTransferProfitPropsSchema}
-        durationInFrames={300}
+        calculateMetadata={transferProfitV2CalculateMetadata}
+        durationInFrames={900}
         fps={30}
         width={1920}
         height={1080}
@@ -977,13 +978,15 @@ export const Root: React.FC = () => {
           subtitle:    "buy cheap. develop. sell big.",
           accentColor: "#E30613",
           buyColor:    "#4a6fa5",
+          profitColor: "#C9A84C",
           bgColor:     "#f0ece4",
+          dwellFrames: 150,
           transfers: [
-            { year: "2017", player: "Ollie Watkins",  fromClub: "Exeter City",   toClub: "Aston Villa",  buyFee: "£1.8m", buyValue: 1.8, sellFee: "£28m", sellValue: 28, highlight: true,  sideImage: "watkins" },
-            { year: "2015", player: "Andre Gray",     fromClub: "Luton Town",    toClub: "Burnley",      buyFee: "£0.9m", buyValue: 0.9, sellFee: "£18m", sellValue: 18, highlight: false, sideImage: "" },
-            { year: "2018", player: "Neal Maupay",    fromClub: "Saint-Étienne", toClub: "Brighton",     buyFee: "£1.6m", buyValue: 1.6, sellFee: "£20m", sellValue: 20, highlight: false, sideImage: "maupay" },
-            { year: "2020", player: "Saïd Benrahma",  fromClub: "Nice",          toClub: "West Ham",     buyFee: "£1.5m", buyValue: 1.5, sellFee: "£25m", sellValue: 25, highlight: false, sideImage: "benrahma" },
-            { year: "2018", player: "Ivan Toney",     fromClub: "Peterborough",  toClub: "Nottm Forest", buyFee: "£5m",   buyValue: 5,   sellFee: "£40m", sellValue: 40, highlight: true,  sideImage: "toney" },
+            { year: "2017", player: "Ollie Watkins",   fromClub: "Exeter City",   toClub: "Aston Villa",  buyFee: "£1.8m", buyValue: 1.8, sellFee: "£28m",  sellValue: 28,  highlight: false, sideImage: "watkins.jpg"  },
+            { year: "2018", player: "Neal Maupay",     fromClub: "Saint-Étienne", toClub: "Brighton",     buyFee: "£1.6m", buyValue: 1.6, sellFee: "£20m",  sellValue: 20,  highlight: false, sideImage: "maupay.jpg"   },
+            { year: "2020", player: "Saïd Benrahma",   fromClub: "Nice",          toClub: "West Ham",     buyFee: "£1.5m", buyValue: 1.5, sellFee: "£25m",  sellValue: 25,  highlight: false, sideImage: "benrahma.jpg" },
+            { year: "2021", player: "Bryan Mbeumo",    fromClub: "Troyes",        toClub: "Man Utd",      buyFee: "£1.5m", buyValue: 1.5, sellFee: "£85m",  sellValue: 85,  highlight: true,  sideImage: "mbeumo.jpg"   },
+            { year: "2020", player: "Ivan Toney",      fromClub: "Peterborough",  toClub: "Nottm Forest", buyFee: "£5m",   buyValue: 5,   sellFee: "£40m",  sellValue: 40,  highlight: true,  sideImage: "toney.jpg"    },
           ],
         }}
       />
