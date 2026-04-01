@@ -173,8 +173,6 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   const popSpring  = spring({ frame: frame - totalRevealF, fps, config: { damping: 16, stiffness: 220 } });
   const popScale   = 1 + Math.max(0, popSpring - 1) * 0.15;
   const glowRadius = Math.max(0, popSpring - 1) * 40;
-  // Number scales up from 36 → 52px at outro to emphasise the reveal
-  const numberSize = interpolate(labelTransProg, [0, 1], [36, 52], { extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill>
@@ -418,10 +416,10 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             </div>
           </div>
 
-          {/* Number — always runningProfit, grows + pops at outro */}
+          {/* Number — always runningProfit, pops at outro via scale only (no fontSize change = no layout shift) */}
           <div style={{
             fontFamily:      serifFontFamily,
-            fontSize:        numberSize,
+            fontSize:        48,
             fontWeight:      900,
             color:           profitColor,
             letterSpacing:   -2,
@@ -435,7 +433,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
           </div>
 
           {/* "across N signings" types in at outro */}
-          <div style={{ fontFamily, fontSize: 15, fontWeight: 500, color: COLORS.muted, paddingBottom: 6, opacity: labelTransProg }}>
+          <div style={{ fontFamily, fontSize: 15, fontWeight: 500, color: COLORS.muted, opacity: labelTransProg }}>
             {typewriter(`across ${n} signings`, totalRevealF + 12, 0.9)}
           </div>
         </div>
