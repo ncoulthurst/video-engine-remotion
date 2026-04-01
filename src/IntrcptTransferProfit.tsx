@@ -116,6 +116,19 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const revealF    = (i: number) => INTRO_F + i * dwellFrames;
 
+  // ── Typewriter helper — slices text based on elapsed frames ──────────────
+  const TYPER_SPEED   = 2.8; // chars per frame
+  const titleStartF   = 4;
+  const subtitleStartF = titleStartF + Math.ceil(title.length / TYPER_SPEED) + 3;
+  const typewriter = (text: string, startF: number, speed = TYPER_SPEED): string => {
+    const chars = Math.floor(
+      interpolate(frame, [startF, startF + text.length / speed], [0, text.length], {
+        extrapolateLeft: "clamp", extrapolateRight: "clamp",
+      })
+    );
+    return text.slice(0, chars);
+  };
+
   // ── Side image opacity: rowSpring_i × (1 − rowSpring_{i+1})
   // This gives a clean crossfade with zero overlap between adjacent images.
   const imgOpacity = (i: number): number => {
@@ -140,9 +153,22 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   };
 
   // ── Total profit — reveals at start of outro
-  const totalRevealF = INTRO_F + n * dwellFrames;
-  const totalProg    = spring({ frame: frame - totalRevealF, fps, config: { damping: 20, stiffness: 45 } });
-  const totalProfit  = Math.round(transfers.reduce((sum, t) => sum + (t.sellValue - t.buyValue), 0));
+  const totalRevealF  = INTRO_F + n * dwellFrames;
+  const totalProg     = spring({ frame: frame - totalRevealF, fps, config: { damping: 20, stiffness: 45 } });
+  const totalProfit   = Math.round(transfers.reduce((sum, t) => sum + (t.sellValue - t.buyValue), 0));
+
+  // Counter: number counts up 0 → totalProfit over 28 frames, then pops
+  const COUNT_DUR     = 28;
+  const displayProfit = Math.round(
+    interpolate(frame, [totalRevealF, totalRevealF + COUNT_DUR], [0, totalProfit], {
+      extrapolateLeft: "clamp", extrapolateRight: "clamp",
+    })
+  );
+  // Low-damping spring overshoots naturally → scale exceeds 1.0 briefly = the pop
+  const popSpring  = spring({ frame: frame - (totalRevealF + COUNT_DUR), fps, config: { damping: 8, stiffness: 240 } });
+  const popScale   = interpolate(popSpring, [0, 1], [1.0, 1.0]) + Math.max(0, popSpring - 1) * 0.25;
+  // Glow pulses with the overshoot
+  const glowRadius = Math.max(0, (popSpring - 1)) * 60;
 
   return (
     <AbsoluteFill>
@@ -209,11 +235,11 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
           }}
         >
           <div style={{ fontFamily: serifFontFamily, fontSize: 64, fontWeight: 900, color: COLORS.primary, letterSpacing: -3, lineHeight: 1 }}>
-            {title}
+            {typewriter(title, titleStartF)}
           </div>
           {subtitle && (
             <div style={{ fontFamily, fontSize: 18, fontWeight: 500, color: COLORS.muted, marginTop: 8 }}>
-              {subtitle}
+              {typewriter(subtitle, subtitleStartF)}
             </div>
           )}
           <div style={{ display: "flex", alignItems: "center", gap: 24, marginTop: 14 }}>
@@ -347,13 +373,24 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
           }}
         >
           <div style={{ fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted, letterSpacing: 2, textTransform: "uppercase" }}>
-            Total profit
+            {typewriter("Total profit", totalRevealF, 3.5)}
           </div>
-          <div style={{ fontFamily: serifFontFamily, fontSize: 52, fontWeight: 900, color: profitColor, letterSpacing: -2, lineHeight: 1 }}>
-            +£{totalProfit}m
+          <div style={{
+            fontFamily:    serifFontFamily,
+            fontSize:      52,
+            fontWeight:    900,
+            color:         profitColor,
+            letterSpacing: -2,
+            lineHeight:    1,
+            transform:     `scale(${popScale})`,
+            transformOrigin: "left bottom",
+            textShadow:    glowRadius > 0.5 ? `0 0 ${glowRadius}px ${profitColor}` : "none",
+            display:       "inline-block",
+          }}>
+            +£{displayProfit}m
           </div>
           <div style={{ fontFamily, fontSize: 15, fontWeight: 500, color: COLORS.muted, paddingBottom: 6 }}>
-            across {n} signings
+            {typewriter(`across ${n} signings`, totalRevealF + 12, 3.5)}
           </div>
         </div>
       )}
