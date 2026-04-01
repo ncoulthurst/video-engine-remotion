@@ -300,7 +300,8 @@ export const Root: React.FC = () => {
           label:   "",
           clip:    "",
           title:   "",
-          bgColor: "#f0ece4"
+          bgColor: "#f0ece4",
+          soundOn: false,
         }}
       />
       <Composition
