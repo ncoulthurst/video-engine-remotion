@@ -148,35 +148,33 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
     return Math.max(0, rise - fall);
   };
 
-  // ── Running total — ticks upward as rows reveal, hides when final appears ─
+  // ── Running total — ticks upward as rows reveal ───────────────────────────
   const runningProfit = Math.round(
     transfers.reduce((sum, t, i) => {
       const rp = Math.min(1, spring({ frame: frame - revealF(i), fps, config: { damping: 24, stiffness: 60 } }));
       return sum + (t.sellValue - t.buyValue) * rp;
     }, 0)
   );
-  const runningRevealProg = spring({ frame: frame - revealF(0) - 8,   fps, config: { damping: 22, stiffness: 60 } });
-  const runningHideProg   = spring({ frame: frame - (INTRO_F + n * dwellFrames) + 10, fps, config: { damping: 22, stiffness: 60 } });
-  const runningOpacity    = Math.max(0, runningRevealProg - runningHideProg);
+  // ── Total profit (needed early for label timing) ─────────────────────────
+  const totalRevealF = INTRO_F + n * dwellFrames;
+  const totalProfit  = Math.round(transfers.reduce((sum, t) => sum + (t.sellValue - t.buyValue), 0));
+
+  // Strip slides in just before first row, stays visible throughout
+  const stripRevealF   = revealF(0) - 10;
+  const stripProg      = spring({ frame: frame - stripRevealF, fps, config: { damping: 22, stiffness: 55 } });
+  const stripOpacity   = interpolate(stripProg, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
+  // Label crossfades "running total" → "Total profit" at outro
+  const labelTransProg = spring({ frame: frame - totalRevealF, fps, config: { damping: 22, stiffness: 60 } });
 
   // ── Legend fade-out once rows start appearing ─────────────────────────────
   const legendFadeOut = spring({ frame: frame - revealF(0) + 8, fps, config: { damping: 24, stiffness: 50 } });
   const legendOpacity = headerProg * Math.max(0, 1 - legendFadeOut);
-
-  // ── Total profit + pop ────────────────────────────────────────────────────
-  const totalRevealF  = INTRO_F + n * dwellFrames;
-  const totalProg     = spring({ frame: frame - totalRevealF, fps, config: { damping: 20, stiffness: 45 } });
-  const totalProfit   = Math.round(transfers.reduce((sum, t) => sum + (t.sellValue - t.buyValue), 0));
-
-  const COUNT_DUR     = 28;
-  const displayProfit = Math.round(
-    interpolate(frame, [totalRevealF, totalRevealF + COUNT_DUR], [0, totalProfit], {
-      extrapolateLeft: "clamp", extrapolateRight: "clamp",
-    })
-  );
-  const popSpring  = spring({ frame: frame - (totalRevealF + COUNT_DUR), fps, config: { damping: 16, stiffness: 220 } });
+  // Pop fires when outro starts — number is already at full value via runningProfit
+  const popSpring  = spring({ frame: frame - totalRevealF, fps, config: { damping: 16, stiffness: 220 } });
   const popScale   = 1 + Math.max(0, popSpring - 1) * 0.15;
   const glowRadius = Math.max(0, popSpring - 1) * 40;
+  // Number scales up from 36 → 52px at outro to emphasise the reveal
+  const numberSize = interpolate(labelTransProg, [0, 1], [36, 52], { extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill>
@@ -213,24 +211,6 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
         <Grain />
       </div>
 
-      {/* ── Running total ticker ─────────────────────────────────────────────── */}
-      {runningOpacity > 0.01 && (
-        <div style={{
-          position:  "absolute",
-          top:       44,
-          right:     140,
-          zIndex:    12,
-          opacity:   runningOpacity,
-          textAlign: "right",
-        }}>
-          <div style={{ fontFamily, fontSize: 11, fontWeight: 700, color: COLORS.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>
-            running total
-          </div>
-          <div style={{ fontFamily: serifFontFamily, fontSize: 36, fontWeight: 900, color: profitColor, letterSpacing: -1.5, lineHeight: 1 }}>
-            +£{runningProfit}m
-          </div>
-        </div>
-      )}
 
       {/* ── Content ───────────────────────────────────────────────────────── */}
       <div
@@ -400,16 +380,16 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
         </div>
       </div>
 
-      {/* ── Total profit strip — appears at outro ─────────────────────────────── */}
-      {totalProg > 0.01 && (
+      {/* ── Bottom strip — running total during narration, final reveal at outro ── */}
+      {stripProg > 0.01 && (
         <div
           style={{
             position:   "absolute",
             bottom:     52,
             left:       140,
             zIndex:     12,
-            opacity:    interpolate(totalProg, [0, 0.5], [0, 1], { extrapolateRight: "clamp" }),
-            transform:  `translateY(${interpolate(totalProg, [0, 1], [16, 0])}px)`,
+            opacity:    stripOpacity,
+            transform:  `translateY(${interpolate(stripProg, [0, 1], [12, 0])}px)`,
             display:    "flex",
             alignItems: "baseline",
             gap:        16,
@@ -418,12 +398,30 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             width:      hasSide ? CONTENT_MAX_W - 280 : 1640,
           }}
         >
-          <div style={{ fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted, letterSpacing: 2, textTransform: "uppercase" }}>
-            {typewriter("Total profit", totalRevealF, 0.9)}
+          {/* Label: "running total" fades out, "Total profit" types in */}
+          <div style={{ position: "relative", minWidth: 120 }}>
+            <div style={{
+              fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted,
+              letterSpacing: 2, textTransform: "uppercase",
+              opacity: Math.max(0, 1 - labelTransProg),
+              position: "absolute", whiteSpace: "nowrap",
+            }}>
+              running total
+            </div>
+            <div style={{
+              fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted,
+              letterSpacing: 2, textTransform: "uppercase",
+              opacity: labelTransProg,
+              whiteSpace: "nowrap",
+            }}>
+              {typewriter("Total profit", totalRevealF, 0.9)}
+            </div>
           </div>
+
+          {/* Number — always runningProfit, grows + pops at outro */}
           <div style={{
             fontFamily:      serifFontFamily,
-            fontSize:        52,
+            fontSize:        numberSize,
             fontWeight:      900,
             color:           profitColor,
             letterSpacing:   -2,
@@ -433,9 +431,11 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             transformOrigin: "left bottom",
             textShadow:      glowRadius > 0.5 ? `0 0 ${glowRadius}px ${profitColor}` : "none",
           }}>
-            +£{displayProfit}m
+            +£{runningProfit}m
           </div>
-          <div style={{ fontFamily, fontSize: 15, fontWeight: 500, color: COLORS.muted, paddingBottom: 6 }}>
+
+          {/* "across N signings" types in at outro */}
+          <div style={{ fontFamily, fontSize: 15, fontWeight: 500, color: COLORS.muted, paddingBottom: 6, opacity: labelTransProg }}>
             {typewriter(`across ${n} signings`, totalRevealF + 12, 0.9)}
           </div>
         </div>
