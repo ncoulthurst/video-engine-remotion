@@ -117,7 +117,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   const revealF    = (i: number) => INTRO_F + i * dwellFrames;
 
   // ── Typewriter helper — slices text based on elapsed frames ──────────────
-  const TYPER_SPEED   = 2.8; // chars per frame
+  const TYPER_SPEED   = 0.7; // chars per frame
   const titleStartF   = 4;
   const subtitleStartF = titleStartF + Math.ceil(title.length / TYPER_SPEED) + 3;
   const typewriter = (text: string, startF: number, speed = TYPER_SPEED): string => {
@@ -164,11 +164,10 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
       extrapolateLeft: "clamp", extrapolateRight: "clamp",
     })
   );
-  // Low-damping spring overshoots naturally → scale exceeds 1.0 briefly = the pop
-  const popSpring  = spring({ frame: frame - (totalRevealF + COUNT_DUR), fps, config: { damping: 8, stiffness: 240 } });
-  const popScale   = interpolate(popSpring, [0, 1], [1.0, 1.0]) + Math.max(0, popSpring - 1) * 0.25;
-  // Glow pulses with the overshoot
-  const glowRadius = Math.max(0, (popSpring - 1)) * 60;
+  // Damping:16 gives one clean overshoot then settles — no repeated bouncing
+  const popSpring  = spring({ frame: frame - (totalRevealF + COUNT_DUR), fps, config: { damping: 16, stiffness: 220 } });
+  const popScale   = 1 + Math.max(0, popSpring - 1) * 0.15;
+  const glowRadius = Math.max(0, popSpring - 1) * 40;
 
   return (
     <AbsoluteFill>
@@ -373,7 +372,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
           }}
         >
           <div style={{ fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted, letterSpacing: 2, textTransform: "uppercase" }}>
-            {typewriter("Total profit", totalRevealF, 3.5)}
+            {typewriter("Total profit", totalRevealF, 0.9)}
           </div>
           <div style={{
             fontFamily:    serifFontFamily,
@@ -390,7 +389,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             +£{displayProfit}m
           </div>
           <div style={{ fontFamily, fontSize: 15, fontWeight: 500, color: COLORS.muted, paddingBottom: 6 }}>
-            {typewriter(`across ${n} signings`, totalRevealF + 12, 3.5)}
+            {typewriter(`across ${n} signings`, totalRevealF + 12, 0.9)}
           </div>
         </div>
       )}
