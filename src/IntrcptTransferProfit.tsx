@@ -1,15 +1,12 @@
 /**
  * IntrcptTransferProfit — Brentford buy-low / sell-high transfer record.
  *
- * Narration-paced: each row reveals on its own frame window so the presenter
- * can talk through each player before the next appears. Inactive rows dim.
+ * Narration-paced: each row reveals on its own frame window. Inactive rows dim.
  *
- * Layout per row (2-line):
+ * Row layout (2-line):
  *   Line 1: year | player name + clubs  ·····  profit chip (right-aligned)
  *   Line 2: sell bar ████████ £Xm
  *            buy  bar ████ £Xm
- *
- * Keeping bars on their own line means they never compete with the profit chip.
  */
 import React from "react";
 import {
@@ -76,15 +73,17 @@ export const calculateMetadata: CalculateMetadataFunction<IntrcptTransferProfitP
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Layout
+// Layout constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const ROW_H          = 124;
-const BAR_H_SELL     = 14;
-const BAR_H_BUY      = 9;
-const BAR_GAP        = 7;
-const ACCENT_STRIPE  = 3;
-const CONTENT_MAX_W  = 1060; // hasSide — leaves room for image panel
+const ROW_H         = 124;
+const BAR_H_SELL    = 14;
+const BAR_H_BUY     = 12;   // bumped from 9 — survives YouTube compression
+const BAR_GAP       = 7;
+const MIN_BAR_W     = 24;   // floor so tiny fees never vanish
+const ACCENT_STRIPE = 3;
+const CONTENT_MAX_W = 1060;
+const CHIP_COUNT_DUR = 10;  // frames for per-row profit counter
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Component
@@ -107,30 +106,28 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   const n       = transfers.length;
   const maxSell = Math.max(...transfers.map(t => t.sellValue), 1);
   const hasSide = transfers.some(t => t.sideImage) || !!globalImage;
-
-  // Bar max width: full content minus year col + player col + padding
-  // Content ~(CONTENT_MAX_W - 280px padding) = 780px
-  // Year(72) + player(280) + paddingRight(20) = 372 used → bars get ~400px
   const BAR_MAX_W = hasSide ? 400 : 740;
 
   const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const revealF    = (i: number) => INTRO_F + i * dwellFrames;
 
-  // ── Typewriter helper — slices text based on elapsed frames ──────────────
-  const TYPER_SPEED   = 0.7; // chars per frame
-  const titleStartF   = 4;
+  // ── Typewriter with blinking cursor ───────────────────────────────────────
+  const TYPER_SPEED    = 0.7; // chars per frame
+  const titleStartF    = 4;
   const subtitleStartF = titleStartF + Math.ceil(title.length / TYPER_SPEED) + 3;
+
   const typewriter = (text: string, startF: number, speed = TYPER_SPEED): string => {
     const chars = Math.floor(
       interpolate(frame, [startF, startF + text.length / speed], [0, text.length], {
         extrapolateLeft: "clamp", extrapolateRight: "clamp",
       })
     );
-    return text.slice(0, chars);
+    const done  = chars >= text.length;
+    const blink = Math.floor(frame / 9) % 2 === 0;
+    return text.slice(0, chars) + (done ? "" : (blink ? "|" : " "));
   };
 
-  // ── Side image opacity: rowSpring_i × (1 − rowSpring_{i+1})
-  // This gives a clean crossfade with zero overlap between adjacent images.
+  // ── Side image crossfade: rowSpring_i × (1 − rowSpring_{i+1}) ─────────────
   const imgOpacity = (i: number): number => {
     const rise = spring({ frame: frame - revealF(i),     fps, config: { damping: 24, stiffness: 50 } });
     const fall = i < n - 1
@@ -139,11 +136,10 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
     return rise * (1 - fall) * 0.85;
   };
 
-  // Pre-reveal: show first image quietly before any row appears
-  const preProg = spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
+  const preProg    = spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
   const preOpacity = preProg * 0.30 * (1 - spring({ frame: frame - revealF(0), fps, config: { damping: 24, stiffness: 50 } }));
 
-  // ── Active state (for dimming/stripe) — same rise−fall logic, separate spring config
+  // ── Active state (row dimming + stripe) ───────────────────────────────────
   const activeState = (i: number): number => {
     const rise = spring({ frame: frame - revealF(i),     fps, config: { damping: 26, stiffness: 40 } });
     const fall = i < n - 1
@@ -152,19 +148,32 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
     return Math.max(0, rise - fall);
   };
 
-  // ── Total profit — reveals at start of outro
+  // ── Running total — ticks upward as rows reveal, hides when final appears ─
+  const runningProfit = Math.round(
+    transfers.reduce((sum, t, i) => {
+      const rp = Math.min(1, spring({ frame: frame - revealF(i), fps, config: { damping: 24, stiffness: 60 } }));
+      return sum + (t.sellValue - t.buyValue) * rp;
+    }, 0)
+  );
+  const runningRevealProg = spring({ frame: frame - revealF(0) - 8,   fps, config: { damping: 22, stiffness: 60 } });
+  const runningHideProg   = spring({ frame: frame - (INTRO_F + n * dwellFrames) + 10, fps, config: { damping: 22, stiffness: 60 } });
+  const runningOpacity    = Math.max(0, runningRevealProg - runningHideProg);
+
+  // ── Legend fade-out once rows start appearing ─────────────────────────────
+  const legendFadeOut = spring({ frame: frame - revealF(0) + 8, fps, config: { damping: 24, stiffness: 50 } });
+  const legendOpacity = headerProg * Math.max(0, 1 - legendFadeOut);
+
+  // ── Total profit + pop ────────────────────────────────────────────────────
   const totalRevealF  = INTRO_F + n * dwellFrames;
   const totalProg     = spring({ frame: frame - totalRevealF, fps, config: { damping: 20, stiffness: 45 } });
   const totalProfit   = Math.round(transfers.reduce((sum, t) => sum + (t.sellValue - t.buyValue), 0));
 
-  // Counter: number counts up 0 → totalProfit over 28 frames, then pops
   const COUNT_DUR     = 28;
   const displayProfit = Math.round(
     interpolate(frame, [totalRevealF, totalRevealF + COUNT_DUR], [0, totalProfit], {
       extrapolateLeft: "clamp", extrapolateRight: "clamp",
     })
   );
-  // Damping:16 gives one clean overshoot then settles — no repeated bouncing
   const popSpring  = spring({ frame: frame - (totalRevealF + COUNT_DUR), fps, config: { damping: 16, stiffness: 220 } });
   const popScale   = 1 + Math.max(0, popSpring - 1) * 0.15;
   const glowRadius = Math.max(0, popSpring - 1) * 40;
@@ -173,7 +182,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
     <AbsoluteFill>
       <PaperBackground color={bgColor} />
 
-      {/* ── Side images — one layer per player, clean crossfade ─────────────── */}
+      {/* ── Side images ──────────────────────────────────────────────────────── */}
       {hasSide && transfers.map((t, i) => {
         const src = t.sideImage || globalImage || "";
         if (!src) return null;
@@ -183,11 +192,9 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             key={i}
             style={{
               position: "absolute",
-              right:    0,
-              top:      0,
-              bottom:   0,
-              width:    860,
-              opacity:  op,
+              right: 0, top: 0, bottom: 0,
+              width:   860,
+              opacity: op,
               WebkitMaskImage: "linear-gradient(to right, transparent, black 280px, black 88%, transparent)",
               maskImage:       "linear-gradient(to right, transparent, black 280px, black 88%, transparent)",
               zIndex: 1,
@@ -195,13 +202,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
           >
             <SmartImg
               src={src}
-              style={{
-                width:          "100%",
-                height:         "100%",
-                objectFit:      "cover",
-                objectPosition: "top center",
-                filter:         "contrast(1.05) brightness(1.02)",
-              }}
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", filter: "contrast(1.05) brightness(1.02)" }}
             />
           </div>
         );
@@ -211,6 +212,25 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
       <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
         <Grain />
       </div>
+
+      {/* ── Running total ticker ─────────────────────────────────────────────── */}
+      {runningOpacity > 0.01 && (
+        <div style={{
+          position:  "absolute",
+          top:       44,
+          right:     140,
+          zIndex:    12,
+          opacity:   runningOpacity,
+          textAlign: "right",
+        }}>
+          <div style={{ fontFamily, fontSize: 11, fontWeight: 700, color: COLORS.muted, letterSpacing: 2, textTransform: "uppercase", marginBottom: 4 }}>
+            running total
+          </div>
+          <div style={{ fontFamily: serifFontFamily, fontSize: 36, fontWeight: 900, color: profitColor, letterSpacing: -1.5, lineHeight: 1 }}>
+            +£{runningProfit}m
+          </div>
+        </div>
+      )}
 
       {/* ── Content ───────────────────────────────────────────────────────── */}
       <div
@@ -241,7 +261,8 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
               {typewriter(subtitle, subtitleStartF)}
             </div>
           )}
-          <div style={{ display: "flex", alignItems: "center", gap: 24, marginTop: 14 }}>
+          {/* Legend fades out once rows start — no longer needed once colour-coding is visible */}
+          <div style={{ display: "flex", alignItems: "center", gap: 24, marginTop: 14, opacity: legendOpacity }}>
             <LegendDot color={accentColor} label="sold for" />
             <LegendDot color={buyColor}    label="bought for" />
             <LegendDot color={profitColor} label="profit" diamond />
@@ -252,33 +273,72 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
         <div style={{ display: "flex", flexDirection: "column" }}>
           {transfers.map((t, i) => {
             const rowProg = spring({ frame: frame - revealF(i), fps, config: { damping: 24, stiffness: 60 } });
-            if (rowProg < 0.01) return <div key={i} style={{ height: ROW_H }} />;
 
-            const as          = activeState(i);
-            const rowOpacity  = interpolate(as, [0, 1], [0.22, 1]);
-            const entryOp     = interpolate(rowProg, [0, 0.35], [0, 1], { extrapolateRight: "clamp" });
-            const opacity     = rowOpacity * entryOp;
+            // Ghost row for unrevealed players — teases upcoming content
+            if (rowProg < 0.01) {
+              return (
+                <div
+                  key={i}
+                  style={{
+                    height:       ROW_H,
+                    borderBottom: i < n - 1 ? "1px solid rgba(0,0,0,0.04)" : "none",
+                    paddingLeft:  ACCENT_STRIPE + 12,
+                    display:      "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    gap: 10,
+                    opacity: 0.18,
+                  }}
+                >
+                  {/* Ghost name placeholder */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+                    <div style={{ width: 72, flexShrink: 0 }} />
+                    <div style={{ width: 100 + (i * 28) % 80, height: 10, borderRadius: 5, background: COLORS.primary }} />
+                  </div>
+                  {/* Ghost bar placeholders */}
+                  <div style={{ paddingLeft: 72, display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ width: 60 + (i * 40) % 120, height: BAR_H_SELL, borderRadius: 4, background: COLORS.muted, opacity: 0.4 }} />
+                    <div style={{ width: 20 + (i * 15) % 40,  height: BAR_H_BUY,  borderRadius: 4, background: COLORS.muted, opacity: 0.25 }} />
+                  </div>
+                </div>
+              );
+            }
 
-            const sellBarW = interpolate(rowProg, [0, 1], [0, (t.sellValue / maxSell) * BAR_MAX_W], { extrapolateRight: "clamp" });
-            const buyBarW  = interpolate(rowProg, [0, 1], [0, (t.buyValue  / maxSell) * BAR_MAX_W], { extrapolateRight: "clamp" });
+            const as         = activeState(i);
+            const rowOpacity = interpolate(as, [0, 1], [0.22, 1]);
+            const entryOp    = interpolate(rowProg, [0, 0.35], [0, 1], { extrapolateRight: "clamp" });
+            const opacity    = rowOpacity * entryOp;
+
+            // Bar widths — with minimum floor so tiny fees are always visible
+            const sellTarget = Math.max(MIN_BAR_W, (t.sellValue / maxSell) * BAR_MAX_W);
+            const buyTarget  = Math.max(MIN_BAR_W, (t.buyValue  / maxSell) * BAR_MAX_W);
+            const sellBarW   = interpolate(rowProg, [0, 1], [0, sellTarget], { extrapolateRight: "clamp" });
+            const buyBarW    = interpolate(rowProg, [0, 1], [0, buyTarget],  { extrapolateRight: "clamp" });
+
+            // Per-row profit chip counter
+            const chipCountStart   = revealF(i) + 22;
+            const profit           = t.sellValue - t.buyValue;
+            const displayRowProfit = Math.round(
+              interpolate(frame, [chipCountStart, chipCountStart + CHIP_COUNT_DUR], [0, profit], {
+                extrapolateLeft: "clamp", extrapolateRight: "clamp",
+              })
+            );
+            const rowProfitStr = `+£${Number.isInteger(displayRowProfit) ? displayRowProfit : displayRowProfit.toFixed(1)}m`;
 
             const profitProg    = spring({ frame: frame - revealF(i) - 22, fps, config: { damping: 22, stiffness: 70 } });
             const profitOpacity = interpolate(profitProg, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
             const profitShift   = interpolate(profitProg, [0, 1], [8, 0]);
-
-            const profit    = t.sellValue - t.buyValue;
-            const profitStr = `+£${Number.isInteger(profit) ? profit : profit.toFixed(1)}m`;
 
             return (
               <div
                 key={i}
                 style={{
                   opacity,
-                  height:       ROW_H,
-                  borderBottom: i < n - 1 ? "1px solid rgba(0,0,0,0.06)" : "none",
-                  position:     "relative",
-                  paddingLeft:  ACCENT_STRIPE + 12,
-                  display:      "flex",
+                  height:        ROW_H,
+                  borderBottom:  i < n - 1 ? "1px solid rgba(0,0,0,0.06)" : "none",
+                  position:      "relative",
+                  paddingLeft:   ACCENT_STRIPE + 12,
+                  display:       "flex",
                   flexDirection: "column",
                   justifyContent: "center",
                   gap: 6,
@@ -286,24 +346,16 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
               >
                 {/* Active left stripe */}
                 <div style={{
-                  position:     "absolute",
-                  left:         0,
-                  top:          "18%",
-                  bottom:       "18%",
-                  width:        ACCENT_STRIPE,
-                  borderRadius: 2,
-                  background:   accentColor,
-                  opacity:      as,
+                  position: "absolute", left: 0, top: "18%", bottom: "18%",
+                  width: ACCENT_STRIPE, borderRadius: 2,
+                  background: accentColor, opacity: as,
                 }} />
 
-                {/* ── Line 1: year + name + profit chip ─────────────────── */}
-                <div style={{ display: "flex", alignItems: "baseline", gap: 0 }}>
-                  {/* Year */}
+                {/* Line 1: year + name + profit chip */}
+                <div style={{ display: "flex", alignItems: "baseline" }}>
                   <div style={{ width: 72, fontFamily, fontSize: 15, fontWeight: 800, color: COLORS.muted, letterSpacing: 0.5, flexShrink: 0 }}>
                     {t.year}
                   </div>
-
-                  {/* Player + clubs */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <span style={{ fontFamily: serifFontFamily, fontSize: t.highlight ? 30 : 26, fontWeight: 900, color: COLORS.primary, letterSpacing: -0.5 }}>
                       {t.player}
@@ -314,32 +366,27 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
                       </span>
                     )}
                   </div>
-
-                  {/* Profit chip — right of name, never near bars */}
+                  {/* Profit chip with counter */}
                   <div style={{ flexShrink: 0, opacity: profitOpacity, transform: `translateX(${profitShift}px)` }}>
                     <div style={{
-                      background:   `${profitColor}1a`,
-                      border:       `1px solid ${profitColor}50`,
-                      borderRadius: 6,
-                      padding:      "3px 12px",
+                      background: `${profitColor}1a`, border: `1px solid ${profitColor}50`,
+                      borderRadius: 6, padding: "3px 12px",
                     }}>
                       <span style={{ fontFamily, fontSize: t.highlight ? 20 : 17, fontWeight: 800, color: profitColor, letterSpacing: -0.3, whiteSpace: "nowrap" }}>
-                        {profitStr}
+                        {rowProfitStr}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* ── Line 2: bars ──────────────────────────────────────── */}
+                {/* Line 2: bars */}
                 <div style={{ paddingLeft: 72, display: "flex", flexDirection: "column", gap: BAR_GAP }}>
-                  {/* Sell bar */}
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: sellBarW, height: BAR_H_SELL, borderRadius: 4, backgroundColor: accentColor, flexShrink: 0 }} />
                     <span style={{ fontFamily, fontSize: t.highlight ? 22 : 18, fontWeight: 900, color: accentColor, letterSpacing: -0.4, whiteSpace: "nowrap" }}>
                       {t.sellFee}
                     </span>
                   </div>
-                  {/* Buy bar */}
                   <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: buyBarW, height: BAR_H_BUY, borderRadius: 4, backgroundColor: buyColor, flexShrink: 0 }} />
                     <span style={{ fontFamily, fontSize: 14, fontWeight: 700, color: buyColor, letterSpacing: -0.2, whiteSpace: "nowrap", opacity: 0.85 }}>
@@ -353,38 +400,38 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
         </div>
       </div>
 
-      {/* ── Total profit — appears at start of outro, bottom of screen ──────── */}
+      {/* ── Total profit strip — appears at outro ─────────────────────────────── */}
       {totalProg > 0.01 && (
         <div
           style={{
-            position:  "absolute",
-            bottom:    52,
-            left:      140,
-            zIndex:    12,
-            opacity:   interpolate(totalProg, [0, 0.5], [0, 1], { extrapolateRight: "clamp" }),
-            transform: `translateY(${interpolate(totalProg, [0, 1], [16, 0])}px)`,
-            display:   "flex",
+            position:   "absolute",
+            bottom:     52,
+            left:       140,
+            zIndex:     12,
+            opacity:    interpolate(totalProg, [0, 0.5], [0, 1], { extrapolateRight: "clamp" }),
+            transform:  `translateY(${interpolate(totalProg, [0, 1], [16, 0])}px)`,
+            display:    "flex",
             alignItems: "baseline",
-            gap:       16,
-            borderTop: "1px solid rgba(0,0,0,0.10)",
+            gap:        16,
+            borderTop:  "1px solid rgba(0,0,0,0.10)",
             paddingTop: 16,
-            width:     hasSide ? CONTENT_MAX_W - 280 : 1640,
+            width:      hasSide ? CONTENT_MAX_W - 280 : 1640,
           }}
         >
           <div style={{ fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted, letterSpacing: 2, textTransform: "uppercase" }}>
             {typewriter("Total profit", totalRevealF, 0.9)}
           </div>
           <div style={{
-            fontFamily:    serifFontFamily,
-            fontSize:      52,
-            fontWeight:    900,
-            color:         profitColor,
-            letterSpacing: -2,
-            lineHeight:    1,
-            transform:     `scale(${popScale})`,
+            fontFamily:      serifFontFamily,
+            fontSize:        52,
+            fontWeight:      900,
+            color:           profitColor,
+            letterSpacing:   -2,
+            lineHeight:      1,
+            display:         "inline-block",
+            transform:       `scale(${popScale})`,
             transformOrigin: "left bottom",
-            textShadow:    glowRadius > 0.5 ? `0 0 ${glowRadius}px ${profitColor}` : "none",
-            display:       "inline-block",
+            textShadow:      glowRadius > 0.5 ? `0 0 ${glowRadius}px ${profitColor}` : "none",
           }}>
             +£{displayProfit}m
           </div>
@@ -403,11 +450,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
 
 const LegendDot: React.FC<{ color: string; label: string; diamond?: boolean }> = ({ color, label, diamond }) => (
   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-    <div style={{
-      width: 10, height: 10, borderRadius: 2,
-      backgroundColor: color,
-      transform: diamond ? "rotate(45deg)" : "none",
-    }} />
+    <div style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: color, transform: diamond ? "rotate(45deg)" : "none" }} />
     <span style={{ fontFamily, fontSize: 13, fontWeight: 600, color: COLORS.muted, letterSpacing: 0.4 }}>
       {label}
     </span>
