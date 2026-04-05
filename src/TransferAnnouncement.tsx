@@ -7,17 +7,17 @@ import {
 } from "./shared";
 
 export const TransferAnnouncementPropsSchema = z.object({
-  playerName:   z.string().default("Player Name"),
-  fromClub:     z.string().default("From Club"),
-  toClub:       z.string().default("To Club"),
+  playerName:   z.string().optional().default("Player Name"),
+  fromClub:     z.string().optional().default("From Club"),
+  toClub:       z.string().optional().default("To Club"),
   fromBadgeSlug: z.string().optional().default(""),
   toBadgeSlug:   z.string().optional().default(""),
   fromColor:    z.string().optional().default("#555"),
   toColor:      z.string().optional().default("#555"),
-  fee:          z.string().default("£0m"),
+  fee:          z.string().optional().default("£0m"),
   year:         z.string().optional().default(""),
   nationality:  z.string().optional().default(""),
-  bgColor:      z.string().default("#f0ece4"),
+  bgColor:      z.string().optional().default("#f0ece4"),
 });
 
 export type TransferAnnouncementProps = z.infer<typeof TransferAnnouncementPropsSchema>;

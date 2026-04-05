@@ -4,25 +4,25 @@ import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg } from "./shared";
 
 const ScorerSchema = z.object({
-  name:   z.string(),
-  minute: z.string().optional(),
+  name:   z.string().optional().default(""),
+  minute: z.string().optional().default(""),
   team:   z.enum(["home", "away"]).optional(),
 });
 
 export const MatchResultPropsSchema = z.object({
-  homeTeam:      z.string(),
-  awayTeam:      z.string(),
-  homeBadgeSlug: z.string().optional(),
-  awayBadgeSlug: z.string().optional(),
-  homeColor:     z.string().optional(),
-  awayColor:     z.string().optional(),
+  homeTeam:      z.string().optional().default("Home"),
+  awayTeam:      z.string().optional().default("Away"),
+  homeBadgeSlug: z.string().optional().default(""),
+  awayBadgeSlug: z.string().optional().default(""),
+  homeColor:     z.string().optional().default(""),
+  awayColor:     z.string().optional().default(""),
   homeScore:     z.number(),
   awayScore:     z.number(),
-  date:          z.string(),
-  competition:   z.string(),
-  venue:         z.string().optional(),
+  date:          z.string().optional().default(""),
+  competition:   z.string().optional().default(""),
+  venue:         z.string().optional().default(""),
   scorers:       z.array(ScorerSchema).optional(),
-  bgColor:       z.string().default("#f0ece4"),
+  bgColor:       z.string().optional().default("#f0ece4"),
 });
 
 export type MatchResultProps = z.infer<typeof MatchResultPropsSchema>;

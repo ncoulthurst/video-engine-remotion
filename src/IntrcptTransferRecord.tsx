@@ -7,9 +7,9 @@ import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } fr
 import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg } from "./shared";
 
-const TransferSchema = z.object({ year: z.string(), player: z.string(), fromClub: z.string().default(""), toClub: z.string().default(""), fee: z.string(), feeValue: z.number(), highlight: z.boolean().default(false) });
+const TransferSchema = z.object({ year: z.string().optional().default(""), player: z.string().optional().default(""), fromClub: z.string().optional().default(""), toClub: z.string().optional().default(""), fee: z.string().optional().default(""), feeValue: z.number(), highlight: z.boolean().default(false) });
 export const IntrcptTransferRecordPropsSchema = z.object({
-  title: z.string().default("world record transfer fees"), subtitle: z.string().default(""), sideImage: z.string().optional(), accentColor: z.string().default("#C9A84C"), transfers: z.array(TransferSchema).default([ { year: "2017", player: "Neymar", fromClub: "Barcelona", toClub: "PSG", fee: "£198m", feeValue: 198, highlight: true } ]), bgColor: z.string().default("#f0ece4"),
+  title: z.string().optional().default("world record transfer fees"), subtitle: z.string().optional().default(""), sideImage: z.string().optional().default(""), accentColor: z.string().optional().default("#C9A84C"), transfers: z.array(TransferSchema).default([ { year: "2017", player: "Neymar", fromClub: "Barcelona", toClub: "PSG", fee: "£198m", feeValue: 198, highlight: true } ]), bgColor: z.string().optional().default("#f0ece4"),
 });
 export type IntrcptTransferRecordProps = z.infer<typeof IntrcptTransferRecordPropsSchema>;
 

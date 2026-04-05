@@ -16,12 +16,12 @@ import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
 
 export const IntrcptConceptCardPropsSchema = z.object({
-  labelLeft:  z.string().default("First Touch"),
-  labelRight: z.string().default("Final Ball"),
-  clipLeft:   z.string().default(""),
-  clipRight:  z.string().default(""),
-  title:      z.string().default(""),
-  bgColor:    z.string().default("#f0ece4"),
+  labelLeft:  z.string().optional().default("First Touch"),
+  labelRight: z.string().optional().default("Final Ball"),
+  clipLeft:   z.string().optional().default(""),
+  clipRight:  z.string().optional().default(""),
+  title:      z.string().optional().default(""),
+  bgColor:    z.string().optional().default("#f0ece4"),
 });
 export type IntrcptConceptCardProps = z.infer<typeof IntrcptConceptCardPropsSchema>;
 

@@ -41,6 +41,11 @@ import { TransferProfit, TransferProfitPropsSchema, calculateMetadata as transfe
 import { ScoutReport, ScoutReportPropsSchema } from "./ScoutReport";
 import { ValueCurve, ValueCurvePropsSchema } from "./ValueCurve";
 import { IntrcptTransferProfit, IntrcptTransferProfitPropsSchema, calculateMetadata as transferProfitV2CalculateMetadata } from "./IntrcptTransferProfit";
+import { IntrcptPhotoReel, IntrcptPhotoReelPropsSchema, calculateMetadata as photoReelCalculateMetadata } from "./IntrcptPhotoReel";
+import { IntrcptContactSheet, IntrcptContactSheetPropsSchema, calculateMetadata as contactSheetCalculateMetadata } from "./IntrcptContactSheet";
+import { IntrcptPlayerReveal, IntrcptPlayerRevealPropsSchema, calculateMetadata as playerRevealCalculateMetadata } from "./IntrcptPlayerReveal";
+import { IntrcptGoalRush, IntrcptGoalRushPropsSchema, calculateMetadata as goalRushCalculateMetadata } from "./IntrcptGoalRush";
+import { IntrcptHeadlineStack, IntrcptHeadlineStackPropsSchema, calculateMetadata as headlineStackCalculateMetadata } from "./IntrcptHeadlineStack";
 import {
   VideoSequence,
   VideoSequencePropsSchema,
@@ -988,6 +993,123 @@ export const Root: React.FC = () => {
             { year: "2021", player: "Bryan Mbeumo",    fromClub: "Troyes",        toClub: "Man Utd",      buyFee: "£1.5m", buyValue: 1.5, sellFee: "£85m",  sellValue: 85,  highlight: true,  sideImage: "mbeumo.jpg"   },
             { year: "2020", player: "Ivan Toney",      fromClub: "Peterborough",  toClub: "Nottm Forest", buyFee: "£5m",   buyValue: 5,   sellFee: "£40m",  sellValue: 40,  highlight: true,  sideImage: "toney.jpg"    },
           ],
+        }}
+      />
+
+      {/* ── IntrcptPlayerReveal — full-height player images, no text ─────── */}
+      <Composition
+        id="IntrcptPlayerReveal"
+        component={IntrcptPlayerReveal}
+        schema={IntrcptPlayerRevealPropsSchema}
+        calculateMetadata={playerRevealCalculateMetadata}
+        durationInFrames={162}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          players: [
+            { src: "aguero.png", zIndex: 1 },  // left-facing
+            { src: "rooney.png", zIndex: 3 },  // forward-facing, hero
+            { src: "suarez.png", zIndex: 2 },  // right-facing
+          ],
+          bgColor:      "#f0ece4",
+          stagger:      20,
+          holdDuration: 90,
+        }}
+      />
+
+      {/* ── IntrcptGoalRush — season-by-season goal tally ────────────────── */}
+      <Composition
+        id="IntrcptGoalRush"
+        component={IntrcptGoalRush}
+        schema={IntrcptGoalRushPropsSchema}
+        calculateMetadata={goalRushCalculateMetadata}
+        durationInFrames={180}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          label: "Luis Suárez",
+          title: "Club Goals",
+          seasons: [
+            { season: "2010/11", club: "Ajax",      goals: 49, highlight: false },
+            { season: "2011/12", club: "Liverpool", goals: 17, highlight: false },
+            { season: "2012/13", club: "Liverpool", goals: 23, highlight: false },
+            { season: "2013/14", club: "Liverpool", goals: 31, highlight: true  },
+            { season: "2014/15", club: "Barcelona", goals: 25, highlight: false },
+            { season: "2015/16", club: "Barcelona", goals: 59, highlight: true  },
+          ],
+          accentColor:  "#D00027",
+          bgColor:      "#f0ece4",
+          stagger:      20,
+          holdDuration: 90,
+        }}
+      />
+
+      {/* ── IntrcptHeadlineStack — editorial punchy text reveal ──────────── */}
+      <Composition
+        id="IntrcptHeadlineStack"
+        component={IntrcptHeadlineStack}
+        schema={IntrcptHeadlineStackPropsSchema}
+        calculateMetadata={headlineStackCalculateMetadata}
+        durationInFrames={120}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          lines: [
+            { text: "THE BITE.",       size: "hero", accent: false },
+            { text: "THE BAN.",        size: "hero", accent: false },
+            { text: "THE BRILLIANCE.", size: "hero", accent: true  },
+          ],
+          eyebrow:      "Luis Suárez · Career",
+          accentColor:  "#D00027",
+          bgColor:      "#f0ece4",
+          stagger:      14,
+          holdDuration: 90,
+        }}
+      />
+
+      {/* ── IntrcptContactSheet — contact sheet photo reveal ─────────────── */}
+      <Composition
+        id="IntrcptContactSheet"
+        component={IntrcptContactSheet}
+        schema={IntrcptContactSheetPropsSchema}
+        calculateMetadata={contactSheetCalculateMetadata}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          images: [
+            { src: "frame1.png", caption: "ANFIELD · MATCHDAY 14 · NOV 2024" },
+            { src: "frame2.png", caption: "TRAINING GROUND · PRE-SEASON" },
+            { src: "frame3.png", caption: "WEMBLEY · FA CUP FINAL" },
+          ],
+          frameDuration:  82,
+          shutterAudio:   "sounds/shutter.mp3",
+          shutterVolume:  1.5,
+        }}
+      />
+
+      {/* ── IntrcptPhotoReel — image gallery with camera shutter transitions ─ */}
+      <Composition
+        id="IntrcptPhotoReel"
+        component={IntrcptPhotoReel}
+        schema={IntrcptPhotoReelPropsSchema}
+        calculateMetadata={photoReelCalculateMetadata}
+        durationInFrames={270}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          images:        ["frame1.png", "frame2.png", "frame3.png"],
+          frameDuration: 90,
+          title:         "",
+          label:         "",
+          bgColor:       "#f0ece4",
+          shutterAudio:  "sounds/shutter.mp3",
+          shutterVolume: 1.4,
         }}
       />
 

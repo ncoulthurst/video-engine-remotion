@@ -7,9 +7,9 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, 
 
 const TeamSchema = z.object({
   pos:       z.number(),
-  name:      z.string(),
-  badgeSlug: z.string().optional().default(""),
-  color:     z.string().optional().default(COLORS.gold),
+  name:      z.string().optional().default(""),
+  badgeSlug: z.string().optional().default("").default(""),
+  color:     z.string().optional().default("").default(COLORS.gold),
   p:         z.number(),
   w:         z.number(),
   d:         z.number(),
@@ -19,9 +19,9 @@ const TeamSchema = z.object({
 });
 
 export const TablePropsSchema = z.object({
-  season:  z.string().default("2013-14"),
+  season:  z.string().optional().default("2013-14"),
   teams:   z.array(TeamSchema).default([]),
-  bgColor: z.string().default("#f0ece4"),
+  bgColor: z.string().optional().default("#f0ece4"),
 });
 
 export type TableProps = z.infer<typeof TablePropsSchema>;

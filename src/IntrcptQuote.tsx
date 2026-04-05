@@ -8,7 +8,7 @@ import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
 
 export const IntrcptQuotePropsSchema = z.object({
-  quote: z.string().default('"I am not a diver."'), attribution: z.string().default("Luis Suárez"), context: z.string().optional(), playerImage: z.string().default("suarez.jpg"), accentColor: z.string().default("#C8102E"), bgColor: z.string().default("#f0ece4"),
+  quote: z.string().optional().default('"I am not a diver."'), attribution: z.string().optional().default("Luis Suárez"), context: z.string().optional().default(""), playerImage: z.string().optional().default("suarez.jpg"), accentColor: z.string().optional().default("#C8102E"), bgColor: z.string().optional().default("#f0ece4"),
 });
 export type IntrcptQuoteProps = z.infer<typeof IntrcptQuotePropsSchema>;
 

@@ -16,10 +16,10 @@ import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
 
 export const IntrcptClipSinglePropsSchema = z.object({
-  label:   z.string().default(""),
-  clip:    z.string().default(""),
-  title:   z.string().default(""),
-  bgColor: z.string().default("#f0ece4"),
+  label:   z.string().optional().default(""),
+  clip:    z.string().optional().default(""),
+  title:   z.string().optional().default(""),
+  bgColor: z.string().optional().default("#f0ece4"),
   /** Frame offset in the source file to start from (for splice support) */
   trimIn:  z.number().int().min(0).optional(),
   /** Frame offset in the source file to end at (for splice support) */

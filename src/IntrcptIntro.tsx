@@ -11,8 +11,8 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground } from "./shared";
 const CHANNEL_NAME = "the 90th";
 
 export const IntrcptIntroPropsSchema = z.object({
-  subtitle: z.string().default("the science of football"),
-  bgColor: z.string().default("#f0ece4"),
+  subtitle: z.string().optional().default("the science of football"),
+  bgColor: z.string().optional().default("#f0ece4"),
 });
 export type IntrcptIntroProps = z.infer<typeof IntrcptIntroPropsSchema>;
 

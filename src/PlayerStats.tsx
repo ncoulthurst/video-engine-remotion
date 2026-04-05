@@ -7,20 +7,20 @@ import {
 } from "./shared";
 
 const StatSchema = z.object({
-  label: z.string(),
+  label: z.string().optional().default(""),
   value: z.union([z.string(), z.number()]).optional(),
-  sub:   z.string().optional(),
+  sub:   z.string().optional().default(""),
 });
 
 export const PlayerStatsPropsSchema = z.object({
-  playerName:  z.string(),
-  club:        z.string().optional(),
-  season:      z.string().optional(),
-  competition: z.string().optional(),
-  badgeSlug:   z.string().optional(),
-  clubColor:   z.string().optional(),
+  playerName:  z.string().optional().default("Player Name"),
+  club:        z.string().optional().default(""),
+  season:      z.string().optional().default(""),
+  competition: z.string().optional().default(""),
+  badgeSlug:   z.string().optional().default(""),
+  clubColor:   z.string().optional().default(""),
   stats:       z.array(StatSchema),
-  bgColor:     z.string().default("#f0ece4"),
+  bgColor:     z.string().optional().default("#f0ece4"),
 });
 
 export type PlayerStatsProps = z.infer<typeof PlayerStatsPropsSchema>;

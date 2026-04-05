@@ -19,15 +19,15 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, CO
 // ══════════════════════════════════════════════════════════════════════════════
 
 const ItemSchema = z.object({
-  name:   z.string(),
-  detail: z.string().default(""),
-  value:  z.string().default(""),
-  color:  z.string().optional(),
+  name:   z.string().optional().default(""),
+  detail: z.string().optional().default(""),
+  value:  z.string().optional().default(""),
+  color:  z.string().optional().default(""),
 });
 
 export const CountdownRevealPropsSchema = z.object({
-  title:       z.string().default("Top 10"),
-  subtitle:    z.string().optional(),
+  title:       z.string().optional().default("Top 10"),
+  subtitle:    z.string().optional().default(""),
   items:       z.array(ItemSchema).default([
     { name: "Alan Shearer",        detail: "1993/94 season",          value: "31 goals"  },
     { name: "Andrew Cole",         detail: "1993/94 season",          value: "34 goals"  },
@@ -40,8 +40,8 @@ export const CountdownRevealPropsSchema = z.object({
     { name: "Erling Haaland",      detail: "2022/23 season",          value: "36 goals"  },
     { name: "Robbie Fowler",       detail: "1995/96 season",          value: "28 goals"  },
   ]),
-  accentColor: z.string().default("#C8102E"),
-  bgColor:     z.string().default("#f0ece4"),
+  accentColor: z.string().optional().default("#C8102E"),
+  bgColor:     z.string().optional().default("#f0ece4"),
   darkMode:    z.boolean().default(false),
   dwellFrames: z.number().default(90),
 });

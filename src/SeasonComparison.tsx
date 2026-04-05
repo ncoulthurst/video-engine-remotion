@@ -7,15 +7,15 @@ import {
 } from "./shared";
 
 const PlayerSlotSchema = z.object({
-  name:      z.string(),
-  club:      z.string().optional(),
-  badgeSlug: z.string().optional(),
-  image:     z.string().optional(),
-  color:     z.string().default(COLORS.gold),
+  name:      z.string().optional().default(""),
+  club:      z.string().optional().default(""),
+  badgeSlug: z.string().optional().default(""),
+  image:     z.string().optional().default(""),
+  color:     z.string().optional().default(COLORS.gold),
 });
 
 const StatRowSchema = z.object({
-  label:  z.string(),
+  label:  z.string().optional().default(""),
   valueA: z.number(),
   valueB: z.number(),
 });
@@ -23,10 +23,10 @@ const StatRowSchema = z.object({
 export const SeasonComparisonPropsSchema = z.object({
   playerA:     PlayerSlotSchema,
   playerB:     PlayerSlotSchema,
-  season:      z.string(),
-  competition: z.string().optional(),
+  season:      z.string().optional().default("2024/25"),
+  competition: z.string().optional().default(""),
   stats:       z.array(StatRowSchema),
-  bgColor:     z.string().default("#f0ece4"),
+  bgColor:     z.string().optional().default("#f0ece4"),
 });
 
 export type SeasonComparisonProps = z.infer<typeof SeasonComparisonPropsSchema>;

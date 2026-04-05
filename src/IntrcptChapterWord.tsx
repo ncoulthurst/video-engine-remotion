@@ -7,7 +7,7 @@ import { z } from "zod";
 import { serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
 
 export const IntrcptChapterWordPropsSchema = z.object({
-  word: z.string().default("aesthetics."), player1Image: z.string().default("suarez.jpg"), player2Image: z.string().default("aguero.png"), blob1Color: z.string().default("#7C5CBF"), blob2Color: z.string().default("#D94F4F"), bgColor: z.string().default("#f0ece4"),
+  word: z.string().optional().default("aesthetics."), player1Image: z.string().optional().default("suarez.jpg"), player2Image: z.string().optional().default("aguero.png"), blob1Color: z.string().optional().default("#7C5CBF"), blob2Color: z.string().optional().default("#D94F4F"), bgColor: z.string().optional().default("#f0ece4"),
 });
 export type IntrcptChapterWordProps = z.infer<typeof IntrcptChapterWordPropsSchema>;
 

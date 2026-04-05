@@ -51,6 +51,11 @@ import { TransferProfit } from "./TransferProfit";
 import { ScoutReport } from "./ScoutReport";
 import { ValueCurve } from "./ValueCurve";
 import { IntrcptTransferProfit } from "./IntrcptTransferProfit";
+import { IntrcptPhotoReel } from "./IntrcptPhotoReel";
+import { IntrcptContactSheet } from "./IntrcptContactSheet";
+import { IntrcptPlayerReveal } from "./IntrcptPlayerReveal";
+import { IntrcptGoalRush } from "./IntrcptGoalRush";
+import { IntrcptHeadlineStack } from "./IntrcptHeadlineStack";
 
 // ── Transitions ────────────────────────────────────────────────────────────────
 import {
@@ -107,6 +112,11 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   ScoutReport,
   ValueCurve,
   IntrcptTransferProfit,
+  IntrcptPhotoReel,
+  IntrcptContactSheet,
+  IntrcptPlayerReveal,
+  IntrcptGoalRush,
+  IntrcptHeadlineStack,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -127,7 +137,7 @@ export type TransitionType = z.infer<typeof TransitionTypeSchema>;
 
 export const SceneDefSchema = z.object({
   /** Must match a key in SCENE_REGISTRY */
-  compositionId: z.string(),
+  compositionId: z.string().optional().default(""),
   /** Props forwarded verbatim to the scene component */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   props: z.any(),
@@ -147,7 +157,7 @@ export const SceneDefSchema = z.object({
    * Accent colour for transitions that use it (dataLine, flash tint, etc).
    * Falls back to the VideoSequence-level accentColor.
    */
-  accentColor: z.string().optional(),
+  accentColor: z.string().optional().default(""),
 });
 
 export type SceneDef = z.infer<typeof SceneDefSchema>;
@@ -155,7 +165,7 @@ export type SceneDef = z.infer<typeof SceneDefSchema>;
 export const VideoSequencePropsSchema = z.object({
   scenes: z.array(SceneDefSchema).min(1),
   /** Fallback accent colour for transitions that need one */
-  accentColor: z.string().optional().default("#C8102E"),
+  accentColor: z.string().optional().default("").default("#C8102E"),
 });
 
 export type VideoSequenceProps = z.infer<typeof VideoSequencePropsSchema>;

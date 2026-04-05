@@ -4,13 +4,13 @@ import { z } from "zod";
 import { PaperBackground, Grain, COLORS, SPRINGS, fontFamily, serifFontFamily } from "./shared";
 
 export const ArticleHeadlinePropsSchema = z.object({
-  headline:       z.string(),
-  category:       z.string().default("Football"),
-  author:         z.string().optional(),
-  byline:         z.string().optional(),
-  date:           z.string().optional(),
-  highlightColor: z.string().default("#f5d020"),
-  bgColor:        z.string().default("#f0ece4"),
+  headline:       z.string().optional().default("Headline"),
+  category:       z.string().optional().default("Football"),
+  author:         z.string().optional().default(""),
+  byline:         z.string().optional().default(""),
+  date:           z.string().optional().default(""),
+  highlightColor: z.string().optional().default("#f5d020"),
+  bgColor:        z.string().optional().default("#f0ece4"),
 });
 
 export type ArticleHeadlineProps = z.infer<typeof ArticleHeadlinePropsSchema>;

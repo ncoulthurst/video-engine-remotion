@@ -7,11 +7,11 @@ import {
 } from "./shared";
 
 export const QuoteCardPropsSchema = z.object({
-  quote:       z.string(),
-  attribution: z.string(),
-  context:     z.string().optional(),
-  accentColor: z.string().optional(),
-  bgColor:     z.string().default("#f0ece4"),
+  quote:       z.string().optional().default('"Quote text here."'),
+  attribution: z.string().optional().default("Attribution"),
+  context:     z.string().optional().default(""),
+  accentColor: z.string().optional().default(""),
+  bgColor:     z.string().optional().default("#f0ece4"),
 });
 
 export type QuoteCardProps = z.infer<typeof QuoteCardPropsSchema>;

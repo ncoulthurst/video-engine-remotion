@@ -7,7 +7,7 @@ import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } fr
 import { z } from "zod";
 import { fontFamily, serifFontFamily, COLORS, Grain, PaperBackground, hexToRgb, SmartImg } from "./shared";
 
-export const TimelineEventSchema = z.object({ year: z.string(), club: z.string(), badgeSlug: z.string(), clubColor: z.string(), detail: z.string().optional(), isHighlight: z.boolean().default(false) });
+export const TimelineEventSchema = z.object({ year: z.string().optional().default(""), club: z.string().optional().default(""), badgeSlug: z.string().optional().default(""), clubColor: z.string().optional().default(""), detail: z.string().optional().default(""), isHighlight: z.boolean().default(false) });
 export const CareerTimelinePropsSchema = z.object({ playerName: z.string(), events: z.array(TimelineEventSchema), activeIndex: z.number().default(-1), startFrame: z.number().default(40) });
 export type TimelineEvent = z.infer<typeof TimelineEventSchema>;
 export type CareerTimelineProps = z.infer<typeof CareerTimelinePropsSchema>;

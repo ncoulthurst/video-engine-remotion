@@ -21,20 +21,20 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, CO
 // ══════════════════════════════════════════════════════════════════════════════
 
 const DataPointSchema = z.object({
-  label:      z.string(),          // e.g., "2017/18"
+  label:      z.string().optional().default(""),  // e.g., "2017/18"
   value:      z.number(),          // market value in millions
-  annotation: z.string().optional(),
+  annotation: z.string().optional().default(""),
 });
 
 export const ValueCurvePropsSchema = z.object({
-  playerName:  z.string().default("Ollie Watkins"),
+  playerName:  z.string().optional().default("Ollie Watkins"),
   buyFee:      z.number().default(1.8),        // £m paid
   sellFee:     z.number().default(28.0),       // £m received (0 = still at club)
-  buySeason:   z.string().default("2017"),
-  sellSeason:  z.string().default("2020"),
-  currency:    z.string().default("£"),
-  accentColor: z.string().default("#E30613"),
-  bgColor:     z.string().default("#f0ece4"),
+  buySeason:   z.string().optional().default("2017"),
+  sellSeason:  z.string().optional().default("2020"),
+  currency:    z.string().optional().default("£"),
+  accentColor: z.string().optional().default("#E30613"),
+  bgColor:     z.string().optional().default("#f0ece4"),
   darkMode:    z.boolean().default(false),
   dataPoints:  z.array(DataPointSchema).default([
     { label: "Sign",      value: 1.8,  annotation: undefined             },
