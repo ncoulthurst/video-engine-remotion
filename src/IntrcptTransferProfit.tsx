@@ -32,26 +32,26 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TransferSchema = z.object({
-  year:      z.string(),
-  player:    z.string(),
-  fromClub:  z.string().default(""),
-  toClub:    z.string().default(""),
-  buyFee:    z.string(),
+  year:      z.string().optional().default(""),
+  player:    z.string().optional().default(""),
+  fromClub:  z.string().optional().default(""),
+  toClub:    z.string().optional().default(""),
+  buyFee:    z.string().optional().default(""),
   buyValue:  z.number(),
-  sellFee:   z.string(),
+  sellFee:   z.string().optional().default(""),
   sellValue: z.number(),
   highlight: z.boolean().default(false),
-  sideImage: z.string().optional(),
+  sideImage: z.string().optional().default(""),
 });
 
 export const IntrcptTransferProfitPropsSchema = z.object({
-  title:       z.string().default("the brentford model"),
-  subtitle:    z.string().default("buy cheap. develop. sell big."),
-  sideImage:   z.string().optional(),
-  accentColor: z.string().default("#E30613"),
-  buyColor:    z.string().default("#3B82F6"),
-  profitColor: z.string().default("#C9A84C"),
-  bgColor:     z.string().default("#f0ece4"),
+  title:       z.string().optional().default("the brentford model"),
+  subtitle:    z.string().optional().default("buy cheap. develop. sell big."),
+  sideImage:   z.string().optional().default(""),
+  accentColor: z.string().optional().default("#E30613"),
+  buyColor:    z.string().optional().default("#3B82F6"),
+  profitColor: z.string().optional().default("#C9A84C"),
+  bgColor:     z.string().optional().default("#f0ece4"),
   dwellFrames: z.number().int().default(150),
   transfers:   z.array(TransferSchema).default([]),
 });
@@ -111,21 +111,9 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const revealF    = (i: number) => INTRO_F + i * dwellFrames;
 
-  // ── Typewriter with blinking cursor ───────────────────────────────────────
-  const TYPER_SPEED    = 0.7; // chars per frame
+  // ── Typewriter timing ─────────────────────────────────────────────────────
   const titleStartF    = 4;
   const subtitleStartF = titleStartF + Math.ceil(title.length / TYPER_SPEED) + 3;
-
-  const typewriter = (text: string, startF: number, speed = TYPER_SPEED): string => {
-    const chars = Math.floor(
-      interpolate(frame, [startF, startF + text.length / speed], [0, text.length], {
-        extrapolateLeft: "clamp", extrapolateRight: "clamp",
-      })
-    );
-    const done  = chars >= text.length;
-    const blink = Math.floor(frame / 9) % 2 === 0;
-    return text.slice(0, chars) + (done ? "" : (blink ? "|" : " "));
-  };
 
   // ── Side image crossfade: rowSpring_i × (1 − rowSpring_{i+1}) ─────────────
   const imgOpacity = (i: number): number => {
@@ -139,13 +127,19 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   const preProg    = spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
   const preOpacity = preProg * 0.30 * (1 - spring({ frame: frame - revealF(0), fps, config: { damping: 24, stiffness: 50 } }));
 
+  // ── Total profit (needed for outroActiveProg) ────────────────────────────
+  const totalRevealF  = INTRO_F + n * dwellFrames;
+  const totalProfit   = Math.round(transfers.reduce((sum, t) => sum + (t.sellValue - t.buyValue), 0));
+  // Once the full list is revealed, all rows light up together
+  const outroActiveProg = spring({ frame: frame - totalRevealF, fps, config: { damping: 24, stiffness: 50 } });
+
   // ── Active state (row dimming + stripe) ───────────────────────────────────
   const activeState = (i: number): number => {
     const rise = spring({ frame: frame - revealF(i),     fps, config: { damping: 26, stiffness: 40 } });
     const fall = i < n - 1
       ? spring({ frame: frame - revealF(i + 1), fps, config: { damping: 26, stiffness: 40 } })
       : 0;
-    return Math.max(0, rise - fall);
+    return Math.max(Math.max(0, rise - fall), outroActiveProg);
   };
 
   // ── Running total — ticks upward as rows reveal ───────────────────────────
@@ -155,10 +149,6 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
       return sum + (t.sellValue - t.buyValue) * rp;
     }, 0)
   );
-  // ── Total profit (needed early for label timing) ─────────────────────────
-  const totalRevealF = INTRO_F + n * dwellFrames;
-  const totalProfit  = Math.round(transfers.reduce((sum, t) => sum + (t.sellValue - t.buyValue), 0));
-
   // Strip slides in just before first row, stays visible throughout
   const stripRevealF   = revealF(0) - 10;
   const stripProg      = spring({ frame: frame - stripRevealF, fps, config: { damping: 22, stiffness: 55 } });
@@ -166,9 +156,8 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   // Label crossfades "running total" → "Total profit" at outro
   const labelTransProg = spring({ frame: frame - totalRevealF, fps, config: { damping: 22, stiffness: 60 } });
 
-  // ── Legend fade-out once rows start appearing ─────────────────────────────
-  const legendFadeOut = spring({ frame: frame - revealF(0) + 8, fps, config: { damping: 24, stiffness: 50 } });
-  const legendOpacity = headerProg * Math.max(0, 1 - legendFadeOut);
+  // Legend stays visible for the full scene — colours are always useful context
+  const legendOpacity = headerProg;
   // Pop fires when outro starts — number is already at full value via runningProfit
   const popSpring  = spring({ frame: frame - totalRevealF, fps, config: { damping: 16, stiffness: 220 } });
   const popScale   = 1 + Math.max(0, popSpring - 1) * 0.15;
@@ -232,11 +221,11 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
           }}
         >
           <div style={{ fontFamily: serifFontFamily, fontSize: 64, fontWeight: 900, color: COLORS.primary, letterSpacing: -3, lineHeight: 1 }}>
-            {typewriter(title, titleStartF)}
+            <Typewriter text={title} startF={titleStartF} />
           </div>
           {subtitle && (
             <div style={{ fontFamily, fontSize: 18, fontWeight: 500, color: COLORS.muted, marginTop: 8 }}>
-              {typewriter(subtitle, subtitleStartF)}
+              <Typewriter text={subtitle} startF={subtitleStartF} />
             </div>
           )}
           {/* Legend fades out once rows start — no longer needed once colour-coding is visible */}
@@ -395,19 +384,17 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             paddingTop: 16,
             boxSizing: "border-box",
             display:   "flex",
-            alignItems: "center",
+            alignItems: "baseline",
             gap:       16,
           }}
         >
-          {/* Label — single div, text swaps at outro boundary, no layout change */}
+          {/* Label — always "total profit" from first reveal */}
           <div style={{
             fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted,
             letterSpacing: 2, textTransform: "uppercase", whiteSpace: "nowrap",
             width: 120, flexShrink: 0,
           }}>
-            {labelTransProg < 0.5
-              ? "running total"
-              : typewriter("Total profit", totalRevealF, 0.9)}
+            total profit
           </div>
 
           {/* Number — fixed font size, scale-only pop */}
@@ -432,11 +419,46 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
             fontFamily, fontSize: 15, fontWeight: 500, color: COLORS.muted,
             opacity: labelTransProg, flexShrink: 0,
           }}>
-            {typewriter(`across ${n} signings`, totalRevealF + 12, 0.9)}
+            <Typewriter text={`across ${n} signings`} startF={totalRevealF + 12} speed={0.9} />
           </div>
         </div>
       )}
     </AbsoluteFill>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Typewriter — opacity-based cursor blink, no text-content change on blink
+// so proportional-font layout never reflows between blink frames.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TYPER_SPEED = 0.35; // chars per frame (~10 chars/sec at 30fps)
+
+const Typewriter: React.FC<{ text: string; startF: number; speed?: number }> = ({
+  text, startF, speed = TYPER_SPEED,
+}) => {
+  const frame = useCurrentFrame();
+  const chars = Math.floor(
+    interpolate(frame, [startF, startF + text.length / speed], [0, text.length], {
+      extrapolateLeft: "clamp", extrapolateRight: "clamp",
+    })
+  );
+  const done  = chars >= text.length;
+  const blink = Math.floor(frame / 9) % 2 === 0;
+  return (
+    <>
+      {text.slice(0, chars)}
+      {/* Fixed-width bar cursor — width never changes, blink is opacity-only */}
+      <span style={{
+        display:       "inline-block",
+        width:         2,
+        height:        "0.75em",
+        background:    "currentColor",
+        verticalAlign: "text-bottom",
+        marginLeft:    2,
+        opacity:       done ? 0 : (blink ? 1 : 0),
+      }} />
+    </>
   );
 };
 

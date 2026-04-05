@@ -15,18 +15,18 @@ import { fontFamily, serifFontFamily, Grain, COLORS, SPRINGS } from "./shared";
 const AnnotationSchema = z.object({
   x:         z.number().min(0).max(100),
   y:         z.number().min(0).max(100),
-  label:     z.string(),
+  label:     z.string().optional().default(""),
   direction: z.enum(["up", "down", "left", "right"]).default("up"),
-  color:     z.string().optional(),
+  color:     z.string().optional().default(""),
 });
 
 export const AnnotatedImagePropsSchema = z.object({
-  imageSrc:     z.string().default(""),
-  title:        z.string().optional(),
-  subtitle:     z.string().optional(),
+  imageSrc:     z.string().optional().default(""),
+  title:        z.string().optional().default(""),
+  subtitle:     z.string().optional().default(""),
   annotations:  z.array(AnnotationSchema).default([]),
-  accentColor:  z.string().default("#C8102E"),
-  bgColor:      z.string().default("#f0ece4"),
+  accentColor:  z.string().optional().default("#C8102E"),
+  bgColor:      z.string().optional().default("#f0ece4"),
   kenBurns:     z.boolean().default(true),
 });
 

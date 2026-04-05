@@ -9,19 +9,19 @@ import { fontFamily, serifFontFamily, DarkBackground, SmartImg } from "./shared"
 const DataPointSchema = z.object({ matchday: z.number(), position: z.number() });
 
 const TeamSchema = z.object({
-  name:      z.string(),
-  color:     z.string().default("#C8102E"),
+  name:      z.string().optional().default(""),
+  color:     z.string().optional().default("#C8102E"),
   data:      z.array(DataPointSchema),
-  badgeSlug: z.string().optional(),
+  badgeSlug: z.string().optional().default(""),
 });
 
 export const IntrcptLeagueGraphPropsSchema = z.object({
-  season:      z.string().default("2013–14"),
-  title:       z.string().default("Title Race"),
+  season:      z.string().optional().default("2013–14"),
+  title:       z.string().optional().default("Title Race"),
   teamA:       TeamSchema,
   teamB:       TeamSchema.optional(),
   maxPosition: z.number().default(6),
-  bgColor:     z.string().default("#111111"),
+  bgColor:     z.string().optional().default("#111111"),
 });
 export type IntrcptLeagueGraphProps = z.infer<typeof IntrcptLeagueGraphPropsSchema>;
 

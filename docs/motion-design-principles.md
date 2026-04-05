@@ -128,3 +128,58 @@ Two z-index layers:
 `dwellFrames = 120` = 4 seconds per item at 30fps. This feels slow in an editor but is the minimum for a narrator to deliver a line while the viewer also reads the label. Don't rush it.
 
 **Rule:** If a viewer can't read it and listen at the same time, the dwell is too short.
+
+---
+
+### 11. Typewriter Cursor — Opacity Blink, Never Character Swap
+
+A common mistake: implement the blinking cursor by alternating `"|"` and `" "` in the returned string. In a proportional font these have different widths — the text element reflows every blink, jittering every sibling in the same flex container (including legends, strip labels, anything downstream in the layout).
+
+Fix: render the cursor as a separate fixed-width element and toggle `opacity` only. The text string changes only when a new character appears — never on a blink. Use `verticalAlign: text-bottom` so the bar sits on the baseline without pulling it up.
+
+```tsx
+// BAD — character swap causes layout reflow every 9 frames
+return text.slice(0, chars) + (blink ? "|" : " ");
+
+// GOOD — opacity only, zero reflow, zero layout shift
+<>
+  {text.slice(0, chars)}
+  <span style={{ display: "inline-block", width: 2, height: "0.75em",
+                 background: "currentColor", verticalAlign: "text-bottom",
+                 marginLeft: 2, opacity: done ? 0 : (blink ? 1 : 0) }} />
+</>
+```
+
+Also: make `Typewriter` a proper React component (not a helper function returning a string) so it can call `useCurrentFrame()` itself, keeping it self-contained and reusable across templates.
+
+**Rule:** Cursor blink is an opacity toggle on a fixed-width element. Never change text content to simulate it.
+
+---
+
+### 12. Ghost Rows Are a Retention Hook
+
+For list-reveal templates, unrevealed rows must not be invisible — show them as dim placeholder shapes at `opacity: 0.18`. The viewer sees there is more to come and stays watching.
+
+Ghost shapes: rough rectangles sized to suggest a name bar + two data bars. No actual data, just enough geometry to imply the row's shape. This mirrors the reveal technique used in broadcast sports graphics.
+
+**Rule:** Show the silhouette before the reveal. Invisible future rows lose the audience.
+
+---
+
+### 13. Outro Payoff — All Rows Light Up Together
+
+After every item in a list has been individually spotlit, the final shot should light everything up simultaneously. This is the visual "here's the full picture" beat that mirrors Rule 7 (End Wide).
+
+Implementation: `outroActiveProg = spring(frame − totalRevealF)`. In `activeState(i)`, return `Math.max(normalActive, outroActiveProg)`. Once `outroActiveProg` reaches 1, every row overrides its own dimming and the whole list blazes at full opacity in one sweep.
+
+**Rule:** Every list reveal needs a payoff shot. End fully lit.
+
+---
+
+### 14. Prefer Static Labels Over Crossfaded Alternatives
+
+It is tempting to crossfade a label ("running total" → "total profit") to add variety. In practice this adds cognitive load — the viewer has to re-read and re-parse what the number means. A label that reads the same thing from first appearance to last requires no re-reading at all.
+
+The ticking number itself carries all the drama. The label is just a title — keep it stable.
+
+**Rule:** If a label describes the same value throughout, don't change it. Simpler is always clearer.

@@ -7,20 +7,20 @@ import {
 } from "./shared";
 
 const IncidentSchema = z.object({
-  date:      z.string(),
-  incident:  z.string(),
-  ban:       z.string().optional(),
-  club:      z.string().optional(),
-  badgeSlug: z.string().optional(),
-  clubColor: z.string().optional(),
+  date:      z.string().optional().default(""),
+  incident:  z.string().optional().default(""),
+  ban:       z.string().optional().default(""),
+  club:      z.string().optional().default(""),
+  badgeSlug: z.string().optional().default(""),
+  clubColor: z.string().optional().default(""),
   severity:  z.enum(["serious", "warning", "minor"]).optional(),
 });
 
 export const DisciplinaryRecordPropsSchema = z.object({
-  playerName: z.string(),
-  badgeSlug:  z.string().optional(),
+  playerName: z.string().optional().default("Player Name"),
+  badgeSlug:  z.string().optional().default(""),
   incidents:  z.array(IncidentSchema).optional(),
-  bgColor:    z.string().default("#f0ece4"),
+  bgColor:    z.string().optional().default("#f0ece4"),
 });
 
 export const DisciplinaryPropsSchema = DisciplinaryRecordPropsSchema;

@@ -112,13 +112,13 @@ const CITY_COORDS: Record<string, [number, number]> = {
 // ══════════════════════════════════════════════════════════════════════════════
 
 const PinSchema = z.object({
-  city:        z.string(),
-  label:       z.string().optional(),
+  city:        z.string().optional().default(""),
+  label:       z.string().optional().default(""),
   highlighted: z.boolean().default(false),
 });
 
 export const MapCalloutPropsSchema = z.object({
-  title:            z.string().default("Where it all began"),
+  title:            z.string().optional().default("Where it all began"),
   titleSize:        z.number().default(64),
   pins:             z.array(PinSchema).default([
     { city: "bournemouth", label: "Bournemouth", highlighted: true },
@@ -126,11 +126,11 @@ export const MapCalloutPropsSchema = z.object({
     { city: "manchester",  highlighted: false },
     { city: "liverpool",   highlighted: false },
   ]),
-  calloutCity:      z.string().optional(),
-  calloutText:      z.string().optional(),
+  calloutCity:      z.string().optional().default(""),
+  calloutText:      z.string().optional().default(""),
   calloutDirection: z.enum(["left", "right", "up", "down"]).default("left"),
-  accentColor:      z.string().default("#C8102E"),
-  bgColor:          z.string().default("#f0ece4"),
+  accentColor:      z.string().optional().default("#C8102E"),
+  bgColor:          z.string().optional().default("#f0ece4"),
   darkMode:         z.boolean().default(false),
 });
 

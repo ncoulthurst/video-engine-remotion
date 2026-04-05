@@ -7,17 +7,17 @@ import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SmartImg } from "./shared";
 
 export const IntrcptBigStatPropsSchema = z.object({
-  stat:       z.string().default("31"),
-  unit:       z.string().default("goals"),
-  label:      z.string().default("in a single Premier League season"),
-  stat2:      z.string().optional(),
-  unit2:      z.string().optional(),
-  label2:     z.string().optional(),
-  context:    z.string().default("Luis Suárez · Liverpool · 2013–14"),
-  playerImage:z.string().default(""),
-  accentColor:z.string().default("#C8102E"),
+  stat:       z.string().optional().default("31"),
+  unit:       z.string().optional().default("goals"),
+  label:      z.string().optional().default("in a single Premier League season"),
+  stat2:      z.string().optional().default(""),
+  unit2:      z.string().optional().default(""),
+  label2:     z.string().optional().default(""),
+  context:    z.string().optional().default("Luis Suárez · Liverpool · 2013–14"),
+  playerImage:z.string().optional().default(""),
+  accentColor:z.string().optional().default("#C8102E"),
   darkMode:   z.boolean().default(false),
-  bgColor:    z.string().default("#f0ece4"),
+  bgColor:    z.string().optional().default("#f0ece4"),
 });
 export type IntrcptBigStatProps = z.infer<typeof IntrcptBigStatPropsSchema>;
 

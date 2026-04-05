@@ -18,18 +18,18 @@ import { fontFamily, serifFontFamily, Grain, COLORS, SPRINGS, rgbaFromHex } from
 // ══════════════════════════════════════════════════════════════════════════════
 
 export const MatchMomentPropsSchema = z.object({
-  homeTeam:    z.string().default("Liverpool"),
-  awayTeam:    z.string().default("Barcelona"),
+  homeTeam:    z.string().optional().default("Liverpool"),
+  awayTeam:    z.string().optional().default("Barcelona"),
   homeScore:   z.number().default(4),
   awayScore:   z.number().default(0),
-  competition: z.string().default("UEFA Champions League"),
-  date:        z.string().default("7 May 2019"),
-  context:     z.string().optional(),       // e.g., "SEMI-FINAL SECOND LEG"
-  minute:      z.string().optional(),       // e.g., "79'"
-  accentColor: z.string().default("#C8102E"),
-  bgColor:     z.string().default("#0a0a0a"),
-  homeColor:   z.string().default("#C8102E"),
-  awayColor:   z.string().default("#004D98"),
+  competition: z.string().optional().default("UEFA Champions League"),
+  date:        z.string().optional().default("7 May 2019"),
+  context:     z.string().optional().default(""),       // e.g., "SEMI-FINAL SECOND LEG"
+  minute:      z.string().optional().default(""),       // e.g., "79'"
+  accentColor: z.string().optional().default("#C8102E"),
+  bgColor:     z.string().optional().default("#0a0a0a"),
+  homeColor:   z.string().optional().default("#C8102E"),
+  awayColor:   z.string().optional().default("#004D98"),
 });
 
 export type MatchMomentProps = z.infer<typeof MatchMomentPropsSchema>;

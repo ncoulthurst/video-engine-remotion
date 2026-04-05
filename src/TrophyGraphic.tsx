@@ -8,14 +8,14 @@ import {
 } from "./shared";
 
 export const TrophyPropsSchema = z.object({
-  trophyName:  z.string(),
-  trophyYear:  z.string(),
-  clubName:    z.string(),
-  badgeSlug:   z.string().optional(),
-  clubColor:   z.string().optional(),
-  subtext:     z.string().optional(),
+  trophyName:  z.string().optional().default("Premier League"),
+  trophyYear:  z.string().optional().default("2024"),
+  clubName:    z.string().optional().default("Club Name"),
+  badgeSlug:   z.string().optional().default(""),
+  clubColor:   z.string().optional().default(""),
+  subtext:     z.string().optional().default(""),
   trophyCount: z.number().optional(),
-  bgColor:     z.string().default("#f0ece4"),
+  bgColor:     z.string().optional().default("#f0ece4"),
 });
 
 export const TrophyGraphicPropsSchema = TrophyPropsSchema;

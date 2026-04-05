@@ -19,17 +19,17 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, CO
 // ══════════════════════════════════════════════════════════════════════════════
 
 const DataPointSchema = z.object({
-  label:      z.string(),
+  label:      z.string().optional().default(""),
   value:      z.number(),
-  annotation: z.string().optional(),   // if set, line pauses here and callout appears
+  annotation: z.string().optional().default(""),   // if set, line pauses here and callout appears
 });
 
 export const StatPulsePropsSchema = z.object({
-  title:        z.string().default("Season by Season"),
-  subtitle:     z.string().optional(),
-  unit:         z.string().default("goals"),
-  accentColor:  z.string().default("#C8102E"),
-  bgColor:      z.string().default("#f0ece4"),
+  title:        z.string().optional().default("Season by Season"),
+  subtitle:     z.string().optional().default(""),
+  unit:         z.string().optional().default("goals"),
+  accentColor:  z.string().optional().default("#C8102E"),
+  bgColor:      z.string().optional().default("#f0ece4"),
   darkMode:     z.boolean().default(false),
   showArea:     z.boolean().default(true),
   dwellFrames:  z.number().default(55),   // how long to pause at each annotated point

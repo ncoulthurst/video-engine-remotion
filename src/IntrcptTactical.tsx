@@ -7,7 +7,7 @@ import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } fr
 import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain } from "./shared";
 
-const PlayerDotSchema = z.object({ label: z.string(), x: z.number(), y: z.number() });
+const PlayerDotSchema = z.object({ label: z.string().optional().default(""), x: z.number(), y: z.number() });
 const ArrowSchema = z.object({
   fromX: z.number(), fromY: z.number(),
   toX: z.number(),   toY: z.number(),
@@ -15,8 +15,8 @@ const ArrowSchema = z.object({
 });
 
 export const IntrcptTacticalPropsSchema = z.object({
-  title:       z.string().default("the press"),
-  description: z.string().default("coordinated high press from the front three"),
+  title:       z.string().optional().default("the press"),
+  description: z.string().optional().default("coordinated high press from the front three"),
   players: z.array(PlayerDotSchema).default([
     { label: "GK", x: 50, y: 88 }, { label: "RB", x: 80, y: 72 }, { label: "CB", x: 62, y: 72 },
     { label: "CB", x: 38, y: 72 }, { label: "LB", x: 20, y: 72 }, { label: "CM", x: 65, y: 55 },
@@ -30,8 +30,8 @@ export const IntrcptTacticalPropsSchema = z.object({
     { fromX: 65, fromY: 55, toX: 70, toY: 42, style: "dashed" },
     { fromX: 35, fromY: 55, toX: 30, toY: 42, style: "dashed" },
   ]),
-  teamColor: z.string().default("#C8102E"),
-  bgColor:   z.string().default("#1a1a1a"),
+  teamColor: z.string().optional().default("#C8102E"),
+  bgColor:   z.string().optional().default("#1a1a1a"),
 });
 
 export type IntrcptTacticalProps = z.infer<typeof IntrcptTacticalPropsSchema>;

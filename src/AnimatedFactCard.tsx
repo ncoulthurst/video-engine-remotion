@@ -13,12 +13,12 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, CO
 // ══════════════════════════════════════════════════════════════════════════════
 
 export const AnimatedFactCardPropsSchema = z.object({
-  fact:            z.string().default("31 goals in a single Premier League season."),
-  highlightPhrase: z.string().optional(),
-  subtext:         z.string().optional(),
-  source:          z.string().optional(),
-  accentColor:     z.string().default("#C8102E"),
-  bgColor:         z.string().default("#f0ece4"),
+  fact:            z.string().optional().default("31 goals in a single Premier League season."),
+  highlightPhrase: z.string().optional().default(""),
+  subtext:         z.string().optional().default(""),
+  source:          z.string().optional().default(""),
+  accentColor:     z.string().optional().default("#C8102E"),
+  bgColor:         z.string().optional().default("#f0ece4"),
   darkMode:        z.boolean().default(false),
 });
 

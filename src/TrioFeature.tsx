@@ -11,16 +11,16 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg }
 // ── Schema ────────────────────────────────────────────────────────────────────
 
 const PlayerSlotSchema = z.object({
-  name:        z.string(),
-  image:       z.string().default(""),
-  nationality: z.string().optional(),
-  clubColor:   z.string().default(COLORS.gold),
-  badgeSlug:   z.string().optional(),
+  name:        z.string().optional().default(""),
+  image:       z.string().optional().default(""),
+  nationality: z.string().optional().default(""),
+  clubColor:   z.string().optional().default(COLORS.gold),
+  badgeSlug:   z.string().optional().default(""),
 });
 
 export const TrioFeaturePropsSchema = z.object({
   players: z.tuple([PlayerSlotSchema, PlayerSlotSchema, PlayerSlotSchema]),
-  bgColor: z.string().default("#f0ece4"),
+  bgColor: z.string().optional().default("#f0ece4"),
 });
 
 export type TrioFeatureProps = z.infer<typeof TrioFeaturePropsSchema>;

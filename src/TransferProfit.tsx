@@ -26,25 +26,25 @@ import {
 // ══════════════════════════════════════════════════════════════════════════════
 
 const PlayerSchema = z.object({
-  name:     z.string(),
-  imageSrc: z.string().default(""),
-  origin:   z.string().default(""),
+  name:     z.string().optional().default(""),
+  imageSrc: z.string().optional().default(""),
+  origin:   z.string().optional().default(""),
   buyFee:   z.number(),
   sellFee:  z.number().default(0),
   buyYear:  z.number().optional(),
   sellYear: z.number().optional(),
-  toClub:   z.string().default(""),
+  toClub:   z.string().optional().default(""),
   sold:     z.boolean().default(true),
   estValue: z.number().default(0),
 });
 
 export const TransferProfitPropsSchema = z.object({
-  title:       z.string().default("The Brentford Model"),
-  subtitle:    z.string().optional(),
-  currency:    z.string().default("£"),
-  accentColor: z.string().default("#E30613"),
-  profitColor: z.string().default("#C9A84C"),
-  bgColor:     z.string().default("#f0ece4"),
+  title:       z.string().optional().default("The Brentford Model"),
+  subtitle:    z.string().optional().default(""),
+  currency:    z.string().optional().default("£"),
+  accentColor: z.string().optional().default("#E30613"),
+  profitColor: z.string().optional().default("#C9A84C"),
+  bgColor:     z.string().optional().default("#f0ece4"),
   darkMode:    z.boolean().default(false),
   showTotal:   z.boolean().default(true),
   dwellFrames: z.number().default(300),

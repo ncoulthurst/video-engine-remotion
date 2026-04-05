@@ -13,12 +13,12 @@ import { fontFamily, serifFontFamily, Grain, COLORS, SPRINGS } from "./shared";
 // ══════════════════════════════════════════════════════════════════════════════
 
 export const TitleCardPropsSchema = z.object({
-  chapter:     z.string().optional(),
-  title:       z.string().default("THE RISE"),
-  subtitle:    z.string().optional(),
-  accentColor: z.string().default("#C8102E"),
+  chapter:     z.string().optional().default(""),
+  title:       z.string().optional().default("THE RISE"),
+  subtitle:    z.string().optional().default(""),
+  accentColor: z.string().optional().default("#C8102E"),
   style:       z.enum(["bold", "dark", "split", "minimal"]).default("bold"),
-  bgColor:     z.string().optional(),
+  bgColor:     z.string().optional().default(""),
 });
 
 export type TitleCardProps = z.infer<typeof TitleCardPropsSchema>;

@@ -10,15 +10,15 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg }
 
 const ResultSchema = z.object({
   result:   z.enum(["W", "D", "L"]),
-  opponent: z.string().default(""),
-  score:    z.string().default(""),
+  opponent: z.string().optional().default(""),
+  score:    z.string().optional().default(""),
 });
 
 export const IntrcptFormRunPropsSchema = z.object({
-  teamName:  z.string().default("Liverpool"),
-  teamColor: z.string().default("#C8102E"),
-  label:     z.string().default("last 10 matches"),
-  sideImage: z.string().optional(),
+  teamName:  z.string().optional().default("Liverpool"),
+  teamColor: z.string().optional().default("#C8102E"),
+  label:     z.string().optional().default("last 10 matches"),
+  sideImage: z.string().optional().default(""),
   results:   z.array(ResultSchema).default([
     { result: "W", opponent: "Arsenal",   score: "4-0" },
     { result: "W", opponent: "Man City",  score: "2-1" },
@@ -31,7 +31,7 @@ export const IntrcptFormRunPropsSchema = z.object({
     { result: "W", opponent: "Fulham",    score: "3-1" },
     { result: "W", opponent: "Brentford", score: "1-0" },
   ]),
-  bgColor: z.string().default("#f0ece4"),
+  bgColor: z.string().optional().default("#f0ece4"),
 });
 
 export type IntrcptFormRunProps = z.infer<typeof IntrcptFormRunPropsSchema>;

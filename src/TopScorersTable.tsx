@@ -5,22 +5,22 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg }
 
 const PlayerSchema = z.object({
   pos:       z.number(),
-  name:      z.string(),
-  club:      z.string(),
-  badgeSlug: z.string().optional(),
-  clubColor: z.string().optional(),
+  name:      z.string().optional().default(""),
+  club:      z.string().optional().default(""),
+  badgeSlug: z.string().optional().default(""),
+  clubColor: z.string().optional().default(""),
   goals:     z.number(),
   assists:   z.number().optional(),
   apps:      z.number().optional(),
 });
 
 export const TopScorersPropsSchema = z.object({
-  season:      z.string().default("2013-14"),
-  competition: z.string().default("Premier League"),
-  statLabel:   z.string().optional(),
-  statKey:     z.string().optional(),
+  season:      z.string().optional().default("2013-14"),
+  competition: z.string().optional().default("Premier League"),
+  statLabel:   z.string().optional().default(""),
+  statKey:     z.string().optional().default(""),
   players:     z.array(PlayerSchema).default([]),
-  bgColor:     z.string().default("#f0ece4"),
+  bgColor:     z.string().optional().default("#f0ece4"),
 });
 
 export type TopScorersProps = z.infer<typeof TopScorersPropsSchema>;

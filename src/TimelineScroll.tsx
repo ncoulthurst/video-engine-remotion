@@ -19,16 +19,16 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, CO
 // ══════════════════════════════════════════════════════════════════════════════
 
 const EventSchema = z.object({
-  year:        z.string(),
-  title:       z.string(),
-  description: z.string().default(""),
+  year:        z.string().optional().default(""),
+  title:       z.string().optional().default(""),
+  description: z.string().optional().default(""),
   highlight:   z.boolean().default(false),
-  color:       z.string().optional(),
+  color:       z.string().optional().default(""),
 });
 
 export const TimelineScrollPropsSchema = z.object({
-  title:        z.string().default("The Journey"),
-  subtitle:     z.string().optional(),
+  title:        z.string().optional().default("The Journey"),
+  subtitle:     z.string().optional().default(""),
   dwellFrames:  z.number().default(120),
   events:       z.array(EventSchema).default([
     { year: "1992", title: "Premier League founded",    description: "22 clubs breakaway from the Football League.",        highlight: true  },
@@ -37,8 +37,8 @@ export const TimelineScrollPropsSchema = z.object({
     { year: "2012", title: "Financial Fair Play",       description: "UEFA introduces new spending rules.",                 highlight: false },
     { year: "2017", title: "£5.1bn TV deal",            description: "Record broadcast rights reshape the game.",           highlight: true  },
   ]),
-  accentColor:  z.string().default("#C8102E"),
-  bgColor:      z.string().default("#f0ece4"),
+  accentColor:  z.string().optional().default("#C8102E"),
+  bgColor:      z.string().optional().default("#f0ece4"),
   darkMode:     z.boolean().default(false),
 });
 

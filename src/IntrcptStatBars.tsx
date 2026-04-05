@@ -8,19 +8,19 @@ import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg } from "./shared";
 
 const StatItemSchema = z.object({
-  label:    z.string(),
+  label:    z.string().optional().default(""),
   valueA:   z.number(),
   valueB:   z.number(),
   maxValue: z.number().optional(),
-  suffix:   z.string().default(""),
+  suffix:   z.string().optional().default(""),
 });
 
 export const IntrcptStatBarsPropsSchema = z.object({
-  title:     z.string().default("head to head"),
-  subtitle:  z.string().default(""),
-  sideImage: z.string().optional(),
-  teamA: z.object({ name:  z.string().default("Liverpool"), color: z.string().default("#C8102E") }),
-  teamB: z.object({ name:  z.string().default("Arsenal"), color: z.string().default("#EF0107") }),
+  title:     z.string().optional().default("head to head"),
+  subtitle:  z.string().optional().default(""),
+  sideImage: z.string().optional().default(""),
+  teamA: z.object({ name:  z.string().optional().default("Liverpool"), color: z.string().optional().default("#C8102E") }),
+  teamB: z.object({ name:  z.string().optional().default("Arsenal"), color: z.string().optional().default("#EF0107") }),
   stats: z.array(StatItemSchema).default([
     { label: "Possession",  valueA: 58,  valueB: 42,  maxValue: 100, suffix: "%" },
     { label: "Shots",       valueA: 14,  valueB: 9, suffix: "" },
@@ -28,7 +28,7 @@ export const IntrcptStatBarsPropsSchema = z.object({
     { label: "Key Passes",  valueA: 8,   valueB: 5, suffix: "" },
     { label: "Dribbles",    valueA: 7,   valueB: 4, suffix: "" },
   ]),
-  bgColor: z.string().default("#f0ece4"),
+  bgColor: z.string().optional().default("#f0ece4"),
 });
 
 export type IntrcptStatBarsProps = z.infer<typeof IntrcptStatBarsPropsSchema>;

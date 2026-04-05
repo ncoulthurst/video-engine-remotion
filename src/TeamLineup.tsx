@@ -9,29 +9,29 @@ import {
 // ── Schema ─────────────────────────────────────────────────────────────────────
 
 const PlayerSchema = z.object({
-  name:          z.string(),
+  name:          z.string().optional().default(""),
   number:        z.number(),
   x:             z.number(),  // 0–100 left→right
   y:             z.number(),  // 0=keeper end (bottom), 100=attacker end (top)
   isCaptain:     z.boolean().optional(),
-  positionLabel: z.string().optional(), // e.g. "GK", "RB", "CB", "LB", "DM", "CM", "RW", "ST", "LW"
+  positionLabel: z.string().optional().default(""), // e.g. "GK", "RB", "CB", "LB", "DM", "CM", "RW", "ST", "LW"
   appearFrame:   z.number().default(0), // frame at which this player animates in (narration-driven)
 });
 
 export const TeamLineupPropsSchema = z.object({
-  teamName:           z.string(),
-  formation:          z.string(),
-  badgeSlug:          z.string().optional(),
-  teamColor:          z.string().optional(),
-  opposition:         z.string().optional(),
-  date:               z.string().optional(),
+  teamName:           z.string().optional().default("Team Name"),
+  formation:          z.string().optional().default("4-3-3"),
+  badgeSlug:          z.string().optional().default(""),
+  teamColor:          z.string().optional().default(""),
+  opposition:         z.string().optional().default(""),
+  date:               z.string().optional().default(""),
   players:            z.array(PlayerSchema),
-  managerName:        z.string().optional(),
-  managerTitle:       z.string().optional(),
-  managerNationality: z.string().optional(),
-  managerImageSlug:   z.string().optional(),
+  managerName:        z.string().optional().default(""),
+  managerTitle:       z.string().optional().default(""),
+  managerNationality: z.string().optional().default(""),
+  managerImageSlug:   z.string().optional().default(""),
   infoAppearFrame:    z.number().default(0), // frame at which the left panel animates in
-  bgColor:            z.string().default("#f0ece4"),
+  bgColor:            z.string().optional().default("#f0ece4"),
 });
 
 export type TeamLineupProps = z.infer<typeof TeamLineupPropsSchema>;

@@ -19,26 +19,27 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, PaperBackground, DarkBackground, Grain, Vignette } from "./shared";
+import { fontFamily, PaperBackground, DarkBackground, Grain, Vignette, SmartImg } from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
 const MetricSchema = z.object({
-  label:       z.string(),
+  label:       z.string().optional().default(""),
   value:       z.number(),
   percentile:  z.number(),
-  unit:        z.string().default(""),
+  unit:        z.string().optional().default(""),
   revealFrame: z.number().optional(),
 });
 
 export const AttackingRadarPropsSchema = z.object({
-  entityName:     z.string().default("Florian Wirtz"),
-  competition:    z.string().default("Premier League"),
-  season:         z.string().default("2025/2026"),
-  matchType:      z.string().default("All Matches"),
+  entityName:     z.string().optional().default("Florian Wirtz"),
+  competition:    z.string().optional().default("Premier League"),
+  season:         z.string().optional().default("2025/2026"),
+  matchType:      z.string().optional().default("All Matches"),
   nineties:       z.number().default(26),
-  accentColor:    z.string().default("#D4001A"),
-  bgColor:        z.string().default("#f0ece4"),
+  accentColor:    z.string().optional().default("#D4001A"),
+  bgColor:        z.string().optional().default("#f0ece4"),
+  sideImage:      z.string().optional().default(""),
   lightMode:      z.boolean().default(true),
   introFrames:    z.number().default(40),
   revealInterval: z.number().default(50),
@@ -66,9 +67,10 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-// Heat colours — two sets so they read well against either background
-const HEAT_LIGHT = { elite: "#0277BD", good: "#2E7D32", avg: "#E65100", weak: "#C62828" };
-const HEAT_DARK  = { elite: "#4FC3F7", good: "#81C784", avg: "#FFD54F", weak: "#EF5350" };
+// Heat colours — green→amber→red, matching universal football analytics convention.
+// Blue was avoided: it clashes with the red accent and confuses "team colour" vs "stat quality".
+const HEAT_LIGHT = { elite: "#1A7340", good: "#2E9E60", avg: "#D4860A", weak: "#C0392B" };
+const HEAT_DARK  = { elite: "#4CAF50", good: "#81C784", avg: "#FFB300", weak: "#EF5350" };
 
 function heatColor(p: number, light: boolean): string {
   const h = light ? HEAT_LIGHT : HEAT_DARK;
@@ -97,6 +99,7 @@ export const AttackingRadar: React.FC<AttackingRadarProps> = ({
   nineties,
   accentColor,
   bgColor,
+  sideImage,
   lightMode,
   introFrames,
   revealInterval,
@@ -228,6 +231,29 @@ export const AttackingRadar: React.FC<AttackingRadarProps> = ({
       }
       {lightMode ? <Grain /> : null}
       {lightMode ? <Vignette /> : null}
+
+      {/* ── Side image — far-right negative space only, never behind text ── */}
+      {/* Starts at x≈1600, past the last text column (pill ends at ~1840).       */}
+      {/* Mask fades left→right so the image only materialises in empty space.    */}
+      {sideImage ? (
+        <div style={{
+          position: "absolute",
+          left:     1580,
+          right:    0,
+          top:      0,
+          bottom:   0,
+          opacity:  titleIn * (lightMode ? 0.18 : 0.28),
+          WebkitMaskImage: "linear-gradient(to right, transparent 0%, black 45%, black 100%)",
+          maskImage:        "linear-gradient(to right, transparent 0%, black 45%, black 100%)",
+          pointerEvents: "none",
+        }}>
+          <SmartImg
+            src={sideImage}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "right top",
+                     filter: lightMode ? "grayscale(0.5) contrast(1.05)" : "grayscale(0.3) brightness(0.6)" }}
+          />
+        </div>
+      ) : null}
 
       {/* ── Header ── */}
       <div style={{

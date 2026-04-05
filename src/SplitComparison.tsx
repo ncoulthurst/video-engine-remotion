@@ -13,22 +13,22 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SPRINGS, S
 // ══════════════════════════════════════════════════════════════════════════════
 
 export const SplitComparisonPropsSchema = z.object({
-  label:        z.string().default("THEN vs NOW"),
-  leftLabel:    z.string().default("THEN"),
-  rightLabel:   z.string().default("NOW"),
-  leftValue:    z.string().optional(),
-  rightValue:   z.string().optional(),
-  leftSubtext:  z.string().optional(),
-  rightSubtext: z.string().optional(),
-  leftImage:    z.string().optional(),
-  rightImage:   z.string().optional(),
-  leftColor:    z.string().default("#C8102E"),
-  rightColor:   z.string().default("#034694"),
-  bgColor:      z.string().default("#f0ece4"),
+  label:        z.string().optional().default("THEN vs NOW"),
+  leftLabel:    z.string().optional().default("THEN"),
+  rightLabel:   z.string().optional().default("NOW"),
+  leftValue:    z.string().optional().default(""),
+  rightValue:   z.string().optional().default(""),
+  leftSubtext:  z.string().optional().default(""),
+  rightSubtext: z.string().optional().default(""),
+  leftImage:    z.string().optional().default(""),
+  rightImage:   z.string().optional().default(""),
+  leftColor:    z.string().optional().default("#C8102E"),
+  rightColor:   z.string().optional().default("#034694"),
+  bgColor:      z.string().optional().default("#f0ece4"),
   stats:        z.array(z.object({
-    label:   z.string(),
-    leftVal: z.string(),
-    rightVal: z.string(),
+    label:   z.string().optional().default(""),
+    leftVal: z.string().optional().default(""),
+    rightVal: z.string().optional().default(""),
   })).default([]),
 });
 

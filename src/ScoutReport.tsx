@@ -18,24 +18,24 @@ import { fontFamily, serifFontFamily, Grain, DarkBackground, PaperBackground, CO
 // ══════════════════════════════════════════════════════════════════════════════
 
 const MetricSchema = z.object({
-  label:   z.string(),
-  value:   z.string(),
-  detail:  z.string().optional(),   // e.g., "in 38 appearances"
+  label:   z.string().optional().default(""),
+  value:   z.string().optional().default(""),
+  detail:  z.string().optional().default(""),   // e.g., "in 38 appearances"
   bar:     z.number().min(0).max(100).optional(),  // 0-100 percentile bar
 });
 
 export const ScoutReportPropsSchema = z.object({
-  playerName:   z.string().default("Ollie Watkins"),
-  origin:       z.string().default("Exeter City"),
-  league:       z.string().default("EFL League Two"),
-  signingFee:   z.string().default("£1.8m"),
-  signingYear:  z.string().default("2017"),
+  playerName:   z.string().optional().default("Ollie Watkins"),
+  origin:       z.string().optional().default("Exeter City"),
+  league:       z.string().optional().default("EFL League Two"),
+  signingFee:   z.string().optional().default("£1.8m"),
+  signingYear:  z.string().optional().default("2017"),
   playerAge:    z.number().default(21),
-  headline:     z.string().default("25 goals in 35 Championship apps"),
-  headlineStat: z.string().default("25"),
-  headlineUnit: z.string().default("goals"),
-  accentColor:  z.string().default("#E30613"),
-  bgColor:      z.string().default("#0f0f0f"),
+  headline:     z.string().optional().default("25 goals in 35 Championship apps"),
+  headlineStat: z.string().optional().default("25"),
+  headlineUnit: z.string().optional().default("goals"),
+  accentColor:  z.string().optional().default("#E30613"),
+  bgColor:      z.string().optional().default("#0f0f0f"),
   lightMode:    z.boolean().default(false),
   metrics:      z.array(MetricSchema).default([
     { label: "Goals",        value: "25",   detail: "Championship 19/20",  bar: 92 },
