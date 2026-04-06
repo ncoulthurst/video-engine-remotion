@@ -51,6 +51,11 @@ import {
   VideoSequencePropsSchema,
   calculateMetadata as videoSequenceCalculateMetadata,
 } from "./VideoSequence";
+import { Thumbnail, ThumbnailPropsSchema } from "./Thumbnail";
+import { IntrcptShotMap, IntrcptShotMapPropsSchema } from "./IntrcptShotMap";
+import { IntrcptMatchTimeline, IntrcptMatchTimelinePropsSchema } from "./IntrcptMatchTimeline";
+import { IntrcptAwardsList, IntrcptAwardsListPropsSchema } from "./IntrcptAwardsList";
+import { IntrcptComparisonRadar, IntrcptComparisonRadarPropsSchema } from "./IntrcptComparisonRadar";
 
 import type { CareerTimelineProps } from "./CareerTimeline";
 import type { IntrcptTransferRecordProps } from "./IntrcptTransferRecord";
@@ -1243,6 +1248,170 @@ export const Root: React.FC = () => {
               },
             },
           ],
+        }}
+      />
+
+      {/* ── IntrcptShotMap — xG shot location map ────────────────────────── */}
+      <Composition
+        id="IntrcptShotMap"
+        component={IntrcptShotMap}
+        schema={IntrcptShotMapPropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          playerName: "Luis Suárez",
+          competition: "Premier League 2013/14",
+          accentColor: "#C8102E",
+          bgColor: "#f0ece4",
+          stagger: 6,
+          shots: [
+            { x: 48, y: 12, xg: 0.72, goal: true,  saved: false, minute: 14, label: "" },
+            { x: 30, y: 20, xg: 0.18, goal: false, saved: false, minute: 32, label: "" },
+            { x: 55, y: 8,  xg: 0.82, goal: true,  saved: false, minute: 45, label: "" },
+            { x: 70, y: 25, xg: 0.06, goal: false, saved: false, minute: 58, label: "" },
+            { x: 42, y: 15, xg: 0.45, goal: true,  saved: false, minute: 67, label: "" },
+            { x: 50, y: 28, xg: 0.09, goal: false, saved: false, minute: 74, label: "" },
+            { x: 38, y: 10, xg: 0.61, goal: false, saved: true,  minute: 81, label: "" },
+            { x: 52, y: 6,  xg: 0.88, goal: true,  saved: false, minute: 90, label: "" },
+          ],
+        }}
+      />
+
+      {/* ── IntrcptMatchTimeline — minute-by-minute match events ─────────── */}
+      <Composition
+        id="IntrcptMatchTimeline"
+        component={IntrcptMatchTimeline}
+        schema={IntrcptMatchTimelinePropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          homeTeam: "Liverpool",
+          awayTeam: "Arsenal",
+          homeScore: 2,
+          awayScore: 1,
+          competition: "Premier League",
+          date: "09 Feb 2014",
+          accentColor: "#C8102E",
+          bgColor: "#f0ece4",
+          stagger: 16,
+          events: [
+            { minute: 18, type: "goal",       player: "Suárez",    team: "home", detail: "" },
+            { minute: 34, type: "yellowCard", player: "Flamini",   team: "away", detail: "" },
+            { minute: 47, type: "goal",       player: "Suárez",    team: "home", detail: "" },
+            { minute: 56, type: "goal",       player: "Cazorla",   team: "away", detail: "Pen." },
+            { minute: 71, type: "sub",        player: "Sturridge", team: "home", detail: "" },
+            { minute: 88, type: "goal",       player: "Sterling",  team: "home", detail: "90+3'" },
+          ],
+        }}
+      />
+
+      {/* ── IntrcptAwardsList — year-by-year award podium ────────────────── */}
+      <Composition
+        id="IntrcptAwardsList"
+        component={IntrcptAwardsList}
+        schema={IntrcptAwardsListPropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          award: "Ballon d'Or",
+          entityName: "Lionel Messi",
+          accentColor: "#C9A84C",
+          bgColor: "#f0ece4",
+          stagger: 18,
+          holdDuration: 40,
+          years: [
+            { year: "2009", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
+            { year: "2010", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
+            { year: "2011", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
+            { year: "2012", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
+            { year: "2013", winner: "Cristiano Ronaldo", entity: "Lionel Messi", position: 2, detail: "Real Madrid" },
+            { year: "2014", winner: "Cristiano Ronaldo", entity: "Lionel Messi", position: 3, detail: "Real Madrid" },
+            { year: "2015", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
+          ],
+        }}
+      />
+
+      {/* ── IntrcptComparisonRadar — dual player radar overlay ───────────── */}
+      <Composition
+        id="IntrcptComparisonRadar"
+        component={IntrcptComparisonRadar}
+        schema={IntrcptComparisonRadarPropsSchema}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          playerA: "Lionel Messi",
+          playerB: "Cristiano Ronaldo",
+          seasonA: "2011/12",
+          seasonB: "2011/12",
+          competition: "La Liga",
+          accentColorA: "#C8102E",
+          accentColorB: "#003087",
+          bgColor: "#f0ece4",
+          stagger: 14,
+          introFrames: 30,
+          metrics: [
+            { label: "Goals",         percentileA: 99, percentileB: 97, valueA: 50,   valueB: 60,   unit: "" },
+            { label: "Assists",       percentileA: 92, percentileB: 71, valueA: 16,   valueB: 13,   unit: "" },
+            { label: "xG",            percentileA: 98, percentileB: 96, valueA: 42.3, valueB: 52.1, unit: "" },
+            { label: "Dribbles",      percentileA: 97, percentileB: 61, valueA: 0,    valueB: 0,    unit: "" },
+            { label: "Chances\nCreated", percentileA: 94, percentileB: 72, valueA: 0, valueB: 0,   unit: "" },
+            { label: "Aerial\nWins",  percentileA: 32, percentileB: 88, valueA: 0,    valueB: 0,    unit: "" },
+          ],
+        }}
+      />
+
+      {/* ── Thumbnail — 1280×720 still frame for YouTube ─────────────────── */}
+      <Composition
+        id="Thumbnail"
+        component={Thumbnail}
+        schema={ThumbnailPropsSchema}
+        durationInFrames={1}
+        fps={30}
+        width={1280}
+        height={720}
+        defaultProps={{
+          hookLine:    "the **genius**\nof Suárez",
+          subNote:     "",
+          statLine:    "31 goals · 1 season",
+          imageA:      "suarez",
+          imageAX:     68,
+          imageAY:     100,
+          imageAScale: 1,
+          imageB:      "",
+          imageBX:     22,
+          imageBY:     100,
+          imageBScale: 0.85,
+          calloutText: "",
+          calloutX:    72,
+          calloutY:    55,
+          bgStyle:     "light" as const,
+          bgColor:     "#ffffff",
+          boldColor:   "#C8102E",
+          showArrow:   false,
+          arrowColor:  "#D0021B",
+          arrowX1:     560,
+          arrowY1:     350,
+          arrowX2:     720,
+          arrowY2:     500,
+          layout:         "top-text" as const,
+          textX:          -1,
+          textY:          -1,
+          textScale:      1,
+          textWidth:      -1,
+          imageAEffect:   "none" as const,
+          imageBEffect:   "none" as const,
+          statBadge:      "",
+          statBadgeLabel: "",
+          statBadgeX:     14,
+          statBadgeY:     50,
         }}
       />
     </>
