@@ -18,19 +18,21 @@ export const IntrcptBigStatPropsSchema = z.object({
   accentColor:z.string().optional().default("#C8102E"),
   darkMode:   z.boolean().default(false),
   bgColor:    z.string().optional().default("#f0ece4"),
+  skipIntro:  z.boolean().optional().default(false),
 });
 export type IntrcptBigStatProps = z.infer<typeof IntrcptBigStatPropsSchema>;
 
 export const IntrcptBigStat: React.FC<IntrcptBigStatProps> = ({
   stat, unit, label, stat2, unit2, label2, context, playerImage, accentColor, darkMode, bgColor,
+  skipIntro = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const p1    = spring({ frame, fps, config: { damping: 20, stiffness: 70 } });
-  const p2    = spring({ frame, fps, config: { damping: 20, stiffness: 70 }, delay: 12 });
-  const lProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 18 });
-  const cProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 30 });
-  const iProg = spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
+  const p1    = skipIntro ? 1 : spring({ frame, fps, config: { damping: 20, stiffness: 70 } });
+  const p2    = skipIntro ? 1 : spring({ frame, fps, config: { damping: 20, stiffness: 70 }, delay: 12 });
+  const lProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 18 });
+  const cProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 30 });
+  const iProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
 
   const textColor  = darkMode ? "#fff" : COLORS.primary;
   const mutedColor = darkMode ? "rgba(255,255,255,0.42)" : COLORS.muted;

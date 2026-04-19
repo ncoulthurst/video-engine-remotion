@@ -15,7 +15,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground } from "./shared";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -42,6 +42,8 @@ export const IntrcptGoalRushPropsSchema = z.object({
   stagger:      z.number().int().min(6).default(20),
   /** Frames held after career total appears */
   holdDuration: z.number().int().min(20).default(90),
+  darkMode:     z.boolean().optional().default(false),
+  skipIntro:    z.boolean().optional().default(false),
 });
 
 export type IntrcptGoalRushProps = z.infer<typeof IntrcptGoalRushPropsSchema>;
@@ -64,7 +66,7 @@ const TOTAL_CFG  = { damping: 7,  stiffness: 260, mass: 0.75 }; // underdamped �
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
-  label, title, seasons, accentColor, bgColor, stagger, holdDuration,
+  label, title, seasons, accentColor, bgColor, stagger, holdDuration, darkMode, skipIntro,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -73,9 +75,9 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
   const careerTotal = seasons.reduce((s, r) => s + r.goals, 0);
   const totalFrame  = INTRO_F + (n - 1) * stagger + TOTAL_DELAY;
 
-  const headerSp = spring({ frame, fps, config: HEADER_CFG });
-  const ruleSp   = spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 12 });
-  const totalSp  = spring({ frame: frame - totalFrame, fps, config: TOTAL_CFG });
+  const headerSp = skipIntro ? 1 : spring({ frame, fps, config: HEADER_CFG });
+  const ruleSp   = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 12 });
+  const totalSp  = skipIntro ? 1 : spring({ frame: frame - totalFrame, fps, config: TOTAL_CFG });
 
   // Clamp display total so overshoot doesn't show >careerTotal
   const displayTotal = Math.round(
@@ -90,13 +92,16 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
 
   const accent = accentColor ?? "#D00027";
   const bg     = bgColor     ?? "#f0ece4";
+  const textPrimary = darkMode ? "#f0ece4" : "#111111";
+  const textMuted   = darkMode ? "rgba(240,236,228,0.5)" : "rgba(0,0,0,0.4)";
+  const rowBorder   = darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)";
 
   // Dynamic row height — tighten if there are many seasons
   const ROW_H = n > 7 ? 72 : 82;
 
   return (
     <AbsoluteFill>
-      <PaperBackground color={bg} />
+      {darkMode ? <DarkBackground color={bg === "#f0ece4" ? "#111111" : bg} /> : <PaperBackground color={bg} />}
 
       <div style={{
         position:       "absolute",
@@ -131,7 +136,7 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
             fontSize:      50,
             fontWeight:    700,
             fontStyle:     "italic",
-            color:         "#1a1a1a",
+            color:         textPrimary,
             letterSpacing: -1.5,
             lineHeight:    1.1,
           }}>
@@ -142,8 +147,8 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
         {/* Top rule */}
         <div style={{
           height:          1.5,
-          background:      "#1a1a1a",
-          opacity:         0.14,
+          background:      textPrimary,
+          opacity:         darkMode ? 0.2 : 0.14,
           transformOrigin: "left center",
           transform:       `scaleX(${ruleSp})`,
           margin:          "22px 0 0",
@@ -151,7 +156,7 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
 
         {/* Season rows */}
         {seasons.map((row, i) => {
-          const sp = spring({ frame: frame - (INTRO_F + i * stagger), fps, config: ROW_CFG });
+          const sp = skipIntro ? 1 : spring({ frame: frame - (INTRO_F + i * stagger), fps, config: ROW_CFG });
 
           const displayGoals = Math.round(
             interpolate(sp, [0, 1], [0, row.goals], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
@@ -174,7 +179,7 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
                   fontSize:      14,
                   fontWeight:    600,
                   letterSpacing: 1.5,
-                  color:         "rgba(0,0,0,0.35)",
+                  color:         textMuted,
                   width:         110,
                   flexShrink:    0,
                 }}>
@@ -186,7 +191,7 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
                   fontFamily,
                   fontSize:      hi ? 22 : 18,
                   fontWeight:    hi ? 800 : 600,
-                  color:         hi ? "#1a1a1a" : "rgba(0,0,0,0.50)",
+                  color:         hi ? textPrimary : textMuted,
                   flex:          1,
                   letterSpacing: hi ? 0.4 : 0.1,
                 }}>
@@ -212,7 +217,7 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
               {/* Row divider */}
               <div style={{
                 height:  1,
-                background: "rgba(0,0,0,0.06)",
+                background: rowBorder,
                 opacity: sp,
               }} />
             </React.Fragment>
@@ -222,8 +227,8 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
         {/* Bottom rule — draws in with total */}
         <div style={{
           height:          2,
-          background:      "#1a1a1a",
-          opacity:         Math.min(totalSp * 3, 1) * 0.12,
+          background:      textPrimary,
+          opacity:         Math.min(totalSp * 3, 1) * (darkMode ? 0.18 : 0.12),
           transformOrigin: "left center",
           transform:       `scaleX(${Math.min(totalSp * 3, 1)})`,
           marginTop:       2,
@@ -244,7 +249,7 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
             fontWeight:    700,
             letterSpacing: 4,
             textTransform: "uppercase",
-            color:         "rgba(0,0,0,0.32)",
+            color:         textMuted,
             marginRight:   30,
             paddingBottom: 10,
           }}>

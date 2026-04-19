@@ -29,6 +29,8 @@ export const TRANSITION_DURATIONS = {
   paper:     26,   // ~0.87s
   dataLine:  28,   // ~0.93s
   grain:     12,   // ~0.40s
+  worldPan:  42,   // ~1.40s — "same container" shared world pan
+  evolve:    50,   // ~1.67s — same-world evolution: outgoing holds then drops, incoming emerges
 } as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -469,3 +471,173 @@ export function grainBurstTransition(
 
 export const grainBurstTiming = () =>
   linearTiming({ durationInFrames: TRANSITION_DURATIONS.grain });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 7. THE WORLD PAN — "same container" shared spatial transition
+//
+//    Both scenes exist on a wide horizontal canvas. The camera pans through them.
+//    At the transition midpoint, BOTH scenes are visible: outgoing on the left,
+//    incoming on the right — with a hairline divider between them.
+//    This communicates that all content shares one continuous world.
+//
+//    Derived from analysis of Search Party / MOON documentary channels.
+//    See Rule 15 in motion-design-principles.md.
+//
+//    Best used between: consecutive graphics in the same act, "before/after"
+//    sequences, and any time the narrative has spatial continuity.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type WorldPanProps = { direction?: "right" | "left"; maxBlur?: number; dividerColor?: string };
+
+const WorldPanPresenter: React.FC<TransitionPresentationComponentProps<WorldPanProps>> = ({
+  children,
+  presentationProgress: p,
+  presentationDirection,
+  passedProps,
+}) => {
+  const { width } = useVideoConfig();
+  const dir         = passedProps?.direction ?? "right";
+  const maxBlur     = passedProps?.maxBlur ?? 18;
+  const dividerColor = passedProps?.dividerColor ?? "rgba(17,17,17,0.22)";
+
+  // Same pan mechanics as push but at FULL width, no overflow:hidden.
+  // At p=0.5 (easeInOut(0.5)=0.5), exiting is at -width/2 and entering is
+  // at +width/2, so each occupies exactly one half of the canvas.
+  const sign = dir === "right" ? 1 : -1;
+  const progress = easeInOut(p);
+
+  const translateX =
+    presentationDirection === "exiting"
+      ? -progress * width * sign
+      : (1 - progress) * width * sign;
+
+  // Horizontal motion blur peaks at midpoint — same as push
+  const blurAmount = Math.sin(p * Math.PI) * maxBlur;
+  const filterId   = `wpan-hblur-${Math.round(blurAmount)}`;
+
+  // Divider is drawn only once — by the entering presenter — at the seam.
+  // Seam position: for entering, left edge is at (1-progress)*width
+  const seamX = (1 - progress) * width * sign;
+  // Divider opacity arcs — peaks at midpoint
+  const divOpacity = Math.sin(p * Math.PI) * 0.8;
+
+  return (
+    // NO overflow:hidden here — lets both scenes be visible across the canvas.
+    // The viewport clips naturally at 0 and width.
+    <AbsoluteFill>
+      {blurAmount > 0.5 && (
+        <svg style={{ position: "absolute", width: 0, height: 0, overflow: "hidden" }}>
+          <defs>
+            <filter id={filterId} x="-20%" y="0%" width="140%" height="100%">
+              <feGaussianBlur stdDeviation={`${blurAmount} 0`} />
+            </filter>
+          </defs>
+        </svg>
+      )}
+      <AbsoluteFill
+        style={{
+          transform:  `translateX(${translateX}px)`,
+          filter:     blurAmount > 0.5 ? `url(#${filterId})` : "none",
+          willChange: "transform, filter",
+        }}
+      >
+        {children}
+      </AbsoluteFill>
+
+      {/* Hairline seam — drawn once by the entering presenter */}
+      {presentationDirection === "entering" && divOpacity > 0.02 && (
+        <div
+          style={{
+            position:        "absolute",
+            top:             0,
+            // Place divider at the seam between the two scenes
+            left:            dir === "right" ? seamX - 1 : undefined,
+            right:           dir === "left"  ? seamX - 1 : undefined,
+            width:           2,
+            height:          "100%",
+            backgroundColor: dividerColor,
+            opacity:         divOpacity,
+            pointerEvents:   "none",
+            // Soft glow to make the seam feel intentional, not like a render artifact
+            boxShadow: `0 0 8px 2px ${dividerColor}`,
+          }}
+        />
+      )}
+    </AbsoluteFill>
+  );
+};
+
+export function worldPanTransition(
+  props: WorldPanProps = {}
+): TransitionPresentation<WorldPanProps> {
+  return { component: WorldPanPresenter, props };
+}
+
+export const worldPanTiming = () =>
+  springTiming({
+    // Heavier damping, lower stiffness than push — smoother, more deliberate pan.
+    config: { damping: 200, stiffness: 500, mass: 1.2 },
+    durationRestThreshold: 0.001,
+  });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 8. THE EVOLVE — same-world scene evolution
+//
+//    The outgoing scene holds at full opacity, then drops away in the final
+//    20% of the transition. The incoming scene's content emerges in the same
+//    visual space with a gentle scale-in (1.015 → 1.0).
+//
+//    The KEY contract: both scenes must share the SAME bgColor. Because the
+//    backgrounds are identical, the cross between them is seamless — the
+//    viewer sees only foreground elements changing. This is what makes it feel
+//    like ONE evolving scene rather than two separate compositions.
+//
+//    Combined with skipIntro=true on the incoming composition (so its
+//    background and persistent elements are already settled from frame 0),
+//    this creates true visual continuity: nothing "cuts away" — it evolves.
+//
+//    Use between: consecutive infographic scenes within the same act that
+//    share the same background. The canonical case is opening sequences where
+//    the red grain background and portrait persist while new content arrives.
+//
+//    See Rule 19 in motion-design-principles.md.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const EvolvePresenter: React.FC<TransitionPresentationComponentProps<Record<string, never>>> = ({
+  children,
+  presentationProgress: p,
+  presentationDirection,
+}) => {
+  if (presentationDirection === "exiting") {
+    // Hold at full opacity until 80%, then drop to 0 over the final 20%.
+    // This keeps the outgoing scene "present" while incoming content emerges.
+    const holdFrac = 0.80;
+    const exitOpacity = p < holdFrac ? 1 : 1 - easeInOut((p - holdFrac) / (1 - holdFrac));
+    return (
+      <AbsoluteFill style={{ opacity: exitOpacity }}>
+        {children}
+      </AbsoluteFill>
+    );
+  } else {
+    // Entering: content fades in with a very subtle scale-down (1.015 → 1.0)
+    // — makes it feel like it's emerging into the scene rather than replacing it.
+    const enterOpacity = easeInOut(p);
+    const scale = 1 + (1 - easeInOut(p)) * 0.015;
+    return (
+      <AbsoluteFill style={{
+        opacity: enterOpacity,
+        transform: `scale(${scale.toFixed(4)})`,
+        transformOrigin: "center center",
+      }}>
+        {children}
+      </AbsoluteFill>
+    );
+  }
+};
+
+export function evolveTransition(): TransitionPresentation<Record<string, never>> {
+  return { component: EvolvePresenter, props: {} };
+}
+
+export const evolveTiming = () =>
+  linearTiming({ durationInFrames: TRANSITION_DURATIONS.evolve });

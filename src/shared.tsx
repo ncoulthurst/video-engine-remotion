@@ -248,8 +248,8 @@ export const DocumentaryFrame: React.FC<{ children: React.ReactNode }> = ({ chil
       <div style={{ position: "absolute", left: FRAME_X, top: FRAME_Y, width: FRAME_W, height: FRAME_H, overflow: "hidden", borderRadius: 18, boxShadow: "0 2px 6px rgba(0,0,0,0.28), 0 20px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.05)" }}>
         {children}
       </div>
-      <div style={{ position: "absolute", bottom: Math.round((1080 - FRAME_Y - FRAME_H) / 2) - 10, right: FRAME_X, fontFamily, fontSize: 22, fontWeight: 800, color: "#fff", opacity: 0.22, letterSpacing: -0.5, userSelect: "none" as const, pointerEvents: "none" }}>
-        90th
+      <div style={{ position: "absolute", bottom: Math.round((1080 - FRAME_Y - FRAME_H) / 2) - 10, right: FRAME_X, fontFamily, fontSize: 22, fontWeight: 800, color: "#1660FF", opacity: 0.55, letterSpacing: -0.5, userSelect: "none" as const, pointerEvents: "none" }}>
+        Frequency
       </div>
     </AbsoluteFill>
   );

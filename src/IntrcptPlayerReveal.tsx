@@ -19,7 +19,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { Grain, PaperBackground, SmartImg } from "./shared";
+import { Grain, PaperBackground, DarkBackground, SmartImg } from "./shared";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -39,6 +39,7 @@ export const IntrcptPlayerRevealPropsSchema = z.object({
     { src: "suarez.png", zIndex: 2 },  // right-facing — between the two
   ]),
   bgColor:      z.string().optional().default("#f0ece4"),
+  darkMode:     z.boolean().optional().default(false),
   /** Frames between each player's reveal. */
   stagger:      z.number().int().min(4).default(18),
   /** Frames all players are held together after the last one appears. */
@@ -82,11 +83,11 @@ const MASK = "linear-gradient(to right, transparent, black 240px, black 85%, tra
 // ─── Main component ───────────────────────────────────────────────────────────
 
 export const IntrcptPlayerReveal: React.FC<IntrcptPlayerRevealProps> = ({
-  players, bgColor, stagger, holdDuration,
+  players, bgColor, darkMode, stagger, holdDuration,
 }) => {
   const frame   = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const bg      = bgColor ?? "#f0ece4";
+  const bg      = darkMode ? (bgColor === "#f0ece4" ? "#111111" : (bgColor ?? "#111111")) : (bgColor ?? "#f0ece4");
 
   const n = Math.min(4, Math.max(1, players.length));
 
@@ -109,8 +110,8 @@ export const IntrcptPlayerReveal: React.FC<IntrcptPlayerRevealProps> = ({
   return (
     <AbsoluteFill>
 
-      {/* Brand-matched paper surface */}
-      <PaperBackground color={bg} />
+      {/* Brand-matched surface */}
+      {darkMode ? <DarkBackground color={bg} /> : <PaperBackground color={bg} />}
 
       {/* ── Players — rendered back-to-front (leftmost = behind) ── */}
       {players.slice(0, 4).map((player, i) => {

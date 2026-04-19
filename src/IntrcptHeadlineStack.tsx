@@ -15,7 +15,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground } from "./shared";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -45,6 +45,8 @@ export const IntrcptHeadlineStackPropsSchema = z.object({
   stagger:      z.number().int().min(4).default(14),
   /** Frames held after last line appears */
   holdDuration: z.number().int().min(20).default(90),
+  darkMode:     z.boolean().optional().default(false),
+  skipIntro:    z.boolean().optional().default(false),
 });
 
 export type IntrcptHeadlineStackProps = z.infer<typeof IntrcptHeadlineStackPropsSchema>;
@@ -98,20 +100,23 @@ const RULE_CFG    = { damping: 28, stiffness: 55 };
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export const IntrcptHeadlineStack: React.FC<IntrcptHeadlineStackProps> = ({
-  lines, eyebrow, accentColor, bgColor, stagger, holdDuration,
+  lines, eyebrow, accentColor, bgColor, stagger, holdDuration, darkMode, skipIntro,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const accent = accentColor ?? "#D00027";
-  const bg     = bgColor     ?? "#f0ece4";
+  const accent      = accentColor ?? "#D00027";
+  const bg          = bgColor     ?? "#f0ece4";
+  const textPrimary = darkMode ? "#f0ece4" : "#1a1a1a";
+  const textMuted   = darkMode ? "rgba(240,236,228,0.45)" : "rgba(0,0,0,0.35)";
+  const ruleOpacity = darkMode ? 0.72 : 0.88;
 
-  const eyebrowSp = spring({ frame, fps, config: EYEBROW_CFG });
-  const ruleSp    = spring({ frame, fps, config: RULE_CFG, delay: 8 });
+  const eyebrowSp = skipIntro ? 1 : spring({ frame, fps, config: EYEBROW_CFG });
+  const ruleSp    = skipIntro ? 1 : spring({ frame, fps, config: RULE_CFG, delay: 8 });
 
   return (
     <AbsoluteFill>
-      <PaperBackground color={bg} />
+      {darkMode ? <DarkBackground color={bg === "#f0ece4" ? "#111111" : bg} /> : <PaperBackground color={bg} />}
 
       <div style={{
         position:       "absolute",
@@ -130,7 +135,7 @@ export const IntrcptHeadlineStack: React.FC<IntrcptHeadlineStackProps> = ({
             fontWeight:    700,
             letterSpacing: 4,
             textTransform: "uppercase",
-            color:         "rgba(0,0,0,0.35)",
+            color:         textMuted,
             marginBottom:  18,
             opacity:       eyebrowSp,
             transform:     `translateY(${interpolate(eyebrowSp, [0, 1], [8, 0])}px)`,
@@ -142,8 +147,8 @@ export const IntrcptHeadlineStack: React.FC<IntrcptHeadlineStackProps> = ({
         {/* Rule — draws left to right before first line fires */}
         <div style={{
           height:          3,
-          background:      "#1a1a1a",
-          opacity:         0.88,
+          background:      textPrimary,
+          opacity:         ruleOpacity,
           transformOrigin: "left center",
           transform:       `scaleX(${ruleSp})`,
           marginBottom:    32,
@@ -152,14 +157,14 @@ export const IntrcptHeadlineStack: React.FC<IntrcptHeadlineStackProps> = ({
         {/* Lines */}
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {lines.map((line, i) => {
-            const sp = spring({
+            const sp = skipIntro ? 1 : spring({
               frame:  frame - (INTRO_F + i * stagger),
               fps,
               config: LINE_CFG,
             });
 
             const sizeStyle = SIZE_STYLES[line.size ?? "hero"];
-            const color     = (line.accent ?? false) ? accent : "#1a1a1a";
+            const color     = (line.accent ?? false) ? accent : textPrimary;
 
             return (
               <div
