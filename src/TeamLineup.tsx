@@ -224,7 +224,7 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
         {/* Player list — each row uses the player's appearFrame */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, overflow: "hidden" }}>
           {sortedPlayers.map((p, i) => {
-            const delay = p.appearFrame;
+            const delay = typeof p.appearFrame === 'number' ? p.appearFrame : i * 8;
             const rowOp = interpolate(frame, [delay, delay + 14], [0, 1], { extrapolateRight: "clamp" });
             const rowX  = spring({ frame: frame - delay, fps, from: -28, to: 0, config: { damping: 17, stiffness: 145 } });
 
@@ -390,7 +390,7 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
 
         {/* Players on pitch — each fades in at their appearFrame */}
         {players.map((p, i) => {
-          const delay = p.appearFrame;
+          const delay = typeof p.appearFrame === 'number' ? p.appearFrame : i * 8;
           const sc    = spring({ frame: frame - delay, fps, from: 0, to: 1, config: { damping: 18, stiffness: 140 } });
           const pOp   = interpolate(frame, [delay, delay + 16], [0, 1], { extrapolateRight: "clamp" });
 

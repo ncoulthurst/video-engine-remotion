@@ -42,6 +42,19 @@ export const ThumbnailPropsSchema = z.object({
   bgColor:     z.string().default("#ffffff"),
   boldColor:   z.string().default("#C8102E"),
 
+  /**
+   * Gradient background — comma-separated hex colours, e.g. "009C3B,FFDF00,002776".
+   * When set, overrides bgStyle/bgColor. Leave empty to use bgStyle instead.
+   */
+  gradient:      z.string().default("none"),
+  /** Angle in degrees for the gradient direction (0 = top→bottom, 90 = left→right, 135 = diagonal). */
+  gradientAngle: z.number().default(135),
+
+  /** Show or hide the Frequency watermark. */
+  showWatermark:      z.boolean().default(true),
+  /** Fixed corner position of the watermark. */
+  watermarkPosition:  z.enum(["bottom-left", "bottom-right"]).default("bottom-right"),
+
   showArrow:   z.boolean().default(false),
   arrowColor:  z.string().default("#D0021B"),
   arrowX1:     z.number().default(560),
@@ -321,7 +334,22 @@ function PlayerImg({ src, cx, cy, scale, zIndex = 10, grabbing = false, effect =
 }
 
 // ── Background ────────────────────────────────────────────────────────────────
-function Background({ bgStyle, bgColor }: { bgStyle: string; bgColor: string }) {
+function Background({ bgStyle, bgColor, gradient, gradientAngle }: {
+  bgStyle: string; bgColor: string; gradient: string; gradientAngle: number;
+}) {
+  if (gradient && gradient !== "none") {
+    const stops = gradient.split(",").map(c => c.trim().replace(/^#/, ""));
+    const colors = stops.map((c, i) => {
+      const pct = stops.length === 1 ? "0%" : `${Math.round((i / (stops.length - 1)) * 100)}%`;
+      return `#${c} ${pct}`;
+    }).join(", ");
+    return (
+      <>
+        <div style={{ position: "absolute", inset: 0, background: `linear-gradient(${gradientAngle}deg, ${colors})` }} />
+        <Grain />
+      </>
+    );
+  }
   if (bgStyle === "paper") return <><PaperBackground color={bgColor || "#f0ece4"} /><Grain /></>;
   if (bgStyle === "dark") {
     const c = bgColor !== "#ffffff" ? bgColor : "#0d0d0d";
@@ -347,10 +375,12 @@ export const Thumbnail: React.FC<ThumbnailProps> = (props) => {
     imageB, imageBX, imageBY, imageBScale,
     calloutText, calloutX, calloutY,
     bgStyle, bgColor, boldColor,
+    gradient, gradientAngle,
     showArrow, arrowColor, arrowX1, arrowY1, arrowX2, arrowY2,
     layout, textX, textY, textScale, textWidth,
     imageAEffect, imageBEffect,
     statBadge, statBadgeLabel, statBadgeX, statBadgeY,
+    showWatermark, watermarkPosition,
   } = props;
 
   const { isStudio } = getRemotionEnvironment();
@@ -549,7 +579,7 @@ export const Thumbnail: React.FC<ThumbnailProps> = (props) => {
     <AbsoluteFill style={{ overflow: "hidden" }}>
       <div ref={frameRef} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} />
 
-      <Background bgStyle={bgStyle} bgColor={bgColor} />
+      <Background bgStyle={bgStyle} bgColor={bgColor} gradient={gradient} gradientAngle={gradientAngle} />
 
       {/* ── Images ─────────────────────────────────────────────────────── */}
       {imageA && imageAEffect !== "none" && (
@@ -696,11 +726,14 @@ export const Thumbnail: React.FC<ThumbnailProps> = (props) => {
       })()}
 
       {/* ── Watermark ──────────────────────────────────────────────────── */}
-      <div style={{
-        position: "absolute", bottom: 22, right: 32, zIndex: 30,
-        fontFamily: serifFontFamily, fontSize: 26, fontWeight: 900,
-        letterSpacing: -0.5, color: textColor, opacity: 0.18,
-      }}>the 90th</div>
+      {showWatermark && (
+        <div style={{
+          position: "absolute", bottom: 22, zIndex: 30,
+          ...(watermarkPosition === "bottom-left" ? { left: 32 } : { right: 32 }),
+          fontFamily: serifFontFamily, fontSize: 26, fontWeight: 900,
+          letterSpacing: -0.5, color: "#1660FF", opacity: 0.7,
+        }}>Frequency</div>
+      )}
 
     </AbsoluteFill>
   );

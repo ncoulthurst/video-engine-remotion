@@ -1,7 +1,6 @@
 import React from "react";
 import { Composition } from "remotion";
 
-import { TransferAnnouncement, TransferAnnouncementPropsSchema } from "./TransferAnnouncement";
 import { PremierLeagueTable, TablePropsSchema } from "./PremierLeagueTable";
 import { TopScorersTable, TopScorersPropsSchema } from "./TopScorersTable";
 import { PlayerStats, PlayerStatsPropsSchema } from "./PlayerStats";
@@ -9,18 +8,13 @@ import { MatchResult, MatchResultPropsSchema } from "./MatchResult";
 import { CareerTimeline, CareerTimelinePropsSchema } from "./CareerTimeline";
 import { SeasonComparison, SeasonComparisonPropsSchema } from "./SeasonComparison";
 import { TeamLineup, TeamLineupPropsSchema } from "./TeamLineup";
-import { TrophyGraphic, TrophyPropsSchema } from "./TrophyGraphic";
-import { DisciplinaryRecord, DisciplinaryPropsSchema } from "./DisciplinaryRecord";
-import { QuoteCard, QuoteCardPropsSchema } from "./QuoteCard";
 import { ArticleHeadline, ArticleHeadlinePropsSchema } from "./ArticleHeadline";
 import { IntrcptIntro, IntrcptIntroPropsSchema } from "./IntrcptIntro";
 import { IntrcptStatBars, IntrcptStatBarsPropsSchema } from "./IntrcptStatBars";
 import { IntrcptFormRun, IntrcptFormRunPropsSchema } from "./IntrcptFormRun";
 import { IntrcptTactical, IntrcptTacticalPropsSchema } from "./IntrcptTactical";
-import { IntrcptBigStat, IntrcptBigStatPropsSchema } from "./IntrcptBigStat";
 import { IntrcptLeagueGraph, IntrcptLeagueGraphPropsSchema } from "./IntrcptLeagueGraph";
 import { IntrcptTransferRecord, IntrcptTransferRecordPropsSchema } from "./IntrcptTransferRecord";
-import { IntrcptQuote, IntrcptQuotePropsSchema } from "./IntrcptQuote";
 import { IntrcptChapterWord, IntrcptChapterWordPropsSchema } from "./IntrcptChapterWord";
 import { IntrcptConceptCard, IntrcptConceptCardPropsSchema } from "./IntrcptConceptCard";
 import { IntrcptClipSingle, IntrcptClipSinglePropsSchema } from "./IntrcptClipSingle";
@@ -29,23 +23,14 @@ import { AttackingRadar, AttackingRadarPropsSchema } from "./AttackingRadar";
 import { PlayerTrio, PlayerTrioPropsSchema } from "./PlayerTrio";
 import { TrioFeature, TrioFeaturePropsSchema } from "./TrioFeature";
 import { MapCallout, MapCalloutPropsSchema } from "./MapCallout";
-import { AnimatedFactCard, AnimatedFactCardPropsSchema } from "./AnimatedFactCard";
-import { TitleCard, TitleCardPropsSchema } from "./TitleCard";
 import { AnnotatedImage, AnnotatedImagePropsSchema } from "./AnnotatedImage";
-import { SplitComparison, SplitComparisonPropsSchema } from "./SplitComparison";
 import { TimelineScroll, TimelineScrollPropsSchema } from "./TimelineScroll";
 import { CountdownReveal, CountdownRevealPropsSchema, calculateMetadata as countdownCalculateMetadata } from "./CountdownReveal";
 import { StatPulse, StatPulsePropsSchema } from "./StatPulse";
-import { MatchMoment, MatchMomentPropsSchema } from "./MatchMoment";
-import { TransferProfit, TransferProfitPropsSchema, calculateMetadata as transferProfitCalculateMetadata } from "./TransferProfit";
 import { ScoutReport, ScoutReportPropsSchema } from "./ScoutReport";
 import { ValueCurve, ValueCurvePropsSchema } from "./ValueCurve";
 import { IntrcptTransferProfit, IntrcptTransferProfitPropsSchema, calculateMetadata as transferProfitV2CalculateMetadata } from "./IntrcptTransferProfit";
-import { IntrcptPhotoReel, IntrcptPhotoReelPropsSchema, calculateMetadata as photoReelCalculateMetadata } from "./IntrcptPhotoReel";
-import { IntrcptContactSheet, IntrcptContactSheetPropsSchema, calculateMetadata as contactSheetCalculateMetadata } from "./IntrcptContactSheet";
 import { IntrcptPlayerReveal, IntrcptPlayerRevealPropsSchema, calculateMetadata as playerRevealCalculateMetadata } from "./IntrcptPlayerReveal";
-import { IntrcptGoalRush, IntrcptGoalRushPropsSchema, calculateMetadata as goalRushCalculateMetadata } from "./IntrcptGoalRush";
-import { IntrcptHeadlineStack, IntrcptHeadlineStackPropsSchema, calculateMetadata as headlineStackCalculateMetadata } from "./IntrcptHeadlineStack";
 import {
   VideoSequence,
   VideoSequencePropsSchema,
@@ -53,9 +38,11 @@ import {
 } from "./VideoSequence";
 import { Thumbnail, ThumbnailPropsSchema } from "./Thumbnail";
 import { IntrcptShotMap, IntrcptShotMapPropsSchema } from "./IntrcptShotMap";
-import { IntrcptMatchTimeline, IntrcptMatchTimelinePropsSchema } from "./IntrcptMatchTimeline";
 import { IntrcptAwardsList, IntrcptAwardsListPropsSchema } from "./IntrcptAwardsList";
+import { IntrcptBigStat, IntrcptBigStatPropsSchema } from "./IntrcptBigStat";
 import { IntrcptComparisonRadar, IntrcptComparisonRadarPropsSchema } from "./IntrcptComparisonRadar";
+import { IntrcptNewsFeed, IntrcptNewsFeedPropsSchema, calculateMetadata as calcNewsFeed } from "./IntrcptNewsFeed";
+import { IntrcptSeasonTimeline, IntrcptSeasonTimelinePropsSchema } from "./IntrcptSeasonTimeline";
 
 import type { CareerTimelineProps } from "./CareerTimeline";
 import type { IntrcptTransferRecordProps } from "./IntrcptTransferRecord";
@@ -180,25 +167,6 @@ export const Root: React.FC = () => {
         }}
       />
       <Composition
-        id="IntrcptBigStat"
-        component={IntrcptBigStat}
-        schema={IntrcptBigStatPropsSchema}
-        durationInFrames={210}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          stat: "31",
-          unit: "goals",
-          label: "single season record",
-          context: "Luis Suarez",
-          playerImage: "",
-          accentColor: "#C8102E",
-          darkMode: false,
-          bgColor: "#f0ece4"
-        }}
-      />
-      <Composition
         id="IntrcptLeagueGraph"
         component={IntrcptLeagueGraph}
         schema={IntrcptLeagueGraphPropsSchema}
@@ -242,22 +210,6 @@ export const Root: React.FC = () => {
         width={1920}
         height={1080}
         defaultProps={DEFAULT_INTRCPT_TRANSFER_RECORD}
-      />
-      <Composition
-        id="IntrcptQuote"
-        component={IntrcptQuote}
-        schema={IntrcptQuotePropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          quote: "I am not a diver.",
-          attribution: "Luis Suarez",
-          playerImage: "suarez.jpg",
-          accentColor: "#C8102E",
-          bgColor: "#f0ece4"
-        }}
       />
       <Composition
         id="IntrcptChapterWord"
@@ -534,28 +486,6 @@ export const Root: React.FC = () => {
         }}
       />
       <Composition
-        id="TransferAnnouncement"
-        component={TransferAnnouncement}
-        schema={TransferAnnouncementPropsSchema}
-        durationInFrames={270}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          playerName:    "Luis Suárez",
-          fromClub:      "Liverpool",
-          toClub:        "Barcelona",
-          fromBadgeSlug: "liverpool.svg",
-          toBadgeSlug:   "barcelona.svg",
-          fromColor:     "#C8102E",
-          toColor:       "#004D98",
-          fee:           "£75m",
-          year:          "2014",
-          nationality:   "Uruguayan",
-          bgColor:       "#f0ece4",
-        }}
-      />
-      <Composition
         id="SeasonComparison"
         component={SeasonComparison}
         schema={SeasonComparisonPropsSchema}
@@ -614,48 +544,6 @@ export const Root: React.FC = () => {
         }}
       />
       <Composition
-        id="TrophyGraphic"
-        component={TrophyGraphic}
-        schema={TrophyPropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          trophyName: "Premier League",
-          trophyYear: "2013-14",
-          clubName:   "Man City",
-          bgColor:    "#f0ece4",
-        }}
-      />
-      <Composition
-        id="DisciplinaryRecord"
-        component={DisciplinaryRecord}
-        schema={DisciplinaryPropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          playerName: "Suarez",
-          bgColor:    "#f0ece4",
-        }}
-      />
-      <Composition
-        id="QuoteCard"
-        component={QuoteCard}
-        schema={QuoteCardPropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          quote:       "I apologize.",
-          attribution: "Suarez",
-          bgColor:     "#f0ece4",
-        }}
-      />
-      <Composition
         id="ArticleHeadline"
         component={ArticleHeadline}
         schema={ArticleHeadlinePropsSchema}
@@ -699,40 +587,6 @@ export const Root: React.FC = () => {
         }}
       />
       <Composition
-        id="AnimatedFactCard"
-        component={AnimatedFactCard}
-        schema={AnimatedFactCardPropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          fact:            "31 goals in a single Premier League season.",
-          highlightPhrase: "31 goals",
-          subtext:         "A record that stood for over a decade.",
-          source:          "Premier League · 2013–14",
-          accentColor:     "#C8102E",
-          bgColor:         "#f0ece4",
-          darkMode:        false,
-        }}
-      />
-      <Composition
-        id="TitleCard"
-        component={TitleCard}
-        schema={TitleCardPropsSchema}
-        durationInFrames={180}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          chapter:     "Act II",
-          title:       "The Rise",
-          subtitle:    "From relegation battlers to title contenders",
-          accentColor: "#C8102E",
-          style:       "bold",
-        }}
-      />
-      <Composition
         id="AnnotatedImage"
         component={AnnotatedImage}
         schema={AnnotatedImagePropsSchema}
@@ -752,28 +606,6 @@ export const Root: React.FC = () => {
             { x: 15, y: 55, label: "The Kop",       direction: "right", color: "#C8102E" },
             { x: 82, y: 55, label: "Anfield Road",  direction: "left",  color: "#ffffff" },
           ],
-        }}
-      />
-      <Composition
-        id="SplitComparison"
-        component={SplitComparison}
-        schema={SplitComparisonPropsSchema}
-        durationInFrames={270}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          label:        "THEN vs NOW",
-          leftLabel:    "1992",
-          rightLabel:   "2024",
-          leftValue:    "22 Clubs",
-          rightValue:   "20 Clubs",
-          leftSubtext:  "Original Premier League with 22 founding members",
-          rightSubtext: "Reduced to 20 clubs from 1995 onwards",
-          leftColor:    "#C8102E",
-          rightColor:   "#034694",
-          bgColor:      "#f0ece4",
-          stats:        [],
         }}
       />
       <Composition
@@ -862,58 +694,8 @@ export const Root: React.FC = () => {
           ],
         }}
       />
-      <Composition
-        id="MatchMoment"
-        component={MatchMoment}
-        schema={MatchMomentPropsSchema}
-        durationInFrames={270}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          homeTeam:    "Liverpool",
-          awayTeam:    "Barcelona",
-          homeScore:   4,
-          awayScore:   0,
-          competition: "UEFA Champions League",
-          date:        "7 May 2019",
-          context:     "Semi-Final · Second Leg",
-          accentColor: "#C8102E",
-          bgColor:     "#0a0a0a",
-          homeColor:   "#C8102E",
-          awayColor:   "#004D98",
-        }}
-      />
 
       {/* ── Brentford / Transfer Model Components ───────────────────────────── */}
-      <Composition
-        id="TransferProfit"
-        component={TransferProfit}
-        schema={TransferProfitPropsSchema}
-        calculateMetadata={transferProfitCalculateMetadata}
-        durationInFrames={1900}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          title:       "The Brentford Model",
-          subtitle:    "buy smart · develop · sell for profit",
-          currency:    "£",
-          accentColor: "#E30613",
-          profitColor: "#C9A84C",
-          bgColor:     "#f0ece4",
-          darkMode:    false,
-          showTotal:   true,
-          dwellFrames: 300,
-          players: [
-            { name: "Neal Maupay",   imageSrc: "maupay.png",   origin: "St Étienne",   buyFee: 1.6,  sellFee: 20,  buyYear: 2017, sellYear: 2019, toClub: "Brighton",    sold: true,  estValue: 0 },
-            { name: "Ollie Watkins", imageSrc: "watkins.png",  origin: "Exeter City",  buyFee: 1.8,  sellFee: 28,  buyYear: 2017, sellYear: 2020, toClub: "Aston Villa", sold: true,  estValue: 0 },
-            { name: "Said Benrahma", imageSrc: "benrahma.png", origin: "OGC Nice",     buyFee: 1.2,  sellFee: 25,  buyYear: 2018, sellYear: 2021, toClub: "West Ham",    sold: true,  estValue: 0 },
-            { name: "Ivan Toney",    imageSrc: "toney.png",    origin: "Peterborough", buyFee: 10,   sellFee: 40,  buyYear: 2020, sellYear: 2024, toClub: "Al-Ahli",     sold: true,  estValue: 0 },
-            { name: "Bryan Mbeumo",  imageSrc: "mbeumo.png",   origin: "Troyes",       buyFee: 1.0,  sellFee: 65,  buyYear: 2019, sellYear: 2025, toClub: "Man Utd",     sold: true,  estValue: 0 },
-          ],
-        }}
-      />
       <Composition
         id="ScoutReport"
         component={ScoutReport}
@@ -1023,100 +805,9 @@ export const Root: React.FC = () => {
         }}
       />
 
-      {/* ── IntrcptGoalRush — season-by-season goal tally ────────────────── */}
-      <Composition
-        id="IntrcptGoalRush"
-        component={IntrcptGoalRush}
-        schema={IntrcptGoalRushPropsSchema}
-        calculateMetadata={goalRushCalculateMetadata}
-        durationInFrames={180}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          label: "Luis Suárez",
-          title: "Club Goals",
-          seasons: [
-            { season: "2010/11", club: "Ajax",      goals: 49, highlight: false },
-            { season: "2011/12", club: "Liverpool", goals: 17, highlight: false },
-            { season: "2012/13", club: "Liverpool", goals: 23, highlight: false },
-            { season: "2013/14", club: "Liverpool", goals: 31, highlight: true  },
-            { season: "2014/15", club: "Barcelona", goals: 25, highlight: false },
-            { season: "2015/16", club: "Barcelona", goals: 59, highlight: true  },
-          ],
-          accentColor:  "#D00027",
-          bgColor:      "#f0ece4",
-          stagger:      20,
-          holdDuration: 90,
-        }}
-      />
 
-      {/* ── IntrcptHeadlineStack — editorial punchy text reveal ──────────── */}
-      <Composition
-        id="IntrcptHeadlineStack"
-        component={IntrcptHeadlineStack}
-        schema={IntrcptHeadlineStackPropsSchema}
-        calculateMetadata={headlineStackCalculateMetadata}
-        durationInFrames={120}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          lines: [
-            { text: "THE BITE.",       size: "hero", accent: false },
-            { text: "THE BAN.",        size: "hero", accent: false },
-            { text: "THE BRILLIANCE.", size: "hero", accent: true  },
-          ],
-          eyebrow:      "Luis Suárez · Career",
-          accentColor:  "#D00027",
-          bgColor:      "#f0ece4",
-          stagger:      14,
-          holdDuration: 90,
-        }}
-      />
 
-      {/* ── IntrcptContactSheet — contact sheet photo reveal ─────────────── */}
-      <Composition
-        id="IntrcptContactSheet"
-        component={IntrcptContactSheet}
-        schema={IntrcptContactSheetPropsSchema}
-        calculateMetadata={contactSheetCalculateMetadata}
-        durationInFrames={300}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          images: [
-            { src: "frame1.png", caption: "ANFIELD · MATCHDAY 14 · NOV 2024" },
-            { src: "frame2.png", caption: "TRAINING GROUND · PRE-SEASON" },
-            { src: "frame3.png", caption: "WEMBLEY · FA CUP FINAL" },
-          ],
-          frameDuration:  82,
-          shutterAudio:   "sounds/shutter.mp3",
-          shutterVolume:  1.5,
-        }}
-      />
 
-      {/* ── IntrcptPhotoReel — image gallery with camera shutter transitions ─ */}
-      <Composition
-        id="IntrcptPhotoReel"
-        component={IntrcptPhotoReel}
-        schema={IntrcptPhotoReelPropsSchema}
-        calculateMetadata={photoReelCalculateMetadata}
-        durationInFrames={270}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          images:        ["frame1.png", "frame2.png", "frame3.png"],
-          frameDuration: 90,
-          title:         "",
-          label:         "",
-          bgColor:       "#f0ece4",
-          shutterAudio:  "sounds/shutter.mp3",
-          shutterVolume: 1.4,
-        }}
-      />
 
       {/* ── VideoSequence — master composition with transitions ────────────── */}
       <Composition
@@ -1139,23 +830,6 @@ export const Root: React.FC = () => {
               props: {
                 subtitle: "the greatest league season ever told",
                 bgColor:  "#f0ece4",
-              },
-            },
-            // ── Scene 2 — big stat card ────────────────────────────────────
-            {
-              compositionId:   "IntrcptBigStat",
-              durationInFrames: 210,
-              transition:       "dataLine",
-              accentColor:      "#C8102E",
-              props: {
-                stat:       "31",
-                unit:       "goals",
-                label:      "single season record",
-                context:    "Luis Suárez · 2013–14",
-                playerImage: "",
-                accentColor: "#C8102E",
-                darkMode:    false,
-                bgColor:    "#f0ece4",
               },
             },
             // ── Scene 3 — attacking radar ──────────────────────────────────
@@ -1201,19 +875,6 @@ export const Root: React.FC = () => {
                   { pos: 3, name: "Chelsea",           badgeSlug: "chelsea.svg",          color: "#034694", p: 38, w: 25, d: 7, l: 6, gd: 45, pts: 82 },
                   { pos: 4, name: "Arsenal",           badgeSlug: "arsenal.svg",          color: "#EF0107", p: 38, w: 24, d: 7, l: 7, gd: 27, pts: 79 },
                 ],
-              },
-            },
-            // ── Scene 5 — quote card ───────────────────────────────────────
-            {
-              compositionId:   "IntrcptQuote",
-              durationInFrames: 240,
-              transition:       "paper",
-              props: {
-                quote:        "I am not a diver.",
-                attribution:  "Luis Suarez",
-                playerImage:  "suarez.jpg",
-                accentColor:  "#C8102E",
-                bgColor:      "#f0ece4",
               },
             },
             // ── Scene 6 — chapter word ─────────────────────────────────────
@@ -1279,33 +940,23 @@ export const Root: React.FC = () => {
         }}
       />
 
-      {/* ── IntrcptMatchTimeline — minute-by-minute match events ─────────── */}
+      {/* ── IntrcptBigStat — single large stat with player image ────────── */}
       <Composition
-        id="IntrcptMatchTimeline"
-        component={IntrcptMatchTimeline}
-        schema={IntrcptMatchTimelinePropsSchema}
+        id="IntrcptBigStat"
+        component={IntrcptBigStat}
+        schema={IntrcptBigStatPropsSchema}
         durationInFrames={240}
         fps={30}
         width={1920}
         height={1080}
         defaultProps={{
-          homeTeam: "Liverpool",
-          awayTeam: "Arsenal",
-          homeScore: 2,
-          awayScore: 1,
-          competition: "Premier League",
-          date: "09 Feb 2014",
+          stat:        "31",
+          unit:        "goals",
+          label:       "in a single Premier League season",
+          context:     "Luis Suárez · Liverpool · 2013–14",
           accentColor: "#C8102E",
-          bgColor: "#f0ece4",
-          stagger: 16,
-          events: [
-            { minute: 18, type: "goal",       player: "Suárez",    team: "home", detail: "" },
-            { minute: 34, type: "yellowCard", player: "Flamini",   team: "away", detail: "" },
-            { minute: 47, type: "goal",       player: "Suárez",    team: "home", detail: "" },
-            { minute: 56, type: "goal",       player: "Cazorla",   team: "away", detail: "Pen." },
-            { minute: 71, type: "sub",        player: "Sturridge", team: "home", detail: "" },
-            { minute: 88, type: "goal",       player: "Sterling",  team: "home", detail: "90+3'" },
-          ],
+          darkMode:    false,
+          bgColor:     "#f0ece4",
         }}
       />
 
@@ -1368,6 +1019,58 @@ export const Root: React.FC = () => {
         }}
       />
 
+      {/* ── IntrcptNewsFeed — rolling news headlines with world-pan ─────── */}
+      <Composition
+        id="IntrcptNewsFeed"
+        component={IntrcptNewsFeed}
+        schema={IntrcptNewsFeedPropsSchema}
+        calculateMetadata={calcNewsFeed}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          headlines: [
+            { source: "The Athletic",  headline: "Suárez handed 10-match ban following shocking bite on Chiellini", body: "Uruguay forward faces one of the longest suspensions in World Cup history after incident in Group D.", image: "suarez.png" },
+            { source: "BBC Sport",     headline: "Luis Suárez: reaction to ban from Uruguay forward's bite", body: "The BBC Sport team reacts to the 10-match suspension handed to Luis Suárez.", image: "suarez.png" },
+            { source: "The Guardian",  headline: "Suárez ban: how Twitter and the football world reacted", body: "Social media and the football community responded with shock and dark humour.", image: "suarez.png" },
+          ],
+          bgColor:     "#111111",
+          accentColor: "#ffffff",
+          dotColor:    "#ffffff",
+          textColor:   "#f0f0f0",
+          dwellFrames: 110,
+          panFrames:   22,
+        }}
+      />
+
+      {/* ── IntrcptSeasonTimeline — red-grain opening sequence ──────────── */}
+      <Composition
+        id="IntrcptSeasonTimeline"
+        component={IntrcptSeasonTimeline}
+        schema={IntrcptSeasonTimelinePropsSchema}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          subjectName: "Mikel Arteta",
+          subjectImage: "arteta.png",
+          headline: "quadruple?",
+          bgColor: "#5E1212",
+          lineColor: "#C41E3A",
+          accentColor: "#E8E0D0",
+          seasons: [
+            { season: "19/20", positionLabel: "8th",  position: 8  },
+            { season: "20/21", positionLabel: "8th",  position: 8  },
+            { season: "21/22", positionLabel: "5th",  position: 5  },
+            { season: "22/23", positionLabel: "2nd",  position: 2  },
+            { season: "23/24", positionLabel: "2nd",  position: 2  },
+            { season: "24/25", positionLabel: "2nd",  position: 2  },
+            { season: "25/26", positionLabel: "1st?", position: 1, trophies: ["PL"] },
+          ],
+        }}
+      />
+
       {/* ── Thumbnail — 1280×720 still frame for YouTube ─────────────────── */}
       <Composition
         id="Thumbnail"
@@ -1412,6 +1115,10 @@ export const Root: React.FC = () => {
           statBadgeLabel: "",
           statBadgeX:     14,
           statBadgeY:     50,
+          gradient:          "none",
+          gradientAngle:     135,
+          showWatermark:     true,
+          watermarkPosition: "bottom-right" as const,
         }}
       />
     </>

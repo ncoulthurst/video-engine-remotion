@@ -5,7 +5,7 @@
  * duration, and the transition to use AFTER that scene. The total duration is
  * computed dynamically via calculateMetadata.
  *
- * Supported transitions: push | flash | letterbox | paper | dataLine | grain | none
+ * Supported transitions: push | flash | letterbox | paper | dataLine | grain | worldPan | none
  */
 import React from "react";
 import { AbsoluteFill } from "remotion";
@@ -56,6 +56,16 @@ import { IntrcptContactSheet } from "./IntrcptContactSheet";
 import { IntrcptPlayerReveal } from "./IntrcptPlayerReveal";
 import { IntrcptGoalRush } from "./IntrcptGoalRush";
 import { IntrcptHeadlineStack } from "./IntrcptHeadlineStack";
+import { IntrcptShotMap } from "./IntrcptShotMap";
+import { IntrcptMatchTimeline } from "./IntrcptMatchTimeline";
+import { IntrcptAwardsList } from "./IntrcptAwardsList";
+import { IntrcptComparisonRadar } from "./IntrcptComparisonRadar";
+import { IntrcptDualPanel } from "./IntrcptDualPanel";
+import { IntrcptNewsFeed } from "./IntrcptNewsFeed";
+import { IntrcptSeasonTimeline } from "./IntrcptSeasonTimeline";
+
+// ── Generated components (motion_agent.py) ────────────────────────────────────
+import { GEN_REGISTRY } from "./gen/index";
 
 // ── Transitions ────────────────────────────────────────────────────────────────
 import {
@@ -65,6 +75,8 @@ import {
   paperFadeTransition, paperFadeTiming,
   dataLineTransition, dataLineTiming,
   grainBurstTransition, grainBurstTiming,
+  worldPanTransition, worldPanTiming,
+  evolveTransition, evolveTiming,
   TRANSITION_DURATIONS,
 } from "./ChapterTransition";
 
@@ -117,6 +129,15 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   IntrcptPlayerReveal,
   IntrcptGoalRush,
   IntrcptHeadlineStack,
+  IntrcptShotMap,
+  IntrcptMatchTimeline,
+  IntrcptAwardsList,
+  IntrcptComparisonRadar,
+  IntrcptDualPanel,
+  IntrcptNewsFeed,
+  IntrcptSeasonTimeline,
+  // Merge generated components last — they can override defaults during dev
+  ...GEN_REGISTRY,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -130,6 +151,8 @@ export const TransitionTypeSchema = z.enum([
   "paper",
   "dataLine",
   "grain",
+  "worldPan",
+  "evolve",
   "none",
 ]);
 
@@ -158,6 +181,12 @@ export const SceneDefSchema = z.object({
    * Falls back to the VideoSequence-level accentColor.
    */
   accentColor: z.string().optional().default(""),
+  /**
+   * Directional hint for push / worldPan transitions.
+   * "right" = forward in time (default), "left" = backward/retrospective.
+   * "forward" is treated as "right". Ignored by non-directional transitions.
+   */
+  transitionDirection: z.enum(["left", "right", "forward"]).optional(),
 });
 
 export type SceneDef = z.infer<typeof SceneDefSchema>;
@@ -188,6 +217,8 @@ function getTransitionFrames(
     case "paper":     return paperFadeTiming().getDurationInFrames({ fps });
     case "dataLine":  return dataLineTiming().getDurationInFrames({ fps });
     case "grain":     return grainBurstTiming().getDurationInFrames({ fps });
+    case "worldPan":  return worldPanTiming().getDurationInFrames({ fps });
+    case "evolve":    return evolveTiming().getDurationInFrames({ fps });
     default:          return 0;
   }
 }
@@ -233,14 +264,18 @@ export const calculateMetadata = ({
 // ─────────────────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getPresentation(type: TransitionType, accentColor: string): any {
+function getPresentation(type: TransitionType, accentColor: string, direction?: "left" | "right" | "forward"): any {
+  // Normalise "forward" → "right" (default push direction)
+  const pushDir: "left" | "right" = direction === "left" ? "left" : "right";
   switch (type) {
-    case "push":      return pushTransition();
+    case "push":      return pushTransition({ direction: pushDir });
     case "flash":     return flashTransition();
     case "letterbox": return letterboxTransition();
     case "paper":     return paperFadeTransition();
     case "dataLine":  return dataLineTransition({ accentColor });
     case "grain":     return grainBurstTransition();
+    case "worldPan":  return worldPanTransition({ direction: pushDir });
+    case "evolve":    return evolveTransition();
     default:          return null;
   }
 }
@@ -269,6 +304,12 @@ function getTiming(type: TransitionType, durationOverride?: number) {
       return durationOverride
         ? linearTiming({ durationInFrames: durationOverride })
         : grainBurstTiming();
+    case "worldPan":
+      return worldPanTiming();
+    case "evolve":
+      return durationOverride
+        ? linearTiming({ durationInFrames: durationOverride })
+        : evolveTiming();
     default:
       return null;
   }
@@ -329,7 +370,7 @@ export const VideoSequence: React.FC<VideoSequenceProps> = ({
       const t = (scene.transition ?? "none") as TransitionType;
       if (t !== "none") {
         const accent = scene.accentColor ?? accentColor;
-        const presentation = getPresentation(t, accent);
+        const presentation = getPresentation(t, accent, scene.transitionDirection);
         const timing = getTiming(t, scene.transitionDuration);
 
         if (presentation && timing) {

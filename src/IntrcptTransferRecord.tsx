@@ -17,7 +17,7 @@ const ROW_START = 18; const ROW_STAGGER = 10;
 
 export const IntrcptTransferRecord: React.FC<IntrcptTransferRecordProps> = ({ title, subtitle, sideImage, accentColor, transfers, bgColor }) => {
   const frame = useCurrentFrame(); const { fps } = useVideoConfig();
-  const maxFee = Math.max(...transfers.map(t => t.feeValue));
+  const maxFee = Math.max(1, ...transfers.map(t => t.feeValue || 0));
   const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const imageProg = spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
   const BAR_MAX_W = sideImage ? 520 : 1000;
