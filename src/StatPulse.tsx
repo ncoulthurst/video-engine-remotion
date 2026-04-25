@@ -12,7 +12,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SPRINGS } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SPRINGS, WorldStateSchema} from "./shared";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SCHEMA
@@ -45,6 +45,8 @@ export const StatPulsePropsSchema = z.object({
     { label: "11/12", value: 14,  annotation: undefined          },
     { label: "12/13", value: 26,  annotation: undefined          },
   ]),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type StatPulseProps = z.infer<typeof StatPulsePropsSchema>;

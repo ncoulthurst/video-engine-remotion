@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, WorldStateSchema} from "./shared";
 
 const PlayerSchema = z.object({
   pos:       z.number(),
@@ -21,6 +21,8 @@ export const TopScorersPropsSchema = z.object({
   statKey:     z.string().optional().default(""),
   players:     z.array(PlayerSchema).default([]),
   bgColor:     z.string().optional().default("#f0ece4"),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type TopScorersProps = z.infer<typeof TopScorersPropsSchema>;
@@ -33,16 +35,16 @@ const ROW_H       = 100;
 const BADGE_SIZE  = 72;
 
 export const TopScorersTable: React.FC<TopScorersProps> = ({
-  season, competition, statLabel = "Goals", players, bgColor,
+  season, competition, statLabel = "Goals", players, bgColor, skipIntro = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
+  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const headerOp   = interpolate(headerProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
   const headerY    = interpolate(headerProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const colsProg = spring({ frame: frame - 10, fps, config: { damping: 20, stiffness: 80 } });
+  const colsProg = skipIntro ? 1 : spring({ frame: frame - 10, fps, config: { damping: 20, stiffness: 80 } });
   const colsOp   = interpolate(colsProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
   const ruleW    = interpolate(colsProg, [0, 1], [0, 100], { extrapolateRight: "clamp" });
 
@@ -97,7 +99,7 @@ export const TopScorersTable: React.FC<TopScorersProps> = ({
         <div>
           {players.map((p, i) => {
             const delay = ROW_START + i * ROW_STAGGER;
-            const prog  = spring({ frame: frame - delay, fps, config: { damping: 24, stiffness: 60 } });
+            const prog  = skipIntro ? 1 : spring({ frame: frame - delay, fps, config: { damping: 24, stiffness: 60 } });
             const rowOp = interpolate(prog, [0, 0.4], [0, 1], { extrapolateRight: "clamp" });
             const rowX  = interpolate(prog, [0, 1], [-36, 0], { extrapolateRight: "clamp" });
             const isTop = p.pos === 1;

@@ -15,7 +15,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema} from "./shared";
 
 export const IntrcptPhotoReelPropsSchema = z.object({
   /** Array of image paths relative to /public */
@@ -29,6 +29,8 @@ export const IntrcptPhotoReelPropsSchema = z.object({
   shutterAudio:  z.string().optional().default("sounds/shutter.mp3"),
   /** Volume multiplier for the shutter click (0–4) */
   shutterVolume: z.number().min(0).max(4).optional().default(1.4),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 export type IntrcptPhotoReelProps = z.infer<typeof IntrcptPhotoReelPropsSchema>;
 
@@ -160,7 +162,7 @@ const PhotoCounter: React.FC<{ current: number; total: number; opacity: number }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export const IntrcptPhotoReel: React.FC<IntrcptPhotoReelProps> = ({
-  images, frameDuration, title, label, bgColor, shutterAudio, shutterVolume,
+  images, frameDuration, title, label, bgColor, shutterAudio, shutterVolume, skipIntro = false,
 }) => {
   const frame   = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -193,8 +195,8 @@ export const IntrcptPhotoReel: React.FC<IntrcptPhotoReelProps> = ({
   });
 
   // ── Entrance springs (title, label — fire once on comp start) ──
-  const titleIn = spring({ frame, fps, config: { damping: 24, stiffness: 55 }, delay: OPEN_DUR + 2 });
-  const labelIn = spring({ frame, fps, config: { damping: 24, stiffness: 55 }, delay: OPEN_DUR + 18 });
+  const titleIn = skipIntro ? 1 : spring({ frame, fps, config: { damping: 24, stiffness: 55 }, delay: OPEN_DUR + 2 });
+  const labelIn = skipIntro ? 1 : spring({ frame, fps, config: { damping: 24, stiffness: 55 }, delay: OPEN_DUR + 18 });
 
   // ── Frame container scale punch at transition ──
   // Brief micro-scale snap (1.000 → 0.992 → 1.000) at shutter peak

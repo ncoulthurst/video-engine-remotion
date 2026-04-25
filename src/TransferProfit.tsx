@@ -18,7 +18,7 @@ import type { CalculateMetadataFunction } from "remotion";
 import { z } from "zod";
 import {
   fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground,
-  COLORS, SPRINGS, SmartImg, rgbaFromHex,
+  COLORS, SPRINGS, SmartImg, rgbaFromHex, WorldStateSchema
 } from "./shared";
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -49,6 +49,8 @@ export const TransferProfitPropsSchema = z.object({
   showTotal:   z.boolean().default(true),
   dwellFrames: z.number().default(300),
   players:     z.array(PlayerSchema).default([]),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type TransferProfitProps = z.infer<typeof TransferProfitPropsSchema>;

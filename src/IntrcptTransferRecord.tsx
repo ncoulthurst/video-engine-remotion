@@ -5,21 +5,23 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, WorldStateSchema} from "./shared";
 
 const TransferSchema = z.object({ year: z.string().optional().default(""), player: z.string().optional().default(""), fromClub: z.string().optional().default(""), toClub: z.string().optional().default(""), fee: z.string().optional().default(""), feeValue: z.number(), highlight: z.boolean().default(false) });
 export const IntrcptTransferRecordPropsSchema = z.object({
   title: z.string().optional().default("world record transfer fees"), subtitle: z.string().optional().default(""), sideImage: z.string().optional().default(""), accentColor: z.string().optional().default("#C9A84C"), transfers: z.array(TransferSchema).default([ { year: "2017", player: "Neymar", fromClub: "Barcelona", toClub: "PSG", fee: "£198m", feeValue: 198, highlight: true } ]), bgColor: z.string().optional().default("#f0ece4"),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 export type IntrcptTransferRecordProps = z.infer<typeof IntrcptTransferRecordPropsSchema>;
 
 const ROW_START = 18; const ROW_STAGGER = 10;
 
-export const IntrcptTransferRecord: React.FC<IntrcptTransferRecordProps> = ({ title, subtitle, sideImage, accentColor, transfers, bgColor }) => {
+export const IntrcptTransferRecord: React.FC<IntrcptTransferRecordProps> = ({ title, subtitle, sideImage, accentColor, transfers, bgColor, skipIntro = false }) => {
   const frame = useCurrentFrame(); const { fps } = useVideoConfig();
   const maxFee = Math.max(1, ...transfers.map(t => t.feeValue || 0));
-  const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
-  const imageProg = spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
+  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
+  const imageProg  = skipIntro ? 1 : spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
   const BAR_MAX_W = sideImage ? 520 : 1000;
 
   return (
@@ -38,7 +40,7 @@ export const IntrcptTransferRecord: React.FC<IntrcptTransferRecordProps> = ({ ti
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {transfers.map((t, i) => {
-            const prog = spring({ frame: frame - (ROW_START + i * ROW_STAGGER), fps, config: { damping: 24, stiffness: 60 } });
+            const prog = skipIntro ? 1 : spring({ frame: frame - (ROW_START + i * ROW_STAGGER), fps, config: { damping: 24, stiffness: 60 } });
             const opacity = interpolate(prog, [0, 0.4], [0, 1], { extrapolateRight: "clamp" });
             const barW = interpolate(prog, [0, 1], [0, (t.feeValue / maxFee) * BAR_MAX_W], { extrapolateRight: "clamp" });
             const color = t.highlight ? accentColor : COLORS.primary;

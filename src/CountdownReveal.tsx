@@ -9,10 +9,10 @@
  * is a continuous 0→1 value, payoff zoom-out at the end.
  */
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { CalculateMetadataFunction } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SPRINGS } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SPRINGS, WorldStateSchema} from "./shared";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SCHEMA
@@ -28,22 +28,25 @@ const ItemSchema = z.object({
 export const CountdownRevealPropsSchema = z.object({
   title:       z.string().optional().default("Top 10"),
   subtitle:    z.string().optional().default(""),
-  items:       z.array(ItemSchema).default([
-    { name: "Alan Shearer",        detail: "1993/94 season",          value: "31 goals"  },
-    { name: "Andrew Cole",         detail: "1993/94 season",          value: "34 goals"  },
-    { name: "Kevin Phillips",      detail: "1999/00 season",          value: "30 goals"  },
-    { name: "Cristiano Ronaldo",   detail: "2007/08 season",          value: "31 goals"  },
-    { name: "Luis Suárez",         detail: "2013/14 season",          value: "31 goals"  },
-    { name: "Mohamed Salah",       detail: "2017/18 season",          value: "32 goals"  },
-    { name: "Thierry Henry",       detail: "2002/03 season",          value: "24 goals"  },
-    { name: "Harry Kane",          detail: "2016/17 season",          value: "29 goals"  },
-    { name: "Erling Haaland",      detail: "2022/23 season",          value: "36 goals"  },
-    { name: "Robbie Fowler",       detail: "1995/96 season",          value: "28 goals"  },
+  items:       z.array(ItemSchema).default(() => [
+    { name: "Alan Shearer",        detail: "1993/94 season", value: "31 goals", color: "" },
+    { name: "Andrew Cole",         detail: "1993/94 season", value: "34 goals", color: "" },
+    { name: "Kevin Phillips",      detail: "1999/00 season", value: "30 goals", color: "" },
+    { name: "Cristiano Ronaldo",   detail: "2007/08 season", value: "31 goals", color: "" },
+    { name: "Luis Suárez",         detail: "2013/14 season", value: "31 goals", color: "" },
+    { name: "Mohamed Salah",       detail: "2017/18 season", value: "32 goals", color: "" },
+    { name: "Thierry Henry",       detail: "2002/03 season", value: "24 goals", color: "" },
+    { name: "Harry Kane",          detail: "2016/17 season", value: "29 goals", color: "" },
+    { name: "Erling Haaland",      detail: "2022/23 season", value: "36 goals", color: "" },
+    { name: "Robbie Fowler",       detail: "1995/96 season", value: "28 goals", color: "" },
   ]),
-  accentColor: z.string().optional().default("#C8102E"),
+  accentColor: z.string().optional().default(""),
+  teamColor:   z.string().optional().default(""),
   bgColor:     z.string().optional().default("#f0ece4"),
   darkMode:    z.boolean().default(false),
   dwellFrames: z.number().default(90),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type CountdownRevealProps = z.infer<typeof CountdownRevealPropsSchema>;
@@ -87,18 +90,32 @@ function clamp01(v: number) { return Math.max(0, Math.min(1, v)); }
 // COMPONENT
 // ══════════════════════════════════════════════════════════════════════════════
 
+const ACCENT_FALLBACK = "#C9A84C"; // neutral gold — used when no teamColor / accentColor / worldState supplied
+
 export const CountdownReveal: React.FC<CountdownRevealProps> = ({
   title,
   subtitle,
   items,
   accentColor,
+  teamColor,
   bgColor,
   darkMode,
   dwellFrames,
+  worldState,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const n = items.length;
+
+  // Accent priority: explicit teamColor → explicit accentColor → worldState accent → neutral gold
+  const wsAccent = (worldState as { accentColor?: string } | undefined)?.accentColor;
+  const resolvedAccent = (teamColor && teamColor !== "")
+    ? teamColor
+    : (accentColor && accentColor !== "")
+      ? accentColor
+      : (wsAccent && wsAccent !== "")
+        ? wsAccent
+        : ACCENT_FALLBACK;
 
   const textColor  = darkMode ? "#f5f0e8" : COLORS.primary;
   const mutedColor = darkMode ? "rgba(255,255,255,0.18)" : "rgba(0,0,0,0.12)";
@@ -157,57 +174,84 @@ export const CountdownReveal: React.FC<CountdownRevealProps> = ({
   const finalPanY = panY + (centerY - panY) * zoomOutProg;
 
   // ── Camera zoom ───────────────────────────────────────────────────────────
+  // OUTRO_ZOOM is set so the full list (n items × stride) fits inside the
+  // available area BELOW the masthead. With header occupying y≈72→180, the
+  // safe area is roughly y=200→1060 (~860px). The list world-height is
+  // n*ITEM_H + (n-1)*GAP, so we shrink to fit with a small margin.
+  const SAFE_TOP    = 200;
+  const SAFE_BOTTOM = 1060;
+  const SAFE_H      = SAFE_BOTTOM - SAFE_TOP;
+  const totalListH  = n * ITEM_H + (n - 1) * GAP;
+  const OUTRO_ZOOM  = Math.min(1.0, (SAFE_H - 24) / totalListH); // 24px margin
+
   const zoomInProg  = clamp01(spring({ frame, fps, config: { damping: 28, stiffness: 42 } }));
-  const zoom        = 1 + (ZOOM_IN_VAL - 1) * zoomInProg - (ZOOM_IN_VAL - 1) * zoomOutProg;
-  const clampedZoom = Math.max(1.0, Math.min(ZOOM_IN_VAL, zoom));
+  const zoom        = 1 + (ZOOM_IN_VAL - 1) * zoomInProg - (ZOOM_IN_VAL - OUTRO_ZOOM) * zoomOutProg;
+  const clampedZoom = Math.max(OUTRO_ZOOM, Math.min(ZOOM_IN_VAL, zoom));
+
+  // Camera target Y — during reveal phase, push downward so active item
+  // sits below the masthead. During outro, recenter to the safe area so
+  // the full ranked list is symmetrical between header and frame edge.
+  const VIEW_CENTER_REVEAL = SCREEN_H / 2 + 110;
+  const VIEW_CENTER_OUTRO  = (SAFE_TOP + SAFE_BOTTOM) / 2;
+  const viewCenterY = interpolate(zoomOutProg, [0, 1], [VIEW_CENTER_REVEAL, VIEW_CENTER_OUTRO]);
 
   const tx = SCREEN_W / 2 - SCREEN_W / 2 * clampedZoom;   // items are horizontally centered
-  const ty = SCREEN_H / 2 - finalPanY * clampedZoom;
+  const ty = viewCenterY - finalPanY * clampedZoom;
 
   // ── Header ────────────────────────────────────────────────────────────────
-  const headerProg = clamp01(spring({ frame, fps, config: SPRINGS.header }));
+  // Stacked top-left masthead — visible the entire composition. Single
+  // clean ease-out fade-in, then stays put. The leaderboard camera target
+  // is pushed downward (VIEW_CENTER_Y) so the active item sits below the
+  // header instead of behind it.
+  const headerVisible = clamp01(interpolate(frame, [0, 22], [0, 1], { easing: Easing.out(Easing.cubic), extrapolateRight: "clamp" }));
+  const headerOffsetY = interpolate(headerVisible, [0, 1], [-12, 0]);
 
   return (
     <AbsoluteFill>
       {darkMode ? <DarkBackground /> : <PaperBackground color={bgColor} />}
       <Grain />
 
-      {/* Fixed header — outside camera layer, never moves */}
+      {/* Top-left masthead — stacked editorial folio:
+            subtitle (small caps) → title (serif italic) → accent rule */}
       <div style={{
-        position:  "absolute",
-        top:       48,
-        left:      130,
-        zIndex:    30,
-        opacity:   headerProg,
-        transform: `translateY(${interpolate(headerProg, [0, 1], [-10, 0])}px)`,
+        position:   "absolute",
+        top:        72,
+        left:       96,
+        zIndex:     30,
+        opacity:    headerVisible,
+        transform:  `translateY(${headerOffsetY}px)`,
       }}>
-        <div style={{
-          fontFamily:    serifFontFamily,
-          fontSize:      58,
-          fontWeight:    900,
-          color:         textColor,
-          letterSpacing: -2,
-          lineHeight:    1,
-        }}>
-          {title}
-        </div>
         {subtitle && (
           <div style={{
             fontFamily,
-            fontSize:   19,
-            fontWeight: 400,
-            color:      darkMode ? "rgba(255,255,255,0.55)" : COLORS.secondary,
-            marginTop:  8,
+            fontSize:      12,
+            fontWeight:    700,
+            letterSpacing: 3.5,
+            textTransform: "uppercase" as const,
+            color:         darkMode ? "rgba(255,255,255,0.55)" : COLORS.muted,
+            marginBottom:  14,
+            lineHeight:    1,
           }}>
             {subtitle}
           </div>
         )}
         <div style={{
-          width:        `${interpolate(headerProg, [0, 1], [0, 52])}px`,
-          height:       4,
-          background:   accentColor,
+          fontFamily:    serifFontFamily,
+          fontStyle:     "italic",
+          fontSize:      52,
+          fontWeight:    900,
+          color:         textColor,
+          letterSpacing: -1.5,
+          lineHeight:    1,
+        }}>
+          {title}
+        </div>
+        <div style={{
+          width:        interpolate(headerVisible, [0, 1], [0, 48]),
+          height:       3,
+          background:   resolvedAccent,
           borderRadius: 2,
-          marginTop:    14,
+          marginTop:    16,
         }} />
       </div>
 
@@ -235,6 +279,10 @@ export const CountdownReveal: React.FC<CountdownRevealProps> = ({
           const rankNum  = i + 1;
           const itemY    = topOffset + i * ITEM_STRIDE;
 
+          // Per-item accent — each row drives its own colour (Aston Villa
+          // claret, Everton blue, etc.) when supplied, else the global default.
+          const itemAccent = (item.color && item.color !== "") ? item.color : resolvedAccent;
+
           // Accent bar width grows in when active
           const barW = interpolate(as, [0, 1], [0, 5], { extrapolateRight: "clamp" });
 
@@ -258,16 +306,16 @@ export const CountdownReveal: React.FC<CountdownRevealProps> = ({
                 transform: `translateY(${entranceY}px)`,
               }}
             >
-              {/* Accent bar — left edge, height-full, grows with active state */}
+              {/* Accent bar — left edge, per-item colour, grows with active state */}
               <div style={{
                 position:     "absolute",
                 left:         0,
                 top:          12,
                 bottom:       12,
                 width:        barW,
-                background:   accentColor,
+                background:   itemAccent,
                 borderRadius: 3,
-                boxShadow:    `0 0 10px 2px ${accentColor}55`,
+                boxShadow:    `0 0 10px 2px ${itemAccent}55`,
               }} />
 
               {/* Bottom divider */}
@@ -294,12 +342,12 @@ export const CountdownReveal: React.FC<CountdownRevealProps> = ({
                 gap:        24,
                 paddingLeft: 14,
               }}>
-                {/* Rank number */}
+                {/* Rank number — driven by per-item accent */}
                 <div style={{
                   fontFamily:    serifFontFamily,
                   fontSize:      38,
                   fontWeight:    900,
-                  color:         accentColor,
+                  color:         itemAccent,
                   opacity:       0.28 + 0.72 * as,
                   letterSpacing: -1.5,
                   lineHeight:    1,
@@ -339,13 +387,13 @@ export const CountdownReveal: React.FC<CountdownRevealProps> = ({
                   )}
                 </div>
 
-                {/* Value — slides in from right when active */}
+                {/* Value — per-item accent, slides in from right when active */}
                 {item.value && (
                   <div style={{
                     fontFamily:    serifFontFamily,
                     fontSize:      24,
                     fontWeight:    900,
-                    color:         accentColor,
+                    color:         itemAccent,
                     letterSpacing: -0.5,
                     flexShrink:    0,
                     opacity:       valueOpacity,

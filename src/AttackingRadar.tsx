@@ -19,7 +19,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, PaperBackground, DarkBackground, Grain, Vignette, SmartImg } from "./shared";
+import { fontFamily, PaperBackground, DarkBackground, Grain, Vignette, SmartImg, WorldStateSchema } from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -54,6 +54,8 @@ export const AttackingRadarPropsSchema = z.object({
     { label: "Progressive\nPasses",     value: 6.8,  percentile: 82, unit: "" },
     { label: "Touches in\nPenalty Box", value: 7.1,  percentile: 85, unit: "" },
   ]),
+  skipIntro:  z.boolean().optional().default(false),
+  worldState: WorldStateSchema.optional(),
 });
 
 export type AttackingRadarProps = z.infer<typeof AttackingRadarPropsSchema>;
@@ -104,6 +106,7 @@ export const AttackingRadar: React.FC<AttackingRadarProps> = ({
   introFrames,
   revealInterval,
   metrics,
+  skipIntro = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
@@ -160,19 +163,19 @@ export const AttackingRadar: React.FC<AttackingRadarProps> = ({
 
   // ── Springs ───────────────────────────────────────────────────────────────
 
-  const titleIn = spring({ frame, fps, config: { damping: 22, stiffness: 60 }, delay: 0 });
-  const gridIn  = spring({ frame, fps, config: { damping: 28, stiffness: 50 }, delay: 8 });
+  const titleIn = skipIntro ? 1 : spring({ frame, fps, config: { damping: 22, stiffness: 60 }, delay: 0 });
+  const gridIn  = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 50 }, delay: 8 });
 
   const metricSprings = metrics.map((m, i) =>
-    spring({ frame, fps, config: { damping: 16, stiffness: 52 },
+    skipIntro ? 1 : spring({ frame, fps, config: { damping: 16, stiffness: 52 },
              delay: getRevealFrame(m, i, introFrames, revealInterval) })
   );
   const labelSprings = metrics.map((m, i) =>
-    spring({ frame, fps, config: { damping: 22, stiffness: 80 },
+    skipIntro ? 1 : spring({ frame, fps, config: { damping: 22, stiffness: 80 },
              delay: getRevealFrame(m, i, introFrames, revealInterval) + 10 })
   );
   const tableRowSprings = metrics.map((m, i) =>
-    spring({ frame, fps, config: { damping: 22, stiffness: 68 },
+    skipIntro ? 1 : spring({ frame, fps, config: { damping: 22, stiffness: 68 },
              delay: getRevealFrame(m, i, introFrames, revealInterval) })
   );
 

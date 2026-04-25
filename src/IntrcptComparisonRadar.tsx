@@ -10,7 +10,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema} from "./shared";
 
 const MetricSchema = z.object({
   label:        z.string(),
@@ -35,6 +35,8 @@ export const IntrcptComparisonRadarPropsSchema = z.object({
   stagger:       z.number().default(14),
   introFrames:   z.number().default(30),
   metrics: z.array(MetricSchema).optional(),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type IntrcptComparisonRadarProps = z.infer<typeof IntrcptComparisonRadarPropsSchema>;

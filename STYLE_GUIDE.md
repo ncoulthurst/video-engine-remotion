@@ -14,7 +14,7 @@ All new templates must conform exactly. The approved templates are the source of
 | IntrcptTransferProfit | `IntrcptTransferProfit.tsx` | Gold standard for narrated row reveals |
 | CountdownReveal | `CountdownReveal.tsx` | Gold standard for ranked list + camera |
 | TimelineScroll | `TimelineScroll.tsx` | Gold standard for horizontal camera scroll |
-| IntrcptPlayerReveal | `IntrcptPlayerReveal.tsx` | Gold standard for portrait masking method |
+| IntrcptPlayerRevealTrio | `IntrcptPlayerRevealTrio.tsx` | Gold standard for portrait masking method (renamed 2026-04-24 from IntrcptPlayerReveal) |
 
 **Mediocre (concept valid, needs rework):** IntrcptLeagueGraph, IntrcptChapterWord, IntrcptScatterPlot, MapCallout, ScoutReport, IntrcptAwardsList
 
@@ -207,6 +207,176 @@ When a portrait is present, the foreground content area **must** be narrowed to 
 
 ## 6. Animation & Motion
 
+### Motion Design Quality Bar
+
+This is what we mean by "broadcast-quality motion." Read this first; the
+specific recipes below are catalog entries that satisfy this bar — pick from
+them, recombine them, or invent new ones that pass the same test. Never
+animate by reflex.
+
+#### The Three-Reason Test (mandatory)
+
+Every animation must do at least ONE of:
+
+1. **Reveal** — bringing new information into view (entry, draw-on, count-up)
+2. **Focus** — directing attention to what matters NOW (active-state, pulse, camera move)
+3. **Continuity** — connecting this moment to the next (worldPan, settle-into-rest pose)
+
+If a motion does none of those, delete it. Motion for decoration is forbidden.
+"Looks cool" is not a reason. "It's been static too long" is not a reason.
+Restraint reads as confidence; over-animation reads as panic.
+
+#### Easing — Approved Curves
+
+| Curve | When to use |
+|---|---|
+| `Easing.bezier(0.16, 1, 0.3, 1)` | iOS easeOutExpo — heavy deceleration, soft landing. Hero plane entries (SaaS float-in), dramatic settle moments. |
+| `Easing.out(Easing.cubic)` | Default for: count-ups, camera moves, draw-on lines, position shifts, arrow body draws. The workhorse curve. |
+| `Easing.inOut(Easing.cubic)` | Drift envelopes (start at rest, peak in middle, return to rest). Player drift toward arrow direction; pulse rings. |
+| `Easing.out(Easing.quad)` | Faster than cubic for short (< 18 frame) reveals — caption fades, secondary text. |
+| Spring `{damping: 28, stiffness: 55}` | Cinematic panel/portrait arrival — deliberate, weighty. |
+| Spring `{damping: 22, stiffness: 52}` | Row reveals, list items, narrated reveals. The medium-tempo workhorse. |
+| Spring `{damping: 14, stiffness: 200}` | Snappy small elements — badges, pins, single-glyph pops. Has visible bounce. |
+| Spring `{damping: 26, stiffness: 38}` | Slow zoom (camera in/out). |
+| Spring `{damping: 30, stiffness: 180, mass: 1}` | Camera pan between scenes — must settle within `panFrames`. |
+
+Default to ease-out-cubic when unsure. Use the SaaS bezier for hero entries.
+Use springs for elements that should feel like they have weight (panels,
+portraits, dots). Never combine a spring AND a custom easing on the same
+element — pick one motion language per element.
+
+#### Approved Entry Patterns (catalog — pick the right one)
+
+1. **SaaS Float-In** (see dedicated section below) — major plane drops down
+   from above the camera, comes forward, settles into resting tilt. Hero
+   compositions: tactical pitches, dashboards, hero data boards.
+
+2. **Cinematic Cold Open** — start hyper-zoomed on a focal element (scale
+   2.4–2.6) with `transformOrigin` pinned to that element, pull back to scale
+   1.0 with `Easing.out(Easing.cubic)` over 36–50 frames. Single-subject
+   reveals: hero stat number, lone portrait, focal map region. Reference:
+   `IntrcptBigStat.tsx`, `IntrcptSeasonTimeline.tsx`.
+
+3. **Side-Slide Reveal** — element enters from off-frame on one side via
+   `translateX` interpolation (or absolute `left`) with ease-out. Used for
+   portrait + content panel splits. Reference: `IntrcptSeasonTimeline.tsx`,
+   `TeamLineup.tsx`.
+
+4. **Stagger Reveal** — list items / rows / timeline nodes enter one at a
+   time with 14–20 frame gaps. Each item composes opacity (0→1) + small
+   translateY (12→0) with a medium spring. Reference: `IntrcptTransferProfit.tsx`,
+   `CountdownReveal.tsx`.
+
+5. **Draw-On Line/Path** — SVG `stroke-dasharray` + `stroke-dashoffset`
+   animated from `pathLength` to 0. Used for accent rules, callout lines,
+   timeline rails, arrows. Always use `pathLength={1}` for normalised draw
+   so clearance math doesn't break with chord length.
+
+6. **Count-Up Odometer** — numbers tick from 0 to target with
+   `Easing.out(Easing.cubic)`. Duration scales to the value, never linear.
+   Reference: `TournamentBracket.tsx` `getDisplayScore`, `IntrcptBigStat.tsx`,
+   `PlayerStats.tsx`.
+
+7. **Word-by-Word Typewriter** — `~0.7` chars/frame with persistent (always-
+   in-DOM) cursor. Used for headlines, narrative quotes. Reference:
+   `IntrcptNewsFeed.tsx`.
+
+8. **Fade-and-Rise** — opacity 0→1 with `translateY` 10–14px → 0. The
+   bread-and-butter for caption text, secondary lines, supporting elements
+   that don't need their own personality.
+
+#### Approved Focus/Transition Patterns (within a composition)
+
+1. **Active-State Spring Accumulation** (mandatory for lists/timelines) —
+   `onSpring - offSpring` — see dedicated section below.
+
+2. **Camera WorldPan** — `transform: translateX(-cameraX)` driven by spring,
+   for cross-canvas moves and same-act continuity.
+
+3. **Camera Zoom** — `transform: scale()` spring-driven, for emphasis pulls.
+   Always use clamped interpolate.
+
+4. **Target Pulse** — brief scale `1.0 → 1.2 → 1.0` + accent ring expanding
+   outward. Used to highlight "this is the target/the answer/the hit."
+   Reference: `IntrcptTactical.tsx` opposition pulse on arrow arrival.
+
+5. **Position Morph** — element interpolates from one (x,y) to another with
+   the same easing language as the entry curve (visual cohesion).
+   Reference: `IntrcptTactical.tsx` `pressX/pressY`.
+
+#### Approved Micro-Motions (continuous, low-energy)
+
+- **Aftertrail** — element dims to 0.30 ghost opacity after its primary
+  action completes. Reference: arrow body after head lands.
+- **Settled rest** — once revealed, an element sits STILL. The exception:
+  the breathing glow ring on a single timeline node (sin-driven, 1.5px
+  amplitude). Anywhere else, `Math.sin` is forbidden.
+
+#### Forbidden Motion (will fail review)
+
+| Forbidden | Why |
+|---|---|
+| Spring overshoot on hero entries | SaaS-quality entries are pure deceleration; overshoots break the feel |
+| Linear interpolation on anything visible | Mechanical, robotic — never seen in broadcast |
+| `Math.sin()` for opacity, layout, or text effects | Looks cheap and artificial. (Allowed only on timeline-node breathing rings.) |
+| Continuous spinning, pulsing, glowing chrome | Decoration without narrative purpose |
+| Independent per-element springs with no shared rhythm | Reads as chaos, not choreography |
+| Hard cuts between active/inactive states | Always use spring-accumulation pattern |
+| Animation duration < 8 frames | Too fast to perceive; reads as a glitch |
+| Single-element entry > 90 frames | Drags; viewer disengages |
+| Multiple bounces (oscillating springs that overshoot 2+ times) | One settle is editorial; multiple bounces is cartoon |
+| Counter-clock animation | Frame regression looks uncanny |
+| Decorative rotation that doesn't serve depth | Rotating things "because it looks dynamic" |
+| Per-template motion language drift | If two templates do entries differently for the same task, the engine looks like a pile of templates, not a film |
+
+#### Layered Timing — How Motions Compose
+
+Motion across multiple elements must follow a clear hierarchy:
+
+1. **The plane lands first.** Camera, background, container — settle fully
+   before content on top starts entering.
+2. **Hero element next.** The dominant visual focus enters once the plane
+   has substantially settled (~50f after entry start for SaaS-style entries).
+3. **Supporting elements stagger after the hero**, with 14–20 frame gaps.
+4. **Overlay layers** (folios, datelines, source attributions) that float
+   ABOVE the plane can start a few frames earlier than on-plane content
+   (~40f) so the layout feels alive while the plane is still landing.
+5. **Continuous loops or aftertrails** start LAST, only after their
+   triggering element has completed its primary action.
+
+#### Density — How Many Things Can Move at Once?
+
+Maximum 3 distinct motion EVENTS happening simultaneously. One element
+composing multiple channels (translateY + opacity + rotateX) counts as ONE
+event. When in doubt, stagger rather than overlap. The viewer's eye can
+track three things at once; four reads as chaos.
+
+#### Frame-Rate Sanity Checks
+
+- All durations expressed in frames at 30fps unless explicitly noted
+- Anything < 8 frames is invisible to the viewer
+- Anything > 90 frames for a single entry feels slow
+- Count-up duration formula: `Math.max(24, Math.min(66, 24 + |value| * factor))` — scales with the value, capped to 2.2s
+- Stagger gap minimum: 14 frames (slower than that and items blur together)
+- Stagger gap maximum: 28 frames (slower than that and rhythm breaks)
+
+#### When You Invent a New Pattern
+
+If none of the catalog entries fits, that's fine — invent. But the new
+pattern must pass:
+
+1. The Three-Reason Test (reveal / focus / continuity)
+2. Use an approved easing curve (or document why a new one is necessary)
+3. Stay within the timing/density rules above
+4. Be reusable — if you'd hand-build it for one template, redesign it so
+   another template could call the same pattern
+5. Add it to this catalog as a numbered entry with a reference template
+
+The bar: a viewer with no narration should recognise the engine's motion
+language after 20 seconds. Each pattern is part of that vocabulary.
+
+---
+
 ### Spring Configurations
 
 ```tsx
@@ -282,6 +452,74 @@ interpolate(transitionSpring, [0, 1], [fromX, toX], {
   extrapolateRight: "clamp",
 })
 ```
+
+### SaaS Float-In Entry (Hero Compositions)
+
+For compositions where a major plane (pitch, dashboard, hero card, board)
+enters dramatically, use the SaaS-style float-in. Reference implementation:
+`IntrcptTactical.tsx`. Visual reference: Linear / Stripe / Vercel hero
+graphics — element drops down from above the camera, comes forward in 3D
+space, and settles into its resting tilt with a heavy-deceleration curve.
+
+Composite **four motion channels off a single eased progress** — never use
+springs for this entry (springs overshoot; SaaS-quality is pure deceleration):
+
+```tsx
+const ENTRY_DUR    = 52;          // ~1.7s @ 30fps
+const RESTING_TILT = 8;           // resting rotateX (deg) — 8° for tactical pitch, 0° for flat
+
+const entryProg = interpolate(frame, [0, ENTRY_DUR], [0, 1], {
+  extrapolateLeft:  "clamp",
+  extrapolateRight: "clamp",
+  easing: Easing.bezier(0.16, 1, 0.3, 1),  // iOS easeOutExpo — THE SaaS curve
+});
+
+// Composite transform: drops down + comes forward + un-tilts + zooms in
+const transform = `
+  translateY(${interpolate(entryProg, [0, 1], [-140, 0])}px)
+  translateZ(${interpolate(entryProg, [0, 1], [-220, 0])}px)
+  rotateX(${interpolate(entryProg, [0, 1], [32, RESTING_TILT])}deg)
+  scale(${interpolate(entryProg, [0, 1], [0.92, 1.0])})
+`;
+
+// Opacity rises faster than position settles — visible during the bulk of the float-in
+const opacity = interpolate(entryProg, [0, 0.55], [0, 1], { extrapolateRight: "clamp" });
+```
+
+**Required ingredients:**
+- `perspective: 2400px` on a parent wrapper (without it, `rotateX` renders flat)
+- `transformOrigin: "50% 100%"` on the entering plane (rotates around its bottom edge so the top recedes during entry)
+- `Easing.bezier(0.16, 1, 0.3, 1)` — the iOS easeOutExpo curve. Never spring, never linear, never quadratic.
+- ~52 frames duration — long enough to read as "settling," short enough not to feel slow
+- Opacity rises in the FIRST half of the entry (typically [0, 0.55] of `entryProg`), not in lockstep with position
+- Children inside the plane (dot labels, etc.) must counter-rotate the *current* tilt — `rotateX(-${entryRotateX}deg)` — so they billboard the camera throughout the entry, not just at rest
+
+**Default knobs (start here, tune by feel):**
+| Channel | From | To |
+|---|---|---|
+| `translateY` | `-140px` | `0` |
+| `translateZ` | `-220px` | `0` |
+| `rotateX` | `32°` | resting tilt (8° / 0°) |
+| `scale` | `0.92` | `1.0` |
+| `opacity` | `0` | `1` over [0, 0.55] |
+
+**Forbidden in this pattern:**
+- Spring physics (overshoots break the SaaS feel)
+- Linear or quadratic easing (too mechanical)
+- Rotating around any origin other than the bottom edge (anchoring elsewhere makes it pivot, not float in)
+- Skipping `perspective` on the parent
+
+**Downstream timing rule:** elements that live ON the entering plane (dots,
+data, content) should not start their own entrance until the plane has
+substantially settled (~50f after entry start). Elements floating ABOVE
+the plane (overlay text, folio dateline) can start a few frames earlier
+(~40f) so the layout feels alive while the plane is still landing.
+
+**When to use it:** any template that has a single dominant subject plane
+that benefits from cinematic arrival — tactical pitches, dashboards, hero
+data boards, large-format charts. Do NOT use for templates whose subject
+is text-led (use a serif italic byline + accent tab pattern instead — see
+`IntrcptBigStat.tsx`).
 
 ### Timing Conventions
 

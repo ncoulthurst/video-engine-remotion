@@ -1,9 +1,9 @@
 import React from "react";
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { AbsoluteFill, Easing, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
 import {
   Grain, PaperBackground, serifFontFamily,
-  COLORS, fontFamily, SmartImg, hexToRgb,
+  COLORS, fontFamily, SmartImg, hexToRgb, WorldStateSchema
 } from "./shared";
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
@@ -32,6 +32,8 @@ export const TeamLineupPropsSchema = z.object({
   managerImageSlug:   z.string().optional().default(""),
   infoAppearFrame:    z.number().default(0), // frame at which the left panel animates in
   bgColor:            z.string().optional().default("#f0ece4"),
+  skipIntro:          z.boolean().optional().default(false),
+  worldState:         WorldStateSchema.optional(),
 });
 
 export type TeamLineupProps = z.infer<typeof TeamLineupPropsSchema>;
@@ -108,6 +110,7 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
   managerName, managerTitle = "Manager", managerNationality, managerImageSlug,
   infoAppearFrame = 0,
   bgColor = "#f0ece4",
+  skipIntro = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -115,12 +118,28 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
   const [cr, cg, cb] = hexToRgb(teamColor);
 
   // ── Info panel animation ──────────────────────────────────────────────────
-  const infoOp = interpolate(frame, [infoAppearFrame, infoAppearFrame + 22], [0, 1], { extrapolateRight: "clamp" });
-  const infoX  = spring({ frame: frame - infoAppearFrame, fps, from: -50, to: 0, config: { damping: 22, stiffness: 70 } });
+  const infoOp = skipIntro ? 1 : interpolate(frame, [infoAppearFrame, infoAppearFrame + 22], [0, 1], { extrapolateRight: "clamp" });
+  const infoX  = skipIntro ? 0 : spring({ frame: frame - infoAppearFrame, fps, from: -50, to: 0, config: { damping: 22, stiffness: 70 } });
 
-  // ── Pitch animation ───────────────────────────────────────────────────────
-  const pitchOp    = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
-  const pitchScale = spring({ frame, fps, from: 0.97, to: 1, config: { damping: 22, stiffness: 60 } });
+  // ── Pitch SaaS Float-In entry ────────────────────────────────────────────
+  // Same cinematic plane drop used in IntrcptTactical: drops down + comes
+  // forward + un-tilts, all driven off one eased progress with the iOS
+  // easeOutExpo curve. The pitch is the dominant subject plane here, so it
+  // earns the hero entry.
+  const ENTRY_DUR    = 52;
+  const RESTING_TILT = 6;
+  const entryProg = skipIntro ? 1 : interpolate(frame, [0, ENTRY_DUR], [0, 1], {
+    extrapolateLeft:  "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.bezier(0.16, 1, 0.3, 1),
+  });
+  const pitchOp        = skipIntro ? 1 : interpolate(entryProg, [0, 0.55], [0, 1], { extrapolateRight: "clamp" });
+  const entryTranslateY = interpolate(entryProg, [0, 1], [-140, 0]);
+  const entryTranslateZ = interpolate(entryProg, [0, 1], [-220, 0]);
+  const entryRotateX   = interpolate(entryProg, [0, 1], [32, RESTING_TILT]);
+  const entryScale     = interpolate(entryProg, [0, 1], [0.92, 1.0]);
+  // Players + labels enter only after the plane has substantially settled
+  const PLAYER_GATE = 50;
 
   // List order follows narration order (appearFrame) — always correct regardless of y coordinates.
   // Pitch positions are still driven by x/y coordinates independently.
@@ -225,8 +244,8 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2, overflow: "hidden" }}>
           {sortedPlayers.map((p, i) => {
             const delay = typeof p.appearFrame === 'number' ? p.appearFrame : i * 8;
-            const rowOp = interpolate(frame, [delay, delay + 14], [0, 1], { extrapolateRight: "clamp" });
-            const rowX  = spring({ frame: frame - delay, fps, from: -28, to: 0, config: { damping: 17, stiffness: 145 } });
+            const rowOp = skipIntro ? 1 : interpolate(frame, [delay, delay + 14], [0, 1], { extrapolateRight: "clamp" });
+            const rowX  = skipIntro ? 0 : spring({ frame: frame - delay, fps, from: -28, to: 0, config: { damping: 17, stiffness: 145 } });
 
             return (
               <div
@@ -236,42 +255,43 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
                   transform: `translateX(${rowX}px)`,
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
-                  padding: "6px 10px",
+                  gap: 14,
+                  padding: "10px 14px",
                   borderRadius: 8,
                   backgroundColor: "rgba(0,0,0,0.03)",
                 }}
               >
                 {/* Number badge */}
                 <div style={{
-                  width: 32, height: 32,
+                  width: 36, height: 36,
                   borderRadius: "50%",
                   background: `rgba(${cr},${cg},${cb},0.15)`,
                   border: `2px solid rgba(${cr},${cg},${cb},0.4)`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily, fontSize: 13, fontWeight: 800, color: teamColor,
+                  fontFamily, fontSize: 14, fontWeight: 800, color: teamColor,
                   flexShrink: 0,
                 }}>
                   {p.number}
                 </div>
 
-                {/* Name */}
+                {/* Name — primary hierarchy on this row */}
                 <div style={{
                   flex: 1,
                   fontFamily,
-                  fontSize: 16,
+                  fontSize: 19,
                   fontWeight: 600,
                   color: COLORS.primary,
+                  letterSpacing: -0.2,
                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const,
                 }}>
                   {p.name}
                 </div>
 
-                {/* Position label */}
+                {/* Position label — small caps, muted, never larger than name */}
                 {p.positionLabel && (
                   <div style={{
-                    fontFamily, fontSize: 20, fontWeight: 700,
-                    letterSpacing: 0.5,
+                    fontFamily, fontSize: 12, fontWeight: 700,
+                    letterSpacing: 2,
                     color: COLORS.muted,
                     textTransform: "uppercase" as const,
                     flexShrink: 0,
@@ -364,106 +384,167 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
         )}
       </div>
 
-      {/* ── Pitch ──────────────────────────────────────────────────────── */}
+      {/* ── Pitch — SaaS float-in plane ─────────────────────────────────── */}
+      {/* Perspective parent: required for rotateX to render in 3D space */}
       <div style={{
         position: "absolute",
         left: PITCH_X,
         top: PITCH_Y,
         width: PITCH_W,
         height: PITCH_H,
-        borderRadius: 10,
-        overflow: "hidden",
-        opacity: pitchOp,
-        transform: `scale(${pitchScale})`,
-        transformOrigin: "center center",
-        boxShadow: "0 8px 40px rgba(0,0,0,0.35)",
+        perspective: "2400px",
+        perspectiveOrigin: "50% 50%",
       }}>
-        <GrassStripes w={PITCH_W} h={PITCH_H} />
-        <PitchMarkings w={PITCH_W} h={PITCH_H} />
-
-        {/* Edge vignette */}
         <div style={{
-          position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse 90% 90% at center, transparent 55%, rgba(0,0,0,0.22) 100%)",
-          pointerEvents: "none",
-        }} />
+          position: "absolute",
+          inset: 0,
+          borderRadius: 10,
+          overflow: "hidden",
+          opacity: pitchOp,
+          transform: `translateY(${entryTranslateY}px) translateZ(${entryTranslateZ}px) rotateX(${entryRotateX}deg) scale(${entryScale})`,
+          transformOrigin: "50% 100%",
+          transformStyle: "preserve-3d",
+          boxShadow: "0 12px 60px rgba(0,0,0,0.45)",
+        }}>
+          <GrassStripes w={PITCH_W} h={PITCH_H} />
+          <PitchMarkings w={PITCH_W} h={PITCH_H} />
 
-        {/* Players on pitch — each fades in at their appearFrame */}
-        {players.map((p, i) => {
-          const delay = typeof p.appearFrame === 'number' ? p.appearFrame : i * 8;
-          const sc    = spring({ frame: frame - delay, fps, from: 0, to: 1, config: { damping: 18, stiffness: 140 } });
-          const pOp   = interpolate(frame, [delay, delay + 16], [0, 1], { extrapolateRight: "clamp" });
+          {/* Edge vignette */}
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "radial-gradient(ellipse 90% 90% at center, transparent 55%, rgba(0,0,0,0.22) 100%)",
+            pointerEvents: "none",
+          }} />
 
-          return (
-            <div
-              key={i}
-              style={{
-                position: "absolute",
-                left: (p.x / 100) * PITCH_W - DOT_R,
-                top:  (1 - p.y / 100) * PITCH_H - DOT_R,
-                opacity: pOp,
-                transform: `scale(${sc})`,
-                transformOrigin: "center center",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              {/* Club colour circle */}
-              <div style={{
-                width: DOT_R * 2,
-                height: DOT_R * 2,
-                borderRadius: "50%",
-                background: teamColor,
-                border: "3px solid #fff",
-                boxShadow: `0 2px 10px rgba(0,0,0,0.45), 0 0 0 1px rgba(${cr},${cg},${cb},0.3)`,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontFamily,
-                fontSize: 20,
-                fontWeight: 900,
-                color: "#fff",
-              }}>
-                {p.number}
-              </div>
+          {/* Players on pitch — gated until plane substantially settles */}
+          {players.map((p, i) => {
+            const baseDelay = typeof p.appearFrame === 'number' ? p.appearFrame : i * 8;
+            const delay     = skipIntro ? baseDelay : Math.max(baseDelay, PLAYER_GATE + i * 3);
+            const sc    = skipIntro ? 1 : spring({ frame: frame - delay, fps, from: 0, to: 1, config: { damping: 18, stiffness: 140 } });
+            const pOp   = skipIntro ? 1 : interpolate(frame, [delay, delay + 16], [0, 1], { extrapolateRight: "clamp" });
 
-              {/* Surname label */}
-              <div style={{
-                fontFamily,
-                fontSize: 17,
-                fontWeight: 700,
-                color: "#fff",
-                letterSpacing: 0.3,
-                textShadow: "0 1px 5px rgba(0,0,0,0.98), 0 0 10px rgba(0,0,0,0.9)",
-                marginTop: 6,
-                maxWidth: 120,
-                textAlign: "center" as const,
-                lineHeight: 1.1,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap" as const,
-              }}>
-                {p.name.split(" ").pop()}
-              </div>
+            // Counter-rotate the current plane tilt so labels billboard the
+            // camera throughout the entry instead of lying flat on the pitch.
+            const counterRotate = `rotateX(${-entryRotateX}deg)`;
 
-              {/* Captain dot */}
-              {p.isCaptain && (
-                <div style={{
+            const surname = p.name.split(" ").pop() || p.name;
+
+            return (
+              <div
+                key={i}
+                style={{
                   position: "absolute",
-                  top: -4, right: -4,
-                  width: 14, height: 14,
-                  borderRadius: "50%",
-                  background: COLORS.gold,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily, fontSize: 8, fontWeight: 900, color: "#fff",
+                  left: (p.x / 100) * PITCH_W - DOT_R,
+                  top:  (1 - p.y / 100) * PITCH_H - DOT_R,
+                  opacity: pOp,
+                  transform: `scale(${sc}) ${counterRotate}`,
+                  transformOrigin: "center center",
+                  transformStyle: "preserve-3d",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  width: DOT_R * 2,
+                }}
+              >
+                {/* Layered node — outer ring, inner club-colour disc, number on top */}
+                <div style={{
+                  position: "relative",
+                  width: DOT_R * 2,
+                  height: DOT_R * 2,
+                  filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.55))",
                 }}>
-                  C
+                  {/* Outer ring — translucent white halo for depth on grass */}
+                  <div style={{
+                    position: "absolute",
+                    inset: -3,
+                    borderRadius: "50%",
+                    border: "2px solid rgba(255,255,255,0.55)",
+                  }} />
+                  {/* Inner disc — solid team colour with subtle radial sheen */}
+                  <div style={{
+                    position: "absolute",
+                    inset: 0,
+                    borderRadius: "50%",
+                    background: `radial-gradient(circle at 35% 28%, rgba(255,255,255,0.18), rgba(255,255,255,0) 55%), ${teamColor}`,
+                    border: `3px solid #fff`,
+                    boxShadow: `inset 0 -3px 6px rgba(0,0,0,0.22), 0 0 0 1px rgba(${cr},${cg},${cb},0.45)`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontFamily,
+                    fontSize: 22,
+                    fontWeight: 900,
+                    color: "#fff",
+                    letterSpacing: -0.5,
+                    fontFeatureSettings: '"tnum" 1, "lnum" 1',
+                  }}>
+                    {p.number}
+                  </div>
+
+                  {/* Captain badge — top-right, gold ring */}
+                  {p.isCaptain && (
+                    <div style={{
+                      position: "absolute",
+                      top: -6, right: -6,
+                      width: 22, height: 22,
+                      borderRadius: "50%",
+                      background: COLORS.gold,
+                      border: "2px solid #111",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontFamily, fontSize: 11, fontWeight: 900, color: "#111",
+                      letterSpacing: 0.3,
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.4)",
+                    }}>
+                      C
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
+
+                {/* Surname label — solid scrim pill, uppercase, tracked */}
+                <div style={{
+                  marginTop: 8,
+                  padding: "4px 10px",
+                  borderRadius: 3,
+                  background: "rgba(15,15,15,0.85)",
+                  border: `1px solid rgba(${cr},${cg},${cb},0.5)`,
+                  maxWidth: 160,
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.45)",
+                }}>
+                  <div style={{
+                    fontFamily,
+                    fontSize: 14,
+                    fontWeight: 800,
+                    color: "#fff",
+                    letterSpacing: 1.5,
+                    textAlign: "center" as const,
+                    lineHeight: 1.05,
+                    textTransform: "uppercase" as const,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap" as const,
+                  }}>
+                    {surname}
+                  </div>
+                  {p.positionLabel && (
+                    <div style={{
+                      fontFamily,
+                      fontSize: 9,
+                      fontWeight: 700,
+                      color: `rgba(${cr},${cg},${cb},0.95)`,
+                      letterSpacing: 2,
+                      textAlign: "center" as const,
+                      lineHeight: 1,
+                      marginTop: 2,
+                      textTransform: "uppercase" as const,
+                    }}>
+                      {p.positionLabel}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </AbsoluteFill>
   );

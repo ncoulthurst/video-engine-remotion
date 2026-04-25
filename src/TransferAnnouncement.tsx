@@ -3,7 +3,7 @@ import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } fr
 import { z } from "zod";
 import {
   Grain, PaperBackground,
-  COLORS, SPRINGS, fontFamily, serifFontFamily, SmartImg, hexToRgb,
+  COLORS, SPRINGS, fontFamily, serifFontFamily, SmartImg, hexToRgb, WorldStateSchema
 } from "./shared";
 
 export const TransferAnnouncementPropsSchema = z.object({
@@ -18,6 +18,8 @@ export const TransferAnnouncementPropsSchema = z.object({
   year:         z.string().optional().default(""),
   nationality:  z.string().optional().default(""),
   bgColor:      z.string().optional().default("#f0ece4"),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type TransferAnnouncementProps = z.infer<typeof TransferAnnouncementPropsSchema>;

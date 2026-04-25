@@ -8,7 +8,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema } from "./shared";
 
 const EventSchema = z.object({
   minute:  z.number(),
@@ -35,6 +35,8 @@ export const IntrcptMatchTimelinePropsSchema = z.object({
   bgColor:     z.string().default("#f0ece4"),
   stagger:     z.number().default(16),
   events: z.array(EventSchema).optional(),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 export type IntrcptMatchTimelineProps = z.infer<typeof IntrcptMatchTimelinePropsSchema>;
 
@@ -62,7 +64,7 @@ const EVENT_COLORS: Record<string, string> = {
 
 export const IntrcptMatchTimeline: React.FC<IntrcptMatchTimelineProps> = ({
   homeTeam, awayTeam, homeScore, awayScore, competition, date,
-  homeImage, awayImage, accentColor, bgColor, stagger, events,
+  homeImage, awayImage, accentColor, bgColor, stagger, events, skipIntro = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -70,7 +72,7 @@ export const IntrcptMatchTimeline: React.FC<IntrcptMatchTimelineProps> = ({
   const INTRO_F  = 20;
   const TITLE_F  = INTRO_F;
 
-  const titleProg = spring({ frame: frame - TITLE_F, fps, config: { damping: 24, stiffness: 55 } });
+  const titleProg = skipIntro ? 1 : spring({ frame: frame - TITLE_F, fps, config: { damping: 24, stiffness: 55 } });
 
   // Sort events by minute
   const sorted = [...(events ?? [])].sort((a, b) => a.minute - b.minute);
@@ -79,7 +81,7 @@ export const IntrcptMatchTimeline: React.FC<IntrcptMatchTimelineProps> = ({
   // Timeline line progress — draws over the full OUTRO duration
   const EVENTS_START = INTRO_F + 30;
   const EVENTS_END   = EVENTS_START + sorted.length * stagger + 40;
-  const lineProg = spring({ frame: frame - EVENTS_START, fps, config: { damping: 28, stiffness: 40 } });
+  const lineProg = skipIntro ? 1 : spring({ frame: frame - EVENTS_START, fps, config: { damping: 28, stiffness: 40 } });
 
   // Layout
   const TIMELINE_LEFT  = 120;
@@ -197,7 +199,7 @@ export const IntrcptMatchTimeline: React.FC<IntrcptMatchTimelineProps> = ({
           {/* Events */}
           {sorted.map((ev, i) => {
             const revealF = EVENTS_START + i * stagger;
-            const prog    = spring({ frame: frame - revealF, fps, config: { damping: 14, stiffness: 220 } });
+            const prog    = skipIntro ? 1 : spring({ frame: frame - revealF, fps, config: { damping: 14, stiffness: 220 } });
             const cx      = minuteToX(ev.minute);
             const isHome  = (ev.team || "home") !== "away";
             const col     = EVENT_COLORS[ev.type] || "#888";

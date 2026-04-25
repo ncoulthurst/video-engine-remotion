@@ -11,7 +11,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, COLORS, SPRINGS, rgbaFromHex } from "./shared";
+import { fontFamily, serifFontFamily, Grain, COLORS, SPRINGS, rgbaFromHex, WorldStateSchema} from "./shared";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SCHEMA
@@ -30,6 +30,8 @@ export const MatchMomentPropsSchema = z.object({
   bgColor:     z.string().optional().default("#0a0a0a"),
   homeColor:   z.string().optional().default("#C8102E"),
   awayColor:   z.string().optional().default("#004D98"),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type MatchMomentProps = z.infer<typeof MatchMomentPropsSchema>;

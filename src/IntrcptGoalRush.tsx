@@ -15,7 +15,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, WorldStateSchema} from "./shared";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -44,6 +44,7 @@ export const IntrcptGoalRushPropsSchema = z.object({
   holdDuration: z.number().int().min(20).default(90),
   darkMode:     z.boolean().optional().default(false),
   skipIntro:    z.boolean().optional().default(false),
+  worldState: WorldStateSchema.optional(),
 });
 
 export type IntrcptGoalRushProps = z.infer<typeof IntrcptGoalRushPropsSchema>;

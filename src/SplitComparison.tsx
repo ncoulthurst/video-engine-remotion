@@ -6,7 +6,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SPRINGS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SPRINGS, SmartImg, WorldStateSchema} from "./shared";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SCHEMA
@@ -30,6 +30,8 @@ export const SplitComparisonPropsSchema = z.object({
     leftVal: z.string().optional().default(""),
     rightVal: z.string().optional().default(""),
   })).default([]),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type SplitComparisonProps = z.infer<typeof SplitComparisonPropsSchema>;

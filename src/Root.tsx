@@ -16,7 +16,7 @@ import { IntrcptTactical, IntrcptTacticalPropsSchema } from "./IntrcptTactical";
 import { IntrcptLeagueGraph, IntrcptLeagueGraphPropsSchema } from "./IntrcptLeagueGraph";
 import { IntrcptTransferRecord, IntrcptTransferRecordPropsSchema } from "./IntrcptTransferRecord";
 import { IntrcptChapterWord, IntrcptChapterWordPropsSchema } from "./IntrcptChapterWord";
-import { IntrcptConceptCard, IntrcptConceptCardPropsSchema } from "./IntrcptConceptCard";
+import { IntrcptClipCompare, IntrcptClipComparePropsSchema } from "./IntrcptClipCompare";
 import { IntrcptClipSingle, IntrcptClipSinglePropsSchema } from "./IntrcptClipSingle";
 import { IntrcptScatterPlot, IntrcptScatterPlotPropsSchema } from "./IntrcptScatterPlot";
 import { AttackingRadar, AttackingRadarPropsSchema } from "./AttackingRadar";
@@ -30,7 +30,7 @@ import { StatPulse, StatPulsePropsSchema } from "./StatPulse";
 import { ScoutReport, ScoutReportPropsSchema } from "./ScoutReport";
 import { ValueCurve, ValueCurvePropsSchema } from "./ValueCurve";
 import { IntrcptTransferProfit, IntrcptTransferProfitPropsSchema, calculateMetadata as transferProfitV2CalculateMetadata } from "./IntrcptTransferProfit";
-import { IntrcptPlayerReveal, IntrcptPlayerRevealPropsSchema, calculateMetadata as playerRevealCalculateMetadata } from "./IntrcptPlayerReveal";
+import { IntrcptPlayerRevealTrio, IntrcptPlayerRevealTrioPropsSchema, calculateMetadata as playerRevealTrioCalculateMetadata } from "./IntrcptPlayerRevealTrio";
 import {
   VideoSequence,
   VideoSequencePropsSchema,
@@ -43,14 +43,26 @@ import { IntrcptBigStat, IntrcptBigStatPropsSchema } from "./IntrcptBigStat";
 import { IntrcptComparisonRadar, IntrcptComparisonRadarPropsSchema } from "./IntrcptComparisonRadar";
 import { IntrcptNewsFeed, IntrcptNewsFeedPropsSchema, calculateMetadata as calcNewsFeed } from "./IntrcptNewsFeed";
 import { IntrcptSeasonTimeline, IntrcptSeasonTimelinePropsSchema } from "./IntrcptSeasonTimeline";
+import { TournamentBracket, TournamentBracketPropsSchema } from "./TournamentBracket";
+// Track E — register IntrcptQuote (was missing) + new hybrid templates
+import { IntrcptQuote, IntrcptQuotePropsSchema } from "./IntrcptQuote";
+import { PortraitStatHero, PortraitStatHeroPropsSchema } from "./PortraitStatHero";
+import { PortraitWithBars, PortraitWithBarsPropsSchema } from "./PortraitWithBars";
 
 import type { CareerTimelineProps } from "./CareerTimeline";
 import type { IntrcptTransferRecordProps } from "./IntrcptTransferRecord";
 
 const DEFAULT_TIMELINE: CareerTimelineProps = {
   playerName: "Luis Suárez",
-  activeIndex: 0,
-  startFrame: 45,
+  activeIndex: 3,
+  startFrame: 90,
+  skipIntro: false,
+  accentColor: "#C8102E",
+  bgColor: "#f0ece4",
+  darkMode: false,
+  subjectImage: "",
+  source: "stats · transfermarkt",
+  dateline: "CAREER · 2005–2022",
   events: [
     { year: "2005–06", club: "Nacional",  badgeSlug: "premier-league.svg", clubColor: "#003580", detail: "12 goals",              isHighlight: false },
     { year: "2006–07", club: "Groningen", badgeSlug: "premier-league.svg", clubColor: "#007D33", detail: "15 goals",              isHighlight: false },
@@ -75,6 +87,7 @@ const DEFAULT_INTRCPT_TRANSFER_RECORD: IntrcptTransferRecordProps = {
     { year: "2023", player: "Enzo Fernández",     fromClub: "Benfica",  toClub: "Chelsea",     fee: "£107m",  feeValue: 107,  highlight: false },
   ],
   bgColor: "#f0ece4",
+  skipIntro: false,
 };
 
 export const Root: React.FC = () => {
@@ -90,7 +103,8 @@ export const Root: React.FC = () => {
         height={1080}
         defaultProps={{
           subtitle: "the greatest league season ever told",
-          bgColor: "#f0ece4"
+          bgColor: "#f0ece4",
+          skipIntro: false,
         }}
       />
       <Composition
@@ -110,7 +124,8 @@ export const Root: React.FC = () => {
             { label: "Possession", valueA: 58, valueB: 42, maxValue: 100, suffix: "%" },
             { label: "Shots", valueA: 14, valueB: 9, suffix: "" },
           ],
-          bgColor: "#f0ece4"
+          bgColor: "#f0ece4",
+          skipIntro: false,
         }}
       />
       <Composition
@@ -128,42 +143,61 @@ export const Root: React.FC = () => {
           results: [
             { result: "W", opponent: "Arsenal", score: "4-0" }
           ],
-          bgColor: "#f0ece4"
+          bgColor: "#f0ece4",
+          skipIntro: false,
         }}
       />
       <Composition
         id="IntrcptTactical"
         component={IntrcptTactical}
         schema={IntrcptTacticalPropsSchema}
-        durationInFrames={300}
+        durationInFrames={420}
         fps={30}
         width={1920}
         height={1080}
         defaultProps={{
           title: "the press",
-          description: "coordinated high press from the front three",
+          description: "Coordinated high press from the front three traps the build-up at source, forcing turnovers in the final third.",
+          dateline: "",
+          source: "",
           players: [
+            // Resting (4-3-3) → press (front three squeeze, midfield steps up)
             { label: "GK", x: 50, y: 88 },
             { label: "RB", x: 80, y: 72 },
             { label: "CB", x: 62, y: 72 },
             { label: "CB", x: 38, y: 72 },
             { label: "LB", x: 20, y: 72 },
-            { label: "CM", x: 65, y: 55 },
-            { label: "DM", x: 50, y: 58 },
-            { label: "CM", x: 35, y: 55 },
-            { label: "RW", x: 78, y: 36 },
-            { label: "ST", x: 50, y: 30 },
-            { label: "LW", x: 22, y: 36 },
+            { label: "CM", x: 65, y: 55, pressX: 60, pressY: 48 },
+            { label: "DM", x: 50, y: 58, pressX: 50, pressY: 50 },
+            { label: "CM", x: 35, y: 55, pressX: 40, pressY: 48 },
+            { label: "RW", x: 78, y: 36, pressX: 76, pressY: 28 },
+            { label: "ST", x: 50, y: 30, pressX: 56, pressY: 26 },
+            { label: "LW", x: 22, y: 36, pressX: 24, pressY: 28 },
+          ],
+          oppositionPlayers: [
+            { label: "GK", x: 50, y: 10 },
+            { label: "RB", x: 78, y: 22 },
+            { label: "CB", x: 60, y: 22 },
+            { label: "CB", x: 40, y: 22 },
+            { label: "LB", x: 22, y: 22 },
+            { label: "DM", x: 55, y: 40 },
+            { label: "DM", x: 45, y: 40 },
+            { label: "RW", x: 72, y: 58 },
+            { label: "AM", x: 50, y: 58 },
+            { label: "LW", x: 28, y: 58 },
+            { label: "ST", x: 50, y: 72 },
           ],
           arrows: [
-            { fromX: 78, fromY: 36, toX: 85, toY: 20, style: "solid"  },
-            { fromX: 50, fromY: 30, toX: 50, toY: 15, style: "solid"  },
-            { fromX: 22, fromY: 36, toX: 15, toY: 20, style: "solid"  },
-            { fromX: 65, fromY: 55, toX: 70, toY: 42, style: "dashed" },
-            { fromX: 35, fromY: 55, toX: 30, toY: 42, style: "dashed" },
+            { fromX: 78, fromY: 36, toX: 0, toY: 0, targetIndex: 1, style: "solid" }, // RW → opp RB
+            { fromX: 50, fromY: 30, toX: 0, toY: 0, targetIndex: 2, style: "solid" }, // ST → opp CB
+            { fromX: 22, fromY: 36, toX: 0, toY: 0, targetIndex: 4, style: "solid" }, // LW → opp LB
           ],
           teamColor: "#C8102E",
-          bgColor: "#1a1a1a"
+          oppositionColor: "#1F4E8C",
+          accentColor: "#C8102E",
+          textColor: "#f5f0e8",
+          bgColor: "#141414",
+          skipIntro: false,
         }}
       />
       <Composition
@@ -177,11 +211,16 @@ export const Root: React.FC = () => {
         defaultProps={{
           season:      "2013–14",
           title:       "Title Race",
+          competition: "Premier League",
+          source:      "Source · FBref",
           maxPosition: 6,
-          bgColor:     "#111111",
+          bgColor:     "",
+          accentColor: "",
+          skipIntro: false,
           teamA: {
-            name:  "Liverpool",
-            color: "#C8102E",
+            name:      "Liverpool",
+            color:     "#C8102E",
+            badgeSlug: "",
             data:  [
               { matchday: 1,  position: 4 }, { matchday: 5,  position: 3 },
               { matchday: 10, position: 2 }, { matchday: 20, position: 1 },
@@ -190,8 +229,9 @@ export const Root: React.FC = () => {
             ],
           },
           teamB: {
-            name:  "Manchester City",
-            color: "#6CABDD",
+            name:      "Manchester City",
+            color:     "#6CABDD",
+            badgeSlug: "",
             data:  [
               { matchday: 1,  position: 2 }, { matchday: 5,  position: 1 },
               { matchday: 10, position: 3 }, { matchday: 20, position: 2 },
@@ -225,13 +265,14 @@ export const Root: React.FC = () => {
           player2Image: "aguero.png",
           blob1Color: "#7C5CBF",
           blob2Color: "#D94F4F",
-          bgColor: "#f0ece4"
+          bgColor: "#f0ece4",
+          skipIntro: false,
         }}
       />
       <Composition
-        id="IntrcptConceptCard"
-        component={IntrcptConceptCard}
-        schema={IntrcptConceptCardPropsSchema}
+        id="IntrcptClipCompare"
+        component={IntrcptClipCompare}
+        schema={IntrcptClipComparePropsSchema}
         durationInFrames={210}
         fps={30}
         width={1920}
@@ -245,7 +286,8 @@ export const Root: React.FC = () => {
           clipLeft:   "",
           clipRight:  "",
           title:      "",
-          bgColor:    "#f0ece4"
+          bgColor:    "#f0ece4",
+          skipIntro:  false,
         }}
       />
       <Composition
@@ -439,13 +481,14 @@ export const Root: React.FC = () => {
         width={1920}
         height={1080}
         defaultProps={{
-          playerName:  "Luis Suárez",
-          club:        "Liverpool",
-          season:      "2013–14",
-          competition: "Premier League",
-          badgeSlug:   "liverpool.svg",
-          clubColor:   "#C8102E",
-          bgColor:     "#f0ece4",
+          playerName:      "Luis Suárez",
+          club:            "Liverpool",
+          season:          "2013–14",
+          competition:     "Premier League",
+          badgeSlug:       "liverpool.svg",
+          clubColor:       "#C8102E",
+          playerImageSlug: "luis.png",
+          bgColor:         "#f0ece4",
           stats: [
             { label: "Goals",       value: 31, sub: "in 33 appearances" },
             { label: "Assists",     value: 12 },
@@ -570,19 +613,23 @@ export const Root: React.FC = () => {
         width={1920}
         height={1080}
         defaultProps={{
-          title:            "Where it all began",
-          titleSize:        64,
-          calloutCity:      "bournemouth",
-          calloutText:      "Bournemouth",
-          calloutDirection: "left",
-          accentColor:      "#DA291C",
-          bgColor:          "#f0ece4",
-          darkMode:         false,
+          title:           "Manchester",
+          titleSize:       64,
+          dateline:        "England · North West",
+          description:     "The industrial heart of the north — a city whose football clubs have shaped the modern English game.",
+          source:          "MAP · NATURAL EARTH",
+          calloutCity:     "manchester",
+          calloutText:     "",
+          highlightRegion: "england" as const,
+          accentColor:     "#C8102E",
+          bgColor:         "#f0ece4",
+          darkMode:        false,
+          skipIntro:       false,
           pins: [
-            { city: "manchester",  label: "Manchester",  highlighted: false },
-            { city: "liverpool",   label: "Liverpool",   highlighted: false },
+            { city: "manchester",  label: "Manchester",  highlighted: true  },
             { city: "london",      label: "London",      highlighted: false },
-            { city: "bournemouth", label: "Bournemouth", highlighted: true  },
+            { city: "edinburgh",   label: "Edinburgh",   highlighted: false },
+            { city: "cardiff",     label: "Cardiff",     highlighted: false },
           ],
         }}
       />
@@ -705,25 +752,28 @@ export const Root: React.FC = () => {
         width={1920}
         height={1080}
         defaultProps={{
-          playerName:   "Ollie Watkins",
-          origin:       "Exeter City",
-          league:       "EFL League Two",
-          signingFee:   "£1.8m",
-          signingYear:  "2017",
-          playerAge:    21,
-          headline:     "25 goals in 35 Championship appearances",
-          headlineStat: "25",
-          headlineUnit: "Championship goals",
-          accentColor:  "#E30613",
-          bgColor:      "#0f0f0f",
-          lightMode:    false,
+          playerName:      "Ronaldinho",
+          playerImageSlug: "dinho.png",
+          origin:          "Barcelona",
+          league:          "La Liga",
+          signingFee:      "—",
+          signingYear:     "2003",
+          playerAge:       23,
+          headline:        "32 goals in 81 appearances during a peak La Liga spell",
+          headlineStat:    "32",
+          headlineUnit:    "La Liga goals",
+          source:          "scouting · sample report",
+          clubColor:       "#FFD500",
+          accentColor:     "#FFD500",
+          bgColor:         "#009C3B",
+          lightMode:       false,
           metrics: [
-            { label: "Goals",       value: "25",    detail: "Championship 19/20",  bar: 92 },
-            { label: "Assists",     value: "7",     detail: "same season",         bar: 78 },
-            { label: "Shots/90",    value: "3.4",   detail: "top 5% in league",    bar: 96 },
-            { label: "Dribbles/90", value: "2.1",   detail: "direct runner",       bar: 85 },
-            { label: "Age signed",  value: "21",    detail: "high sell-on value",  bar: 70 },
-            { label: "Fee paid",    value: "£1.8m", detail: "below market value",  bar: 12 },
+            { label: "Goals",       value: "32",  detail: "across 81 La Liga apps", bar: 88 },
+            { label: "Assists",     value: "24",  detail: "primary creator",        bar: 94 },
+            { label: "Dribbles/90", value: "5.6", detail: "elite 1v1 threat",       bar: 97 },
+            { label: "Key passes",  value: "3.1", detail: "vision through traffic", bar: 90 },
+            { label: "Free kicks",  value: "9",   detail: "set-piece specialist",   bar: 82 },
+            { label: "Flair",       value: "99",  detail: "samba in the box",       bar: 99 },
           ],
         }}
       />
@@ -783,12 +833,12 @@ export const Root: React.FC = () => {
         }}
       />
 
-      {/* ── IntrcptPlayerReveal — full-height player images, no text ─────── */}
+      {/* ── IntrcptPlayerRevealTrio — full-height player images, no text ─────── */}
       <Composition
-        id="IntrcptPlayerReveal"
-        component={IntrcptPlayerReveal}
-        schema={IntrcptPlayerRevealPropsSchema}
-        calculateMetadata={playerRevealCalculateMetadata}
+        id="IntrcptPlayerRevealTrio"
+        component={IntrcptPlayerRevealTrio}
+        schema={IntrcptPlayerRevealTrioPropsSchema}
+        calculateMetadata={playerRevealTrioCalculateMetadata}
         durationInFrames={162}
         fps={30}
         width={1920}
@@ -952,11 +1002,23 @@ export const Root: React.FC = () => {
         defaultProps={{
           stat:        "31",
           unit:        "goals",
-          label:       "in a single Premier League season",
-          context:     "Luis Suárez · Liverpool · 2013–14",
+          label:       "The most in a single Premier League season — and he still finished second in the title race.",
+          stat2:       "",
+          unit2:       "",
+          label2:      "",
+          context:     "Luis Suárez · Liverpool · 2013/14",
+          badgeSlug:   "liverpool.svg",
+          source:      "stats · fbref",
+          playerImage: "",
           accentColor: "#C8102E",
           darkMode:    false,
           bgColor:     "#f0ece4",
+          skipIntro:   false,
+          comparator:  {
+            kind:  "line" as const,
+            label: "league average per season",
+            value: 11,
+          },
         }}
       />
 
@@ -1071,6 +1133,41 @@ export const Root: React.FC = () => {
         }}
       />
 
+      {/* TournamentBracket preview */}
+      <Composition
+        id="TournamentBracket"
+        component={TournamentBracket}
+        schema={TournamentBracketPropsSchema}
+        durationInFrames={540}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          focusTeam: "Brazil",
+          accentColor: "#1E8A5A",
+          highlightLineColor: "#D62828",
+          bgColor: "#f0ece4",
+          skipIntro: false,
+          matches: [
+            { round: "R16", teamA: "Brazil", teamB: "South Korea", scoreA: 4, scoreB: 1, winner: "Brazil" },
+            { round: "R16", teamA: "Croatia", teamB: "Japan", scoreA: 1, scoreB: 1, winner: "Croatia" },
+            { round: "R16", teamA: "Argentina", teamB: "Australia", scoreA: 2, scoreB: 1, winner: "Argentina" },
+            { round: "R16", teamA: "Netherlands", teamB: "USA", scoreA: 3, scoreB: 1, winner: "Netherlands" },
+            { round: "R16", teamA: "England", teamB: "Senegal", scoreA: 3, scoreB: 0, winner: "England" },
+            { round: "R16", teamA: "France", teamB: "Poland", scoreA: 3, scoreB: 1, winner: "France" },
+            { round: "R16", teamA: "Morocco", teamB: "Spain", scoreA: 0, scoreB: 0, winner: "Morocco" },
+            { round: "R16", teamA: "Portugal", teamB: "Switzerland", scoreA: 6, scoreB: 1, winner: "Portugal" },
+            { round: "QF", teamA: "Brazil", teamB: "Croatia", scoreA: 2, scoreB: 0, winner: "Brazil" },
+            { round: "QF", teamA: "Argentina", teamB: "Netherlands", scoreA: 2, scoreB: 1, winner: "Argentina" },
+            { round: "QF", teamA: "England", teamB: "France", scoreA: 1, scoreB: 2, winner: "France" },
+            { round: "QF", teamA: "Morocco", teamB: "Portugal", scoreA: 1, scoreB: 0, winner: "Morocco" },
+            { round: "SF", teamA: "Brazil", teamB: "Argentina", scoreA: 2, scoreB: 1, winner: "Brazil" },
+            { round: "SF", teamA: "France", teamB: "Morocco", scoreA: 2, scoreB: 0, winner: "France" },
+            { round: "Final", teamA: "Brazil", teamB: "France", scoreA: 2, scoreB: 1, winner: "Brazil" },
+          ],
+        }}
+      />
+
       {/* ── Thumbnail — 1280×720 still frame for YouTube ─────────────────── */}
       <Composition
         id="Thumbnail"
@@ -1119,6 +1216,72 @@ export const Root: React.FC = () => {
           gradientAngle:     135,
           showWatermark:     true,
           watermarkPosition: "bottom-right" as const,
+        }}
+      />
+
+      {/* ── Track E — IntrcptQuote (was missing from registry) ── */}
+      <Composition
+        id="IntrcptQuote"
+        component={IntrcptQuote}
+        schema={IntrcptQuotePropsSchema}
+        durationInFrames={150}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          quote:       '"I am not a diver."',
+          attribution: "Luis Suárez",
+          context:     "",
+          playerImage: "suarez.jpg",
+          accentColor: "#C8102E",
+          bgColor:     "#f0ece4",
+          skipIntro:   false,
+        }}
+      />
+
+      {/* ── Track E — PortraitStatHero (hybrid portrait + big stat) ── */}
+      <Composition
+        id="PortraitStatHero"
+        component={PortraitStatHero}
+        schema={PortraitStatHeroPropsSchema}
+        durationInFrames={180}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          playerName:  "Luis Suárez",
+          playerImage: "suarez",
+          stat:        "31",
+          unit:        "goals",
+          caption:     "in a single Premier League season",
+          context:     "2013/14 — Liverpool",
+          accentColor: "#C8102E",
+          bgColor:     "#f0ece4",
+          skipIntro:   false,
+        }}
+      />
+
+      {/* ── Track E — PortraitWithBars (masked portrait + 3 stat bars) ── */}
+      <Composition
+        id="PortraitWithBars"
+        component={PortraitWithBars}
+        schema={PortraitWithBarsPropsSchema}
+        durationInFrames={210}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          playerName:  "Luis Suárez",
+          playerImage: "suarez",
+          title:       "2013/14 SEASON",
+          bars:        [
+            { label: "Goals",    value: 31,   unit: "", max: 40 },
+            { label: "Assists",  value: 12,   unit: "", max: 40 },
+            { label: "G+A / 90", value: 1.27, unit: "", max: 2  },
+          ],
+          accentColor: "#C8102E",
+          bgColor:     "#f0ece4",
+          skipIntro:   false,
         }}
       />
     </>

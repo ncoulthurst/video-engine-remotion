@@ -24,7 +24,7 @@ import {
   Grain,
   PaperBackground,
   COLORS,
-  SmartImg,
+  SmartImg, WorldStateSchema
 } from "./shared";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -54,6 +54,8 @@ export const IntrcptTransferProfitPropsSchema = z.object({
   bgColor:     z.string().optional().default("#f0ece4"),
   dwellFrames: z.number().int().default(150),
   transfers:   z.array(TransferSchema).default([]),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type IntrcptTransferProfitProps = z.infer<typeof IntrcptTransferProfitPropsSchema>;
@@ -99,6 +101,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   bgColor,
   dwellFrames,
   transfers,
+  skipIntro = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -108,7 +111,7 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
   const hasSide = transfers.some(t => t.sideImage) || !!globalImage;
   const BAR_MAX_W = hasSide ? 400 : 740;
 
-  const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
+  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const revealF    = (i: number) => INTRO_F + i * dwellFrames;
 
   // ── Typewriter timing ─────────────────────────────────────────────────────

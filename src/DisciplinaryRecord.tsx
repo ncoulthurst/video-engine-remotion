@@ -3,7 +3,7 @@ import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } fr
 import { z } from "zod";
 import {
   Grain, PaperBackground,
-  COLORS, SPRINGS, fontFamily, serifFontFamily, SmartImg,
+  COLORS, SPRINGS, fontFamily, serifFontFamily, SmartImg, WorldStateSchema
 } from "./shared";
 
 const IncidentSchema = z.object({
@@ -21,6 +21,10 @@ export const DisciplinaryRecordPropsSchema = z.object({
   badgeSlug:  z.string().optional().default(""),
   incidents:  z.array(IncidentSchema).optional(),
   bgColor:    z.string().optional().default("#f0ece4"),
+  // Track E — portrait backfill via shared.SmartImg
+  playerImage: z.string().optional().default(""),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export const DisciplinaryPropsSchema = DisciplinaryRecordPropsSchema;
@@ -42,15 +46,15 @@ const CardIcon: React.FC<{ severity: "serious" | "warning" | "minor" }> = ({ sev
 };
 
 export const DisciplinaryRecord: React.FC<DisciplinaryRecordProps> = ({
-  playerName, badgeSlug, incidents: incidentsProp, bgColor = "#f0ece4",
+  playerName, badgeSlug, incidents: incidentsProp, bgColor = "#f0ece4", skipIntro = false,
 }) => {
   const incidents = incidentsProp ?? [];
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const headerScale = spring({ frame, fps, from: 0.88, to: 1, config: SPRINGS.header });
-  const headerOp = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
-  const dividerW = spring({ frame, fps, from: 0, to: 1, config: SPRINGS.cols, delay: 12 });
+  const headerScale = skipIntro ? 1 : spring({ frame, fps, from: 0.88, to: 1, config: SPRINGS.header });
+  const headerOp    = skipIntro ? 1 : interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
+  const dividerW    = skipIntro ? 1 : spring({ frame, fps, from: 0, to: 1, config: SPRINGS.cols, delay: 12 });
 
   const STAGGER = 14;
   const LIST_START = 28;
@@ -118,8 +122,8 @@ export const DisciplinaryRecord: React.FC<DisciplinaryRecordProps> = ({
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, overflow: "hidden" }}>
           {incidents.map((inc, i) => {
             const delay = LIST_START + i * STAGGER;
-            const rowX = spring({ frame, fps, from: -40, to: 0, config: SPRINGS.row, delay });
-            const rowOp = interpolate(frame, [delay, delay + 16], [0, 1], { extrapolateRight: "clamp" });
+            const rowX  = skipIntro ? 0 : spring({ frame, fps, from: -40, to: 0, config: SPRINGS.row, delay });
+            const rowOp = skipIntro ? 1 : interpolate(frame, [delay, delay + 16], [0, 1], { extrapolateRight: "clamp" });
             const sev = SEVERITY_COLORS[inc.severity ?? "warning"];
 
             return (

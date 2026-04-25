@@ -2,7 +2,8 @@
  * shared.tsx — Design tokens and reusable components for all 90th templates.
  */
 import React from "react";
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { z } from "zod";
 import { loadFont } from "@remotion/google-fonts/Inter";
 import { loadFont as loadPlayfair } from "@remotion/google-fonts/PlayfairDisplay";
 
@@ -254,3 +255,177 @@ export const DocumentaryFrame: React.FC<{ children: React.ReactNode }> = ({ chil
     </AbsoluteFill>
   );
 };
+
+// ── Trio portrait masks — shared by PlayerTrio + TrioFeature ─────────────────
+// Soft-edged radial alpha mask: prevents both the bottom hard-cut at the feet
+// AND the side hard-cut at column borders. The two trio templates MUST share
+// these so the cutouts read as part of the same studio look.
+//
+// TRIO_PORTRAIT_MASK: for templates with a header above (image starts mid-frame).
+// TRIO_PORTRAIT_MASK_FULL: for full-bleed trios where the image goes top-to-baseline.
+export const TRIO_PORTRAIT_MASK =
+  "radial-gradient(ellipse 92% 96% at 50% 38%, #000 55%, transparent 96%)";
+export const TRIO_PORTRAIT_MASK_FULL =
+  "radial-gradient(ellipse 95% 100% at 50% 42%, #000 60%, transparent 100%)";
+
+// ── WorldState — shared spatial context across scenes ────────────────────────
+
+export const WorldStateSchema = z.object({
+  cameraX: z.number().default(0),
+  cameraY: z.number().default(0),
+  zoom:    z.number().default(1),
+}).optional();
+
+export type WorldState = z.infer<typeof WorldStateSchema>;
+
+/**
+ * Track E — direction-aware spatial wrapper.
+ *
+ * `direction` controls the sign of the cameraX translate so that retrospective
+ * acts (Act 5, or any flow_hint=="left") visually retreat through the
+ * continuous canvas instead of always advancing forward.
+ *   "advance" (default) → translate(-cameraX, -cameraY)
+ *   "retreat"           → translate(+cameraX, -cameraY)
+ */
+export const WorldStateRoot: React.FC<{
+  worldState?: WorldState;
+  direction?: "advance" | "retreat";
+  children: React.ReactNode;
+}> = ({ worldState, direction = "advance", children }) => {
+  const dx = (worldState?.cameraX ?? 0) * (direction === "retreat" ? 1 : -1);
+  const dy = -(worldState?.cameraY ?? 0);
+  return (
+    <div style={{
+      position:  "absolute",
+      inset:     0,
+      transform: `translate(${dx}px, ${dy}px)`,
+      width:     "100%",
+      height:    "100%",
+    }}>
+      {children}
+    </div>
+  );
+};
+
+// ── Visual Motifs ─────────────────────────────────────────────────────────────
+
+/** Horizontal rule with optional accent sweep and section label. */
+export const RuleLine: React.FC<{
+  color?: string;
+  opacity?: number;
+  label?: string;
+  progress?: number;
+}> = ({ color = COLORS.primary, opacity = 0.12, label, progress = 1 }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+    <div style={{
+      height: 1.5,
+      flex: 1,
+      background: color,
+      opacity,
+      transformOrigin: "left center",
+      transform: `scaleX(${progress})`,
+    }} />
+    {label && (
+      <div style={{
+        fontFamily,
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: 3,
+        textTransform: "uppercase" as const,
+        color,
+        opacity: Math.min(1, opacity * 5),
+        whiteSpace: "nowrap",
+      }}>
+        {label}
+      </div>
+    )}
+  </div>
+);
+
+/** "/ LABEL" context stamp — identifies scene category or era. */
+export const ContextChip: React.FC<{
+  label: string;
+  color?: string;
+  size?: number;
+}> = ({ label, color = COLORS.muted, size = 11 }) => (
+  <div style={{
+    fontFamily,
+    fontSize: size,
+    fontWeight: 700,
+    letterSpacing: 3,
+    textTransform: "uppercase" as const,
+    color,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+  }}>
+    <span style={{ opacity: 0.4 }}>/</span>
+    <span>{label}</span>
+  </div>
+);
+
+/** Animated glow arc that orbits the perimeter of a rect container. */
+export const FrameGlow: React.FC<{
+  w: number;
+  h: number;
+  color?: string;
+  delay?: number;
+  loopFrames?: number;
+}> = ({ w, h, color = "rgba(255,255,255,0.18)", delay = 0, loopFrames = 360 }) => {
+  const frame    = useCurrentFrame();
+  const { fps }  = useVideoConfig();
+  const PAD      = 4;
+  const SW       = 2;
+  const BR       = 6;
+  const perim    = 2 * (w + h);
+  const GLOW_L   = Math.round(perim * 0.40);
+  const fadeIn   = spring({ frame, fps, config: { damping: 22, stiffness: 30 }, delay });
+  const elapsed  = Math.max(0, frame - delay);
+  const loop     = elapsed % loopFrames;
+  const offset   = -interpolate(loop, [0, loopFrames], [0, perim]);
+
+  return (
+    <svg
+      style={{ position: "absolute", top: -PAD, left: -PAD, pointerEvents: "none" }}
+      width={w + PAD * 2}
+      height={h + PAD * 2}
+    >
+      <defs>
+        <filter id="frame-glow-blur" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="8" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+      <rect
+        x={PAD} y={PAD} width={w} height={h} rx={BR} ry={BR}
+        fill="none"
+        stroke={color}
+        strokeWidth={SW + 1}
+        strokeDasharray={`${GLOW_L} ${perim - GLOW_L}`}
+        strokeDashoffset={offset}
+        filter="url(#frame-glow-blur)"
+        opacity={fadeIn}
+      />
+    </svg>
+  );
+};
+
+/** Club badge with standardised sizing and optional glow halo. */
+export const BadgeTreatment: React.FC<{
+  src: string;
+  size?: number;
+  glowColor?: string;
+  opacity?: number;
+}> = ({ src, size = 56, glowColor, opacity = 1 }) => (
+  <div style={{
+    width:    size,
+    height:   size,
+    flexShrink: 0,
+    opacity,
+    filter: glowColor
+      ? `drop-shadow(0 0 ${Math.round(size * 0.18)}px ${glowColor}66)`
+      : undefined,
+  }}>
+    <SmartImg src={src} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+  </div>
+);
