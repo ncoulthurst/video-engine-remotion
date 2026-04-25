@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, WorldStateSchema} from "./shared";
 
 const ScorerSchema = z.object({
   name:   z.string().optional().default(""),
@@ -23,6 +23,10 @@ export const MatchResultPropsSchema = z.object({
   venue:         z.string().optional().default(""),
   scorers:       z.array(ScorerSchema).optional(),
   bgColor:       z.string().optional().default("#f0ece4"),
+  // Track E — optional portrait of match-defining player (resolver-filled)
+  playerImage:   z.string().optional().default(""),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type MatchResultProps = z.infer<typeof MatchResultPropsSchema>;
@@ -35,23 +39,24 @@ export const MatchResult: React.FC<MatchResultProps> = ({
   homeTeam, awayTeam, homeBadgeSlug, awayBadgeSlug,
   homeColor = "#C8102E", awayColor = "#034694",
   homeScore, awayScore, date, competition, venue, scorers = [], bgColor,
+  skipIntro = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
   // ── Entrance animations ────────────────────────────────────────────────
-  const topProg    = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
+  const topProg    = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const topOp      = interpolate(topProg, [0, 1], [0, 1],  { extrapolateRight: "clamp" });
   const topY       = interpolate(topProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const homeOp     = interpolate(frame, [10, 32], [0, 1], { extrapolateRight: "clamp" });
-  const homeX      = spring({ frame, fps, from: -80, to: 0, config: { damping: 24, stiffness: 60 }, delay: 10 });
+  const homeOp     = skipIntro ? 1 : interpolate(frame, [10, 32], [0, 1], { extrapolateRight: "clamp" });
+  const homeX      = skipIntro ? 0 : spring({ frame, fps, from: -80, to: 0, config: { damping: 24, stiffness: 60 }, delay: 10 });
 
-  const scoreOp    = interpolate(frame, [20, 44], [0, 1], { extrapolateRight: "clamp" });
-  const scoreScale = spring({ frame, fps, from: 0, to: 1, config: { damping: 20, stiffness: 70 }, delay: 20 });
+  const scoreOp    = skipIntro ? 1 : interpolate(frame, [20, 44], [0, 1], { extrapolateRight: "clamp" });
+  const scoreScale = skipIntro ? 1 : spring({ frame, fps, from: 0, to: 1, config: { damping: 20, stiffness: 70 }, delay: 20 });
 
-  const awayOp     = interpolate(frame, [18, 40], [0, 1], { extrapolateRight: "clamp" });
-  const awayX      = spring({ frame, fps, from: 80, to: 0, config: { damping: 24, stiffness: 60 }, delay: 18 });
+  const awayOp     = skipIntro ? 1 : interpolate(frame, [18, 40], [0, 1], { extrapolateRight: "clamp" });
+  const awayX      = skipIntro ? 0 : spring({ frame, fps, from: 80, to: 0, config: { damping: 24, stiffness: 60 }, delay: 18 });
 
   // ── Goal sequence ──────────────────────────────────────────────────────
   // Sort scorers by minute — this defines the chronological goal order

@@ -6,7 +6,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, TRIO_PORTRAIT_MASK, WorldStateSchema} from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -24,7 +24,9 @@ export const PlayerTrioPropsSchema = z.object({
   title:    z.string().optional().default("the contenders"),
   subtitle: z.string().optional().default(""),
   players:  z.tuple([PlayerSlotSchema, PlayerSlotSchema, PlayerSlotSchema]),
-  bgColor:  z.string().optional().default("#f0ece4"),
+  bgColor:    z.string().optional().default("#f0ece4"),
+  skipIntro:  z.boolean().optional().default(false),
+  worldState: WorldStateSchema.optional(),
 });
 
 export type PlayerTrioProps = z.infer<typeof PlayerTrioPropsSchema>;
@@ -44,15 +46,16 @@ const NAME_OFFSET  = 16;
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players, bgColor }) => {
+export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players, bgColor, skipIntro = false, worldState }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const wsAccent = (worldState as { accentColor?: string } | undefined)?.accentColor;
 
-  const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
+  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const headerOp   = interpolate(headerProg, [0, 1], [0, 1],   { extrapolateRight: "clamp" });
   const headerY    = interpolate(headerProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const ruleProg = spring({ frame: frame - 10, fps, config: { damping: 20, stiffness: 80 } });
+  const ruleProg = skipIntro ? 1 : spring({ frame: frame - 10, fps, config: { damping: 20, stiffness: 80 } });
   const ruleW    = interpolate(ruleProg, [0, 1], [0, 100], { extrapolateRight: "clamp" });
   const ruleOp   = interpolate(ruleProg, [0, 1], [0, 1],   { extrapolateRight: "clamp" });
 
@@ -94,11 +97,11 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
           )}
         </div>
 
-        {/* Gold rule */}
+        {/* Accent rule — uses worldState accent if present, else gold */}
         <div style={{
           height: 2,
           width: `${ruleW}%`,
-          background: `linear-gradient(90deg, ${COLORS.gold}, rgba(201,168,76,0.12))`,
+          background: `linear-gradient(90deg, ${wsAccent || COLORS.gold}, transparent)`,
           borderRadius: 2,
           opacity: ruleOp,
         }} />
@@ -108,11 +111,11 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
       <div style={{ position: "absolute", inset: 0, display: "flex" }}>
         {(players as Array<z.infer<typeof PlayerSlotSchema>>).map((player, i) => {
           const delay    = COL_DELAYS[i];
-          const colProg  = spring({ frame: frame - delay, fps, config: { damping: 22, stiffness: 52 } });
+          const colProg  = skipIntro ? 1 : spring({ frame: frame - delay, fps, config: { damping: 22, stiffness: 52 } });
           const colOp    = interpolate(colProg, [0, 0.5], [0, 1],  { extrapolateRight: "clamp" });
           const colY     = interpolate(colProg, [0, 1],   [60, 0], { extrapolateRight: "clamp" });
 
-          const nameProg = spring({ frame: frame - (delay + NAME_OFFSET), fps, config: { damping: 26, stiffness: 58 } });
+          const nameProg = skipIntro ? 1 : spring({ frame: frame - (delay + NAME_OFFSET), fps, config: { damping: 26, stiffness: 58 } });
           const nameOp   = interpolate(nameProg, [0, 0.6], [0, 1],  { extrapolateRight: "clamp" });
           const nameY    = interpolate(nameProg, [0, 1],   [24, 0], { extrapolateRight: "clamp" });
 
@@ -126,33 +129,38 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
                 overflow: "hidden",
               }}
             >
-              {/* Player image — snapped to baseline grid, fades into parchment at feet */}
-              {player.image && (
-                <div style={{
-                  position: "absolute",
-                  top: TITLE_CLEARANCE,
-                  left: 0,
-                  right: 0,
-                  // Bottom edge = 1 - PLAYER_BASELINE so the image ends exactly at the baseline
-                  bottom: `${(1 - PLAYER_BASELINE) * 100}%`,
-                  opacity: colOp,
-                  transform: `translateY(${colY}px)`,
-                  // Fade out at feet level so the cutout dissolves cleanly into parchment
-                  WebkitMaskImage: "linear-gradient(to bottom, black 52%, transparent 94%)",
-                  maskImage:       "linear-gradient(to bottom, black 52%, transparent 94%)",
-                }}>
-                  <SmartImg
-                    src={player.image}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      objectPosition: "top center",
-                      filter: "contrast(1.04) brightness(1.02)",
-                    }}
-                  />
-                </div>
-              )}
+              {/* Player image — radial mask softens both side AND bottom edges
+                  so adjacent cutouts blend into each other instead of meeting
+                  at hard column boundaries. Subtle parallax drift per column
+                  keeps the figures feeling alive on camera. */}
+              {player.image && (() => {
+                const drift = Math.sin((frame + i * 24) * 0.01) * (1.5 + i * 0.5);
+                return (
+                  <div style={{
+                    position: "absolute",
+                    top: TITLE_CLEARANCE,
+                    left: 0,
+                    right: 0,
+                    bottom: `${(1 - PLAYER_BASELINE) * 100}%`,
+                    opacity: colOp,
+                    transform: `translateY(${colY + drift}px)`,
+                    WebkitMaskImage: TRIO_PORTRAIT_MASK,
+                    maskImage:       TRIO_PORTRAIT_MASK,
+                    mixBlendMode:    "multiply",
+                  }}>
+                    <SmartImg
+                      src={player.image}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "top center",
+                        filter: "contrast(1.04) brightness(1.02)",
+                      }}
+                    />
+                  </div>
+                );
+              })()}
 
               {/* Ground shadow — blurred ellipse at baseline anchoring each figure */}
               <div style={{

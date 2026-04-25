@@ -1,13 +1,17 @@
 /**
- * IntrcptPlayerReveal — Full-height player portraits, pure visual, no text.
+ * IntrcptPlayerRevealTrio — Full-height multi-player portrait reveal, 1–4 players.
  *
- * Each player uses the EXACT same gradient mask + opacity treatment as
- * IntrcptTransferRecord's sideImage: width 800, max opacity 0.88,
- * mask `transparent → black 300px → black 85% → transparent`.
+ * Visual-only montage: stacked overlapping portraits with staggered entry.
+ * Named "Trio" because the canonical use is three players (left-facing, hero,
+ * right-facing). Accepts 1–4, but the design is tuned for three.
  *
- * Players overlap each other (not divided into equal columns). Contained in
- * a central 1520px zone with 200px breathing room each side. Staggered
- * left-to-right reveal with a subtle upward rise on entry.
+ * Portrait treatment mirrors IntrcptTransferRecord's sideImage: masked with
+ * `transparent → black 300px → black 85% → transparent`, max opacity 0.88.
+ * Portraits overlap rather than dividing into columns. Central 1520px zone,
+ * 200px breathing room each side.
+ *
+ * Formerly named IntrcptPlayerReveal (renamed 2026-04-24 — the old name
+ * implied single-player reveal and caused storyboard misrouting).
  */
 import React from "react";
 import {
@@ -19,11 +23,11 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { Grain, PaperBackground, DarkBackground, SmartImg } from "./shared";
+import { Grain, PaperBackground, DarkBackground, SmartImg, WorldStateSchema} from "./shared";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
-export const IntrcptPlayerRevealPropsSchema = z.object({
+export const IntrcptPlayerRevealTrioPropsSchema = z.object({
   players: z.array(z.object({
     src: z.string(),
     /**
@@ -44,8 +48,10 @@ export const IntrcptPlayerRevealPropsSchema = z.object({
   stagger:      z.number().int().min(4).default(18),
   /** Frames all players are held together after the last one appears. */
   holdDuration: z.number().int().min(20).default(90),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptPlayerRevealProps = z.infer<typeof IntrcptPlayerRevealPropsSchema>;
+export type IntrcptPlayerRevealTrioProps = z.infer<typeof IntrcptPlayerRevealTrioPropsSchema>;
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 
@@ -67,7 +73,7 @@ const ZONE_W     = 1820;
 
 const INTRO_F = 10;
 
-export const calculateMetadata: CalculateMetadataFunction<IntrcptPlayerRevealProps> = async ({ props }) => {
+export const calculateMetadata: CalculateMetadataFunction<IntrcptPlayerRevealTrioProps> = async ({ props }) => {
   const n = Math.max(1, Math.min(4, props.players.length));
   return {
     durationInFrames: INTRO_F + (n - 1) * props.stagger + props.holdDuration,
@@ -82,8 +88,8 @@ const MASK = "linear-gradient(to right, transparent, black 240px, black 85%, tra
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export const IntrcptPlayerReveal: React.FC<IntrcptPlayerRevealProps> = ({
-  players, bgColor, darkMode, stagger, holdDuration,
+export const IntrcptPlayerRevealTrio: React.FC<IntrcptPlayerRevealTrioProps> = ({
+  players, bgColor, darkMode, stagger, holdDuration, skipIntro = false,
 }) => {
   const frame   = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -115,7 +121,7 @@ export const IntrcptPlayerReveal: React.FC<IntrcptPlayerRevealProps> = ({
 
       {/* ── Players — rendered back-to-front (leftmost = behind) ── */}
       {players.slice(0, 4).map((player, i) => {
-        const revealSp = spring({
+        const revealSp = skipIntro ? 1 : spring({
           frame:  frame - revealF(i),
           fps,
           config: REVEAL_CFG,

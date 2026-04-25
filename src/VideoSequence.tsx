@@ -9,6 +9,7 @@
  */
 import React from "react";
 import { AbsoluteFill } from "remotion";
+import { WorldStateRoot } from "./shared";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { z } from "zod";
 
@@ -22,7 +23,7 @@ import { IntrcptLeagueGraph } from "./IntrcptLeagueGraph";
 import { IntrcptTransferRecord } from "./IntrcptTransferRecord";
 import { IntrcptQuote } from "./IntrcptQuote";
 import { IntrcptChapterWord } from "./IntrcptChapterWord";
-import { IntrcptConceptCard } from "./IntrcptConceptCard";
+import { IntrcptClipCompare } from "./IntrcptClipCompare";
 import { IntrcptScatterPlot } from "./IntrcptScatterPlot";
 import { TrioFeature } from "./TrioFeature";
 import { PlayerTrio } from "./PlayerTrio";
@@ -53,7 +54,7 @@ import { ValueCurve } from "./ValueCurve";
 import { IntrcptTransferProfit } from "./IntrcptTransferProfit";
 import { IntrcptPhotoReel } from "./IntrcptPhotoReel";
 import { IntrcptContactSheet } from "./IntrcptContactSheet";
-import { IntrcptPlayerReveal } from "./IntrcptPlayerReveal";
+import { IntrcptPlayerRevealTrio } from "./IntrcptPlayerRevealTrio";
 import { IntrcptGoalRush } from "./IntrcptGoalRush";
 import { IntrcptHeadlineStack } from "./IntrcptHeadlineStack";
 import { IntrcptShotMap } from "./IntrcptShotMap";
@@ -63,6 +64,11 @@ import { IntrcptComparisonRadar } from "./IntrcptComparisonRadar";
 import { IntrcptDualPanel } from "./IntrcptDualPanel";
 import { IntrcptNewsFeed } from "./IntrcptNewsFeed";
 import { IntrcptSeasonTimeline } from "./IntrcptSeasonTimeline";
+import { TournamentBracket } from "./TournamentBracket";
+// Track E — new hybrid templates + world classification
+import { PortraitStatHero } from "./PortraitStatHero";
+import { PortraitWithBars } from "./PortraitWithBars";
+import { worldFor, type TemplateWorld } from "./lib/worldRegistry";
 
 // ── Generated components (motion_agent.py) ────────────────────────────────────
 import { GEN_REGISTRY } from "./gen/index";
@@ -95,7 +101,7 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   IntrcptTransferRecord,
   IntrcptQuote,
   IntrcptChapterWord,
-  IntrcptConceptCard,
+  IntrcptClipCompare,
   IntrcptScatterPlot,
   TrioFeature,
   PlayerTrio,
@@ -126,7 +132,7 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   IntrcptTransferProfit,
   IntrcptPhotoReel,
   IntrcptContactSheet,
-  IntrcptPlayerReveal,
+  IntrcptPlayerRevealTrio,
   IntrcptGoalRush,
   IntrcptHeadlineStack,
   IntrcptShotMap,
@@ -136,8 +142,37 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   IntrcptDualPanel,
   IntrcptNewsFeed,
   IntrcptSeasonTimeline,
+  TournamentBracket,
+  // Track E hybrids
+  PortraitStatHero,
+  PortraitWithBars,
   // Merge generated components last — they can override defaults during dev
   ...GEN_REGISTRY,
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Track E — World-aware transition resolver
+//
+// Forces a `paper` transition between paper-world and dark-world cuts; same-
+// world cuts respect the per-scene flow_hint. Neutral templates inherit the
+// other side's world — they don't force a paper transition.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type _SceneLike = { compositionId?: string; transition?: string };
+
+export const resolveTransitionForCut = (
+  prev: _SceneLike,
+  next: _SceneLike,
+): string => {
+  const prevWorld: TemplateWorld = worldFor(prev.compositionId ?? "");
+  const nextWorld: TemplateWorld = worldFor(next.compositionId ?? "");
+  // Neutral inherits the other side's world; so only paper↔dark forces paper
+  const conflicting =
+    (prevWorld === "paper" && nextWorld === "dark") ||
+    (prevWorld === "dark"  && nextWorld === "paper");
+  if (conflicting) return "paper";
+  // Same-world or neutral-adjacent cuts honour the explicit flow_hint
+  return next.transition ?? prev.transition ?? "none";
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -338,8 +373,10 @@ export const VideoSequence: React.FC<VideoSequenceProps> = ({
           key={`scene-${i}`}
           durationInFrames={scene.durationInFrames}
         >
-          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <Component {...(scene.props as any)} />
+          <WorldStateRoot worldState={(scene.props as { worldState?: unknown })?.worldState as never}>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            <Component {...(scene.props as any)} />
+          </WorldStateRoot>
         </TransitionSeries.Sequence>
       );
     } else {

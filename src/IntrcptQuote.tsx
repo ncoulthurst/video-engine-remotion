@@ -5,18 +5,20 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema} from "./shared";
 
 export const IntrcptQuotePropsSchema = z.object({
   quote: z.string().optional().default('"I am not a diver."'), attribution: z.string().optional().default("Luis Suárez"), context: z.string().optional().default(""), playerImage: z.string().optional().default("suarez.jpg"), accentColor: z.string().optional().default("#C8102E"), bgColor: z.string().optional().default("#f0ece4"),
+  skipIntro:  z.boolean().optional().default(false),
+  worldState: WorldStateSchema.optional(),
 });
 export type IntrcptQuoteProps = z.infer<typeof IntrcptQuotePropsSchema>;
 
-export const IntrcptQuote: React.FC<IntrcptQuoteProps> = ({ quote, attribution, context, playerImage, accentColor, bgColor }) => {
+export const IntrcptQuote: React.FC<IntrcptQuoteProps> = ({ quote, attribution, context, playerImage, accentColor, bgColor, skipIntro = false }) => {
   const frame = useCurrentFrame(); const { fps } = useVideoConfig();
-  const photoIn = spring({ frame, fps, config: { damping: 22, stiffness: 50 }, delay: 0 });
-  const quoteIn = spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 14 });
-  const attrIn = spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 28 });
+  const photoIn = skipIntro ? 1 : spring({ frame, fps, config: { damping: 22, stiffness: 50 }, delay: 0 });
+  const quoteIn = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 14 });
+  const attrIn  = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 }, delay: 28 });
   const hasPhoto = Boolean(playerImage);
 
   return (

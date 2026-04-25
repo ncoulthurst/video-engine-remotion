@@ -31,7 +31,7 @@ import {
   Grain,
   PaperBackground,
   COLORS,
-  SmartImg,
+  SmartImg, WorldStateSchema
 } from "./shared";
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -66,6 +66,8 @@ export const IntrcptDualPanelPropsSchema = z.object({
 
   // Accent color for the divider line
   dividerColor:    z.string().optional().default("rgba(17,17,17,0.18)"),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type IntrcptDualPanelProps = z.infer<typeof IntrcptDualPanelPropsSchema>;

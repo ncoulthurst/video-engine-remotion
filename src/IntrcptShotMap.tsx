@@ -12,7 +12,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema } from "./shared";
 
 const ShotSchema = z.object({
   x:      z.number(),
@@ -34,6 +34,8 @@ export const IntrcptShotMapPropsSchema = z.object({
   bgColor:      z.string().default("#f0ece4"),
   stagger:      z.number().default(6),
   shots: z.array(ShotSchema).optional(),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 export type IntrcptShotMapProps = z.infer<typeof IntrcptShotMapPropsSchema>;
 
@@ -78,7 +80,7 @@ const Typewriter: React.FC<{ text: string; startF: number; speed?: number; color
 
 export const IntrcptShotMap: React.FC<IntrcptShotMapProps> = ({
   playerName, competition, playerImage, totalXg, totalGoals,
-  accentColor, bgColor, stagger, shots: shotsProp,
+  accentColor, bgColor, stagger, shots: shotsProp, skipIntro = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -98,10 +100,10 @@ export const IntrcptShotMap: React.FC<IntrcptShotMapProps> = ({
   const COUNT_DUR    = 22; // frames to count up stats
 
   // ── Springs ───────────────────────────────────────────────────────────────
-  const pitchProg  = spring({ frame: frame - PITCH_START, fps, config: { damping: 24, stiffness: 55 } });
-  const compProg   = spring({ frame: frame - COMP_START,  fps, config: { damping: 22, stiffness: 60 } });
-  const ruleProg   = spring({ frame: frame - RULE_START,  fps, config: { damping: 28, stiffness: 90 } });
-  const imageProg  = spring({ frame: frame - INTRO_F,     fps, config: { damping: 22, stiffness: 50 } });
+  const pitchProg  = skipIntro ? 1 : spring({ frame: frame - PITCH_START, fps, config: { damping: 24, stiffness: 55 } });
+  const compProg   = skipIntro ? 1 : spring({ frame: frame - COMP_START,  fps, config: { damping: 22, stiffness: 60 } });
+  const ruleProg   = skipIntro ? 1 : spring({ frame: frame - RULE_START,  fps, config: { damping: 28, stiffness: 90 } });
+  const imageProg  = skipIntro ? 1 : spring({ frame: frame - INTRO_F,     fps, config: { damping: 22, stiffness: 50 } });
   const outroProg  = spring({ frame: frame - OUTRO_F,     fps, config: { damping: 22, stiffness: 50 } });
 
   const LEGEND_ITEMS = [
@@ -110,13 +112,13 @@ export const IntrcptShotMap: React.FC<IntrcptShotMapProps> = ({
     { colour: noGoalColor, label: "Off target / blocked" },
   ];
   const legendSprings = LEGEND_ITEMS.map((_, i) =>
-    spring({ frame: frame - (LEGEND_START + i * 6), fps, config: { damping: 22, stiffness: 80 } })
+    skipIntro ? 1 : spring({ frame: frame - (LEGEND_START + i * 6), fps, config: { damping: 22, stiffness: 80 } })
   );
-  const xgNoteProg = spring({ frame: frame - (LEGEND_START + 24), fps, config: { damping: 22, stiffness: 70 } });
+  const xgNoteProg = skipIntro ? 1 : spring({ frame: frame - (LEGEND_START + 24), fps, config: { damping: 22, stiffness: 70 } });
 
   // ── Running xG ticker ─────────────────────────────────────────────────────
   const runningXg = shots.reduce((sum, sh, i) => {
-    const rp = Math.min(1, Math.max(0,
+    const rp = skipIntro ? 1 : Math.min(1, Math.max(0,
       spring({ frame: frame - (SHOTS_START + i * stagger), fps, config: { damping: 18, stiffness: 200 } })
     ));
     return sum + sh.xg * rp;

@@ -14,7 +14,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SPRINGS, rgbaFromHex } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SPRINGS, rgbaFromHex, WorldStateSchema} from "./shared";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SCHEMA
@@ -43,6 +43,8 @@ export const ValueCurvePropsSchema = z.object({
     { label: "2019/20",   value: 18.0, annotation: "25 Championship goals" },
     { label: "Sale",      value: 28.0, annotation: undefined             },
   ]),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type ValueCurveProps = z.infer<typeof ValueCurvePropsSchema>;

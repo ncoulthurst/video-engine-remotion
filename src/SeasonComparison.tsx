@@ -3,7 +3,7 @@ import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } fr
 import { z } from "zod";
 import {
   Grain, PaperBackground,
-  COLORS, fontFamily, serifFontFamily, SmartImg, hexToRgb,
+  COLORS, fontFamily, serifFontFamily, SmartImg, hexToRgb, WorldStateSchema
 } from "./shared";
 
 const PlayerSlotSchema = z.object({
@@ -27,6 +27,8 @@ export const SeasonComparisonPropsSchema = z.object({
   competition: z.string().optional().default(""),
   stats:       z.array(StatRowSchema),
   bgColor:     z.string().optional().default("#f0ece4"),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type SeasonComparisonProps = z.infer<typeof SeasonComparisonPropsSchema>;
@@ -39,7 +41,7 @@ const STAGGER   = 11;
 const IMG_W     = 680;
 
 export const SeasonComparison: React.FC<SeasonComparisonProps> = ({
-  playerA, playerB, season, competition, stats, bgColor,
+  playerA, playerB, season, competition, stats, bgColor, skipIntro = false,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -60,16 +62,16 @@ export const SeasonComparison: React.FC<SeasonComparisonProps> = ({
   const [rR, rG, rB] = hexToRgb(right.color);
 
   // ── Entrance animations ─────────────────────────────────────────────────
-  const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
+  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const headerOp   = interpolate(headerProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
   const headerY    = interpolate(headerProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const leftNameX  = spring({ frame, fps, from: -60, to: 0, config: { damping: 22, stiffness: 60 }, delay: 8 });
-  const rightNameX = spring({ frame, fps, from:  60, to: 0, config: { damping: 22, stiffness: 60 }, delay: 8 });
-  const nameOp     = interpolate(frame, [8, 30], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const leftNameX  = skipIntro ? 0 : spring({ frame, fps, from: -60, to: 0, config: { damping: 22, stiffness: 60 }, delay: 8 });
+  const rightNameX = skipIntro ? 0 : spring({ frame, fps, from:  60, to: 0, config: { damping: 22, stiffness: 60 }, delay: 8 });
+  const nameOp     = skipIntro ? 1 : interpolate(frame, [8, 30], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
-  const ruleW  = spring({ frame, fps, from: 0, to: 1, config: { damping: 22, stiffness: 70 }, delay: 26 });
-  const colsOp = interpolate(frame, [26, 40], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const ruleW  = skipIntro ? 1 : spring({ frame, fps, from: 0, to: 1, config: { damping: 22, stiffness: 70 }, delay: 26 });
+  const colsOp = skipIntro ? 1 : interpolate(frame, [26, 40], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   // ── Player image animations ─────────────────────────────────────────────
   const imgProg  = spring({ frame, fps, config: { damping: 26, stiffness: 50 }, delay: 4 });
@@ -158,7 +160,7 @@ export const SeasonComparison: React.FC<SeasonComparisonProps> = ({
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 0 }}>
           {rows.map((stat, i) => {
             const delay  = ROW_START + i * STAGGER;
-            const prog   = spring({ frame: frame - delay, fps, config: { damping: 26, stiffness: 60 } });
+            const prog   = skipIntro ? 1 : spring({ frame: frame - delay, fps, config: { damping: 26, stiffness: 60 } });
             const rowOp  = interpolate(prog, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
 
             const maxV   = Math.max(stat.valueA, stat.valueB, 1);

@@ -6,7 +6,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SmartImg, WorldStateSchema } from "./shared";
 
 const ResultSchema = z.object({
   result:   z.enum(["W", "D", "L"]),
@@ -34,6 +34,7 @@ export const IntrcptFormRunPropsSchema = z.object({
   bgColor:   z.string().optional().default("#f0ece4"),
   darkMode:  z.boolean().optional().default(false),
   skipIntro: z.boolean().optional().default(false),
+  worldState: WorldStateSchema.optional(),
 });
 
 export type IntrcptFormRunProps = z.infer<typeof IntrcptFormRunPropsSchema>;

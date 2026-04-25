@@ -3,7 +3,7 @@ import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } fr
 import { z } from "zod";
 import {
   Grain, PaperBackground,
-  COLORS, SPRINGS, fontFamily, serifFontFamily,
+  COLORS, SPRINGS, fontFamily, serifFontFamily, WorldStateSchema
 } from "./shared";
 
 export const QuoteCardPropsSchema = z.object({
@@ -12,6 +12,10 @@ export const QuoteCardPropsSchema = z.object({
   context:     z.string().optional().default(""),
   accentColor: z.string().optional().default(""),
   bgColor:     z.string().optional().default("#f0ece4"),
+  // Track E — portrait backfill (resolver in graphics_agent fills via SmartImg)
+  playerImage: z.string().optional().default(""),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type QuoteCardProps = z.infer<typeof QuoteCardPropsSchema>;

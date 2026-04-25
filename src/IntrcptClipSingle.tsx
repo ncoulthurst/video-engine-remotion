@@ -26,6 +26,9 @@ export const IntrcptClipSinglePropsSchema = z.object({
   trimOut: z.number().int().optional(),
   /** Enable audio track on the clip — muted by default */
   soundOn: z.boolean().default(false),
+  /** Track E — optional context portrait (resolver-filled, rendered via SmartImg) */
+  playerImage: z.string().optional().default(""),
+  skipIntro: z.boolean().optional().default(false),
 });
 export type IntrcptClipSingleProps = z.infer<typeof IntrcptClipSinglePropsSchema>;
 

@@ -10,7 +10,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AbsoluteFill, getRemotionEnvironment, useCurrentFrame } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema} from "./shared";
 
 const CHANNEL_NAME = "Frequency";
 const H = 720;
@@ -25,6 +25,8 @@ export const IntrcptIntroPropsSchema = z.object({
   sideImageY:     z.number().optional().default(100),
   /** Scale multiplier — scroll in Studio to resize. */
   sideImageScale: z.number().optional().default(1),
+  skipIntro:      z.boolean().optional().default(false),
+  worldState:     WorldStateSchema.optional(),
 });
 export type IntrcptIntroProps = z.infer<typeof IntrcptIntroPropsSchema>;
 
@@ -130,21 +132,22 @@ export const IntrcptIntro: React.FC<IntrcptIntroProps> = ({
   sideImageX     = 72,
   sideImageY     = 100,
   sideImageScale = 1,
+  skipIntro      = false,
 }) => {
   const frame = useCurrentFrame();
   const { isStudio } = getRemotionEnvironment();
   const frameRef = useRef<HTMLDivElement>(null);
 
-  const titleCharsVisible = Math.max(0, Math.floor((frame - TITLE_START) / TITLE_FPC));
+  const titleCharsVisible = skipIntro ? CHANNEL_NAME.length : Math.max(0, Math.floor((frame - TITLE_START) / TITLE_FPC));
   const titleDone         = titleCharsVisible >= CHANNEL_NAME.length;
   const titleDoneFrame    = TITLE_START + CHANNEL_NAME.length * TITLE_FPC;
   const visibleTitle      = CHANNEL_NAME.slice(0, titleCharsVisible);
   const SUBTITLE_START    = titleDoneFrame + PAUSE_AFTER_TITLE;
-  const subCharsVisible   = Math.max(0, Math.floor((frame - SUBTITLE_START) / SUB_FPC));
+  const subCharsVisible   = skipIntro ? subtitle.length : Math.max(0, Math.floor((frame - SUBTITLE_START) / SUB_FPC));
   const subtitleDone      = subCharsVisible >= subtitle.length;
   const visibleSubtitle   = subtitle.slice(0, subCharsVisible);
-  const cursorBlink       = Math.floor(frame / 14) % 2 === 0;
-  const titleCursorOn     = !titleDone;
+  const cursorBlink       = !skipIntro && Math.floor(frame / 14) % 2 === 0;
+  const titleCursorOn     = !titleDone && !skipIntro;
   const subCursorOn       = titleDone && (!subtitleDone || cursorBlink);
 
   // ── Drag ─────────────────────────────────────────────────────────────────

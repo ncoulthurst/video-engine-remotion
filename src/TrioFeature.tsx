@@ -6,7 +6,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, TRIO_PORTRAIT_MASK_FULL, WorldStateSchema} from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +21,8 @@ const PlayerSlotSchema = z.object({
 export const TrioFeaturePropsSchema = z.object({
   players: z.tuple([PlayerSlotSchema, PlayerSlotSchema, PlayerSlotSchema]),
   bgColor: z.string().optional().default("#f0ece4"),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type TrioFeatureProps = z.infer<typeof TrioFeaturePropsSchema>;
@@ -36,9 +38,10 @@ const NAME_OFFSET = 16;
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const TrioFeature: React.FC<TrioFeatureProps> = ({ players, bgColor }) => {
+export const TrioFeature: React.FC<TrioFeatureProps> = ({ players, bgColor, worldState }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const wsAccent = (worldState as { accentColor?: string } | undefined)?.accentColor;
 
   return (
     <AbsoluteFill>
@@ -67,33 +70,38 @@ export const TrioFeature: React.FC<TrioFeatureProps> = ({ players, bgColor }) =>
                 overflow: "hidden",
               }}
             >
-              {/* Player image — full height, top edge softened, feet dissolve at baseline */}
-              {player.image && (
-                <div style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: `${(1 - PLAYER_BASELINE) * 100}%`,
-                  opacity: colOp,
-                  transform: `translateY(${colY}px)`,
-                  // Soft top edge so the image doesn't hard-clip at the frame boundary.
-                  // Clean dissolve at feet into the parchment below.
-                  WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 5%, black 52%, transparent 93%)",
-                  maskImage:       "linear-gradient(to bottom, transparent 0%, black 5%, black 52%, transparent 93%)",
-                }}>
-                  <SmartImg
-                    src={player.image}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      objectPosition: "top center",
-                      filter: "contrast(1.04) brightness(1.02)",
-                    }}
-                  />
-                </div>
-              )}
+              {/* Player image — shared radial mask softens both side and top/bottom
+                  edges; mix-blend-mode multiply blends adjacent cutouts on
+                  the parchment instead of meeting at hard column borders.
+                  Subtle parallax drift per column. */}
+              {player.image && (() => {
+                const drift = Math.sin((frame + i * 24) * 0.01) * (1.5 + i * 0.5);
+                return (
+                  <div style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: `${(1 - PLAYER_BASELINE) * 100}%`,
+                    opacity: colOp,
+                    transform: `translateY(${colY + drift}px)`,
+                    WebkitMaskImage: TRIO_PORTRAIT_MASK_FULL,
+                    maskImage:       TRIO_PORTRAIT_MASK_FULL,
+                    mixBlendMode:    "multiply",
+                  }}>
+                    <SmartImg
+                      src={player.image}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        objectPosition: "top center",
+                        filter: "contrast(1.04) brightness(1.02)",
+                      }}
+                    />
+                  </div>
+                );
+              })()}
 
               {/* Ground shadow — blurred ellipse anchoring figure at baseline */}
               <div style={{
@@ -118,14 +126,13 @@ export const TrioFeature: React.FC<TrioFeatureProps> = ({ players, bgColor }) =>
                 opacity: nameOp,
                 transform: `translateY(${nameY}px)`,
               }}>
-                {/* Club colour accent pip */}
+                {/* Club / accent pip — driven by worldState accent if present */}
                 <div style={{
                   width: 36,
                   height: 3,
                   borderRadius: 2,
-                  backgroundColor: player.clubColor,
+                  backgroundColor: wsAccent || player.clubColor,
                   marginBottom: 18,
-                  boxShadow: `0 0 10px ${player.clubColor}55`,
                 }} />
 
                 {/* Player name */}

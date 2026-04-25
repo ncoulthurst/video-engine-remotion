@@ -4,7 +4,7 @@
  * Cinematic zoom-out cold open: starts hyper-zoomed into red grain, pulls back
  * to reveal B&W portrait (left) + scrolling season timeline (right).
  *
- * Portrait masking: identical technique to IntrcptPlayerReveal —
+ * Portrait masking: identical technique to IntrcptPlayerRevealTrio —
  *   WebkitMaskImage + bottom/top vignette divs inside the container.
  *   No background-colour overlay on the container itself.
  *
@@ -21,7 +21,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, SmartImg, WorldStateSchema} from "./shared";
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
 
@@ -50,6 +50,7 @@ export const IntrcptSeasonTimelinePropsSchema = z.object({
    * like a continuation rather than a fresh composition start.
    */
   skipIntro:     z.boolean().optional(),
+  worldState: WorldStateSchema.optional(),
 });
 
 export type IntrcptSeasonTimelineProps = z.infer<typeof IntrcptSeasonTimelinePropsSchema>;
@@ -241,7 +242,7 @@ export const IntrcptSeasonTimeline: React.FC<IntrcptSeasonTimelineProps> = ({
         {/* Solid colour base that zooms with the content */}
         <AbsoluteFill style={{ background: bgColor }} />
 
-        {/* ── Portrait (IntrcptPlayerReveal masking method) ── */}
+        {/* ── Portrait (IntrcptPlayerRevealTrio masking method) ── */}
         {subjectImage && (
           <div style={{
             position:        "absolute",
@@ -249,7 +250,7 @@ export const IntrcptSeasonTimeline: React.FC<IntrcptSeasonTimelineProps> = ({
             top:             0,
             width:           PORTRAIT_W,
             height:          H,
-            opacity:         portraitOp * 0.88,   // max 0.88 — same as IntrcptPlayerReveal
+            opacity:         portraitOp * 0.88,   // max 0.88 — same as IntrcptPlayerRevealTrio
             WebkitMaskImage: PORTRAIT_MASK,
             maskImage:       PORTRAIT_MASK,
             zIndex:          2,

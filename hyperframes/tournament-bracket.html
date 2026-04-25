@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tournament Bracket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  [data-composition-id="tournament-bracket"] {
+    background: linear-gradient(155deg, #f5f0e8 0%, #e9e2d8 100%);
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    position: relative;
+  }
+
+  .grain-static, .grain-anim {
+    position: absolute; inset: 0;
+    pointer-events: none; z-index: 90;
+  }
+  .grain-static { opacity: 0.10; }
+  .grain-anim   { opacity: 0; }
+
+  #world {
+    position: absolute; top: 0; left: 0;
+    width: 3360px; height: 1460px;
+    transform-origin: top left;
+    transform: scale(0.56);
+    will-change: transform;
+  }
+
+  #bracket-svg {
+    position: absolute; inset: 0;
+    width: 3360px; height: 1460px;
+    overflow: visible;
+  }
+
+  .pill {
+    position: absolute;
+    width: 300px; height: 84px;
+    border-radius: 12px;
+    background: rgba(249,245,239,0.98);
+    border: 1.5px solid rgba(17,17,17,0.10);
+    display: flex; align-items: center;
+    gap: 14px; padding: 0 18px;
+    opacity: 0;
+    will-change: transform, opacity;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .pill.focus-pill {
+    border-color: rgba(30,138,90,0.28);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(30,138,90,0.14);
+  }
+  .pill-flag {
+    width: 32px; height: 32px; border-radius: 8px;
+    overflow: hidden; flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(17,17,17,0.10), 0 2px 6px rgba(0,0,0,0.10);
+    background: #e8e2da;
+  }
+  .pill-flag img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pill-name {
+    flex: 1; min-width: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 26px; font-weight: 700;
+    color: #111; letter-spacing: -0.3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .pill-name.winner { font-weight: 800; }
+  .pill-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px; font-weight: 900;
+    min-width: 20px; text-align: right;
+    color: rgba(17,17,17,0.35); letter-spacing: -0.6px;
+    opacity: 0;
+  }
+  .pill-score.winner-score { color: #1E8A5A; }
+
+  #header {
+    position: absolute; top: 48px; left: 64px; z-index: 10; opacity: 0;
+  }
+  #header-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px; font-weight: 900;
+    color: #111; letter-spacing: -1.5px; line-height: 1;
+  }
+  #header-sub {
+    font-family: 'Inter', sans-serif;
+    font-size: 14px; font-weight: 500;
+    color: rgba(17,17,17,0.45); margin-top: 10px; letter-spacing: 0.2px;
+  }
+
+  #focus-label {
+    position: absolute; bottom: 52px; right: 64px; left: auto; z-index: 30;
+    display: flex; align-items: center; gap: 14px; flex-direction: row-reverse;
+    text-align: right; opacity: 0;
+  }
+  #focus-accent {
+    width: 3px; height: 36px; border-radius: 2px;
+    background: #1E8A5A; flex-shrink: 0;
+  }
+  #focus-stage {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 3px; text-transform: uppercase;
+    color: rgba(17,17,17,0.4); margin-bottom: 4px;
+  }
+  #focus-round {
+    font-family: 'Playfair Display', serif;
+    font-size: 34px; font-weight: 900;
+    color: #111; letter-spacing: -0.5px; line-height: 1;
+  }
+</style>
+</head>
+<body>
+
+<div
+  data-composition-id="tournament-bracket"
+  data-start="0"
+  data-duration="18"
+  data-width="1920"
+  data-height="1080"
+  data-narration="At the 2022 World Cup, Argentina had one mission. From the Round of 16 — past Australia — through a dramatic quarter-final against the Netherlands, a commanding semi-final over Croatia, and finally: one of the greatest finals ever played. Argentina were champions of the world."
+>
+
+  <svg class="grain-static" width="1920" height="1080">
+    <defs>
+      <filter id="paper-weave" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.42" numOctaves="6" seed="5" stitchTiles="stitch"/>
+        <feColorMatrix type="matrix" values="0.38 0.5 0.12 0 0  0.28 0.58 0.14 0 0  0.22 0.5 0.28 0 0  0 0 0 0 1"/>
+      </filter>
+    </defs>
+    <rect width="1920" height="1080" filter="url(#paper-weave)"/>
+  </svg>
+
+  <div class="grain-anim" id="grain-a">
+    <svg width="1920" height="1080"><defs>
+      <filter id="film-grain-a" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" seed="0" stitchTiles="stitch"/>
+        <feColorMatrix type="matrix" values="0.38 0.5 0.12 0 0  0.28 0.58 0.14 0 0  0.22 0.5 0.28 0 0  0 0 0 0 0.14"/>
+      </filter>
+    </defs><rect width="1920" height="1080" filter="url(#film-grain-a)"/></svg>
+  </div>
+  <div class="grain-anim" id="grain-b">
+    <svg width="1920" height="1080"><defs>
+      <filter id="film-grain-b" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" seed="14" stitchTiles="stitch"/>
+        <feColorMatrix type="matrix" values="0.38 0.5 0.12 0 0  0.28 0.58 0.14 0 0  0.22 0.5 0.28 0 0  0 0 0 0 0.14"/>
+      </filter>
+    </defs><rect width="1920" height="1080" filter="url(#film-grain-b)"/></svg>
+  </div>
+
+  <div id="header">
+    <div id="header-title">The Road<br>to Glory</div>
+    <div id="header-sub">Argentina's path through Qatar 2022</div>
+  </div>
+
+  <div id="focus-label">
+    <div id="focus-accent"></div>
+    <div>
+      <div id="focus-stage">Knockout Stage</div>
+      <div id="focus-round">Round of 16</div>
+    </div>
+  </div>
+
+  <div id="world">
+    <svg id="bracket-svg" overflow="visible"></svg>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+window.__timelines = window.__timelines || {};
+
+// ── Viewport / canvas ─────────────────────────────────────────────────────────
+const VIEW_W = 1920, VIEW_H = 1080;
+const CANVAS_W = 3360, CANVAS_H = 1460;
+
+// ── Shared geometry constants (also used by camera and DOM render) ─────────────
+const PILL_W = 300, PILL_H = 84, ENTRY_GAP = 42;
+
+// ── Focus identity ────────────────────────────────────────────────────────────
+const FOCUS_TEAM = 'Argentina';
+const ACCENT = '#1E8A5A';
+
+// ── Match data ────────────────────────────────────────────────────────────────
+const matches = {
+  r16L: [
+    { teamA:'France',      teamB:'Poland',       scoreA:3, scoreB:1, winner:'France'      },
+    { teamA:'England',     teamB:'Senegal',       scoreA:3, scoreB:0, winner:'England'     },
+    { teamA:'Netherlands', teamB:'USA',           scoreA:3, scoreB:1, winner:'Netherlands' },
+    { teamA:'Argentina',   teamB:'Australia',     scoreA:2, scoreB:1, winner:'Argentina'   },
+  ],
+  qfL: [
+    { teamA:'France',      teamB:'England',       scoreA:2, scoreB:1, winner:'France'      },
+    { teamA:'Netherlands', teamB:'Argentina',     scoreA:2, scoreB:2, winner:'Argentina'   },
+  ],
+  sfL: { teamA:'Argentina', teamB:'Croatia', scoreA:3, scoreB:0, winner:'Argentina' },
+  fin: { teamA:'Argentina', teamB:'France',  scoreA:3, scoreB:3, winner:'Argentina' },
+  sfR: { teamA:'France',    teamB:'Morocco', scoreA:2, scoreB:0, winner:'France'    },
+  qfR: [
+    { teamA:'Morocco', teamB:'Portugal',   scoreA:1, scoreB:0, winner:'Morocco' },
+    { teamA:'Croatia', teamB:'Brazil',     scoreA:1, scoreB:1, winner:'Croatia' },
+  ],
+  r16R: [
+    { teamA:'Morocco',  teamB:'Spain',       scoreA:0, scoreB:0, winner:'Morocco'  },
+    { teamA:'Croatia',  teamB:'Japan',       scoreA:1, scoreB:1, winner:'Croatia'  },
+    { teamA:'Brazil',   teamB:'South Korea', scoreA:4, scoreB:1, winner:'Brazil'   },
+    { teamA:'Portugal', teamB:'Switzerland', scoreA:6, scoreB:1, winner:'Portugal' },
+  ],
+};
+
+// ── Flag lookup ───────────────────────────────────────────────────────────────
+const FLAG_ISO = {
+  'France':'fr','Poland':'pl','England':'gb-eng','Senegal':'sn',
+  'Netherlands':'nl','USA':'us','Argentina':'ar','Australia':'au',
+  'Morocco':'ma','Spain':'es','Croatia':'hr','Japan':'jp',
+  'Brazil':'br','South Korea':'kr','Portugal':'pt','Switzerland':'ch',
+};
+function flagUrl(t) { const c = FLAG_ISO[t]; return c ? `https://flagcdn.com/32x24/${c}.png` : null; }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// generateBracketLayout(matchData, focusTeam)
+//
+// Pure function — no DOM access, no global side effects, deterministic.
+// Returns:
+//   nodes  — one entry per team slot in every match
+//   edges  — connector paths (stubs, H→V→H connectors, receiving stubs)
+// ─────────────────────────────────────────────────────────────────────────────
+function generateBracketLayout(matchData, focusTeam) {
+  const STUB = 42, MATCH_GAP = 90, TOP = 300;
+
+  const COL_X = {
+    r16L: 96,  qfL: 520,  sfL: 980,
+    fin:  1530,
+    sfR:  2080, qfR: 2540, r16R: 2964,
+  };
+
+  function groupCenter(base) { return base + PILL_H + ENTRY_GAP / 2; }
+  function centeredBase(a, b) { return (groupCenter(a) + groupCenter(b)) / 2 - (PILL_H + ENTRY_GAP / 2); }
+
+  const R16_BASES = Array.from({length:4}, (_,i) => TOP + i * (PILL_H * 2 + ENTRY_GAP + MATCH_GAP));
+  const QF_BASES  = [centeredBase(R16_BASES[0], R16_BASES[1]), centeredBase(R16_BASES[2], R16_BASES[3])];
+  const SF_BASES  = [centeredBase(QF_BASES[0], QF_BASES[1])];
+  const FINAL_BASE = SF_BASES[0];
+
+  function stageBaseY(stage, index) {
+    if (stage === 'R16')   return R16_BASES[index];
+    if (stage === 'QF')    return QF_BASES[index];
+    if (stage === 'SF')    return SF_BASES[0];
+    return FINAL_BASE;
+  }
+  function stageX(stage, side) {
+    if (stage === 'R16') return side === 'L' ? COL_X.r16L : COL_X.r16R;
+    if (stage === 'QF')  return side === 'L' ? COL_X.qfL  : COL_X.qfR;
+    if (stage === 'SF')  return side === 'L' ? COL_X.sfL  : COL_X.sfR;
+    return COL_X.fin;
+  }
+
+  const nodes = [];
+  const edges = [];
+
+  function addNodes(match, stage, side, index) {
+    const x = stageX(stage, side), baseY = stageBaseY(stage, index);
+    nodes.push({
+      x, y: baseY,
+      team: match.teamA, score: match.scoreA,
+      stage, side, index, teamSlot: 'A',
+      isFocus: match.teamA === focusTeam, isWinner: match.winner === match.teamA,
+    });
+    nodes.push({
+      x, y: baseY + PILL_H + ENTRY_GAP,
+      team: match.teamB, score: match.scoreB,
+      stage, side, index, teamSlot: 'B',
+      isFocus: match.teamB === focusTeam, isWinner: match.winner === match.teamB,
+    });
+  }
+
+  function addEdges(stage, side, index, nextStage, nextSide, nextIndex, match, round) {
+    const top = nodes.find(n => n.stage===stage && n.side===side && n.index===index && n.teamSlot==='A');
+    const bot = nodes.find(n => n.stage===stage && n.side===side && n.index===index && n.teamSlot==='B');
+    if (!top || !bot) return;
+
+    const movingRight = side !== 'R';
+    const midY    = groupCenter(stageBaseY(stage, index));
+    const targetY = groupCenter(stageBaseY(nextStage, nextIndex));
+    const sx      = movingRight ? top.x + PILL_W : top.x;
+    const spineX  = movingRight ? sx + STUB : sx - STUB;
+
+    // Right-side brackets arriving at the Final come in from the right edge of the pill
+    const targetX = (nextSide === 'R' || (nextSide === 'C' && !movingRight))
+      ? stageX(nextStage, nextSide) + PILL_W
+      : stageX(nextStage, nextSide);
+
+    const topCY  = top.y + PILL_H / 2;
+    const botCY  = bot.y + PILL_H / 2;
+    const active = match.winner === focusTeam;
+    const midX   = Math.round((spineX + targetX) / 2);
+    const push   = (d, len, isActive) => edges.push({ d, pathLength: len, isActive: !!isActive, focusRound: round });
+
+    // Horizontal exit stubs (one per team)
+    push(`M${sx},${topCY} H${spineX}`, Math.abs(spineX - sx), false);
+    push(`M${sx},${botCY} H${spineX}`, Math.abs(spineX - sx), false);
+
+    // H→V→H connector with centred elbow; active (green) when focus team won
+    if (spineX === targetX || midY === targetY)
+      push(`M${spineX},${midY} L${targetX},${targetY}`,
+        Math.abs(targetX - spineX) + Math.abs(targetY - midY), active);
+    else
+      push(`M${spineX},${midY} H${midX} V${targetY} H${targetX}`,
+        Math.abs(targetX - spineX) + Math.abs(targetY - midY), active);
+
+    // Receiving stub — omit for Final (only one match arrives per side, no junction)
+    if (nextStage !== 'Final') {
+      const rTopCY = stageBaseY(nextStage, nextIndex) + PILL_H / 2;
+      const rBotCY = stageBaseY(nextStage, nextIndex) + PILL_H + ENTRY_GAP + PILL_H / 2;
+      push(`M${targetX},${rTopCY} V${rBotCY}`, Math.abs(rBotCY - rTopCY), false);
+    }
+  }
+
+  // Build all nodes first (edges reference node positions)
+  matchData.r16L.forEach((m,i) => addNodes(m,'R16','L',i));
+  matchData.qfL.forEach((m,i)  => addNodes(m,'QF','L',i));
+  addNodes(matchData.sfL, 'SF','L',0);
+  addNodes(matchData.fin, 'Final','C',0);
+  addNodes(matchData.sfR, 'SF','R',0);
+  matchData.qfR.forEach((m,i)  => addNodes(m,'QF','R',i));
+  matchData.r16R.forEach((m,i) => addNodes(m,'R16','R',i));
+
+  // Build all edges
+  matchData.r16L.forEach((m,i) => addEdges('R16','L',i,'QF','L',Math.floor(i/2),m,0));
+  matchData.qfL.forEach((m,i)  => addEdges('QF','L',i,'SF','L',0,m,1));
+  addEdges('SF','L',0,'Final','C',0, matchData.sfL, 2);
+  matchData.r16R.forEach((m,i) => addEdges('R16','R',i,'QF','R',Math.floor(i/2),m,0));
+  matchData.qfR.forEach((m,i)  => addEdges('QF','R',i,'SF','R',0,m,1));
+  addEdges('SF','R',0,'Final','C',0, matchData.sfR, 2);
+
+  return { nodes, edges };
+}
+
+// ── Compute layout ────────────────────────────────────────────────────────────
+const { nodes, edges } = generateBracketLayout(matches, FOCUS_TEAM);
+
+// Match keys where the focus team participates — used for score init
+const focusMatchKeys = new Set(
+  nodes.filter(n => n.isFocus).map(n => `${n.stage}|${n.side}|${n.index}`)
+);
+
+// ── DOM render ────────────────────────────────────────────────────────────────
+const world = document.getElementById('world');
+const svg   = document.getElementById('bracket-svg');
+
+nodes.forEach((node, ni) => {
+  const div = document.createElement('div');
+  div.className = 'pill' + (node.isFocus ? ' focus-pill' : '');
+  div.id = `pill-${ni}`;
+  div.style.left = node.x + 'px';
+  div.style.top  = node.y + 'px';
+
+  const flagDiv = document.createElement('div');
+  flagDiv.className = 'pill-flag';
+  const url = flagUrl(node.team);
+  if (url) {
+    const img = document.createElement('img');
+    img.src = url; img.alt = node.team; img.crossOrigin = 'anonymous';
+    flagDiv.appendChild(img);
+  } else {
+    Object.assign(flagDiv.style, {display:'flex',alignItems:'center',justifyContent:'center',
+      fontSize:'11px',fontWeight:'800',color:'#444'});
+    flagDiv.textContent = node.team.slice(0,2).toUpperCase();
+  }
+
+  const nameDiv = document.createElement('div');
+  nameDiv.className = 'pill-name' + (node.isWinner ? ' winner' : '');
+  nameDiv.textContent = node.team;
+
+  const scoreDiv = document.createElement('div');
+  scoreDiv.className = 'pill-score' + (node.isWinner ? ' winner-score' : '');
+  scoreDiv.id = `score-${ni}`;
+  // Focus-team matches count up from 0; all other scores are pre-set
+  scoreDiv.textContent = focusMatchKeys.has(`${node.stage}|${node.side}|${node.index}`) ? '0' : node.score;
+
+  div.appendChild(flagDiv); div.appendChild(nameDiv); div.appendChild(scoreDiv);
+  world.appendChild(div);
+});
+
+edges.forEach((edge, ei) => {
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', edge.d);
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', edge.isActive ? ACCENT : 'rgba(17,17,17,0.13)');
+  path.setAttribute('stroke-width', edge.isActive ? '5' : '2');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  path.setAttribute('stroke-dasharray', edge.pathLength);
+  path.setAttribute('stroke-dashoffset', edge.pathLength);
+  path.setAttribute('opacity', '0');
+  path.id = `edge-${ei}`;
+  svg.appendChild(path);
+});
+
+// Winner ellipse around focus team's Final pill
+const finalNode = nodes.find(n => n.stage === 'Final' && n.team === FOCUS_TEAM);
+if (finalNode) {
+  const cx = finalNode.x + PILL_W / 2, cy = finalNode.y + PILL_H / 2;
+  const rx = PILL_W / 2 + 16,          ry = PILL_H / 2 + 14;
+  const circ = 2 * Math.PI * Math.sqrt((rx * rx + ry * ry) / 2);
+  const ell = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+  ell.id = 'winner-ellipse';
+  ell.setAttribute('cx', cx);  ell.setAttribute('cy', cy);
+  ell.setAttribute('rx', rx);  ell.setAttribute('ry', ry);
+  ell.setAttribute('fill', 'none');
+  ell.setAttribute('stroke', ACCENT);
+  ell.setAttribute('stroke-width', '4.5');
+  ell.setAttribute('stroke-dasharray', circ);
+  ell.setAttribute('stroke-dashoffset', circ);
+  ell.setAttribute('stroke-linecap', 'round');
+  ell.setAttribute('opacity', '0');
+  svg.appendChild(ell);
+}
+
+// ── Camera helpers ────────────────────────────────────────────────────────────
+function camPose(cx, cy, scale) {
+  const tx = Math.min(Math.max(VIEW_W / 2 - cx * scale, VIEW_W - CANVAS_W * scale - 28), 28);
+  const ty = Math.min(Math.max(VIEW_H / 2 - cy * scale, VIEW_H - CANVAS_H * scale - 28), 28);
+  return { tx, ty, scale };
+}
+
+const fullPose = camPose(CANVAS_W / 2, CANVAS_H / 2, 0.56);
+
+const ARG_R16 = nodes.find(n => n.stage === 'R16'   && n.team === FOCUS_TEAM);
+const ARG_QF  = nodes.find(n => n.stage === 'QF'    && n.team === FOCUS_TEAM);
+const ARG_SF  = nodes.find(n => n.stage === 'SF'    && n.team === FOCUS_TEAM);
+const ARG_FIN = nodes.find(n => n.stage === 'Final' && n.team === FOCUS_TEAM);
+
+// Centre camera on the entire match group (not just the focus team's pill)
+function matchCentre(focusNode) {
+  const topNode = nodes.find(n =>
+    n.stage === focusNode.stage && n.side === focusNode.side &&
+    n.index === focusNode.index && n.teamSlot === 'A'
+  );
+  const baseY = topNode ? topNode.y : focusNode.y;
+  return { x: focusNode.x + PILL_W / 2, y: baseY + PILL_H + ENTRY_GAP / 2 };
+}
+
+const r16Pose = camPose(matchCentre(ARG_R16).x, matchCentre(ARG_R16).y, 0.82);
+const qfPose  = camPose(matchCentre(ARG_QF).x,  matchCentre(ARG_QF).y,  0.86);
+const sfPose  = camPose(matchCentre(ARG_SF).x,  matchCentre(ARG_SF).y,  0.90);
+const finPose = camPose(matchCentre(ARG_FIN).x, matchCentre(ARG_FIN).y, 0.95);
+
+// ── Animation selectors ───────────────────────────────────────────────────────
+function pillsOfStage(stage) {
+  return nodes.map((n,i) => ({n,i})).filter(({n}) => n.stage === stage).map(({i}) => `#pill-${i}`);
+}
+function edgesOfRound(round, isActive) {
+  return edges
+    .map((e,i) => ({i, fr: e.focusRound, a: e.isActive}))
+    .filter(x => x.fr === round && x.a === isActive)
+    .map(x => `#edge-${x.i}`);
+}
+
+// ── GSAP timeline ─────────────────────────────────────────────────────────────
+const worldEl       = document.getElementById('world');
+const focusLabel    = document.getElementById('focus-label');
+const focusRoundEl  = document.getElementById('focus-round');
+
+const TOTAL = 18;
+const tl = gsap.timeline({ paused: true });
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Count a score element up from 0 to its final value
+function countUp(nodeIdx, finalVal, startTime) {
+  const el = document.getElementById(`score-${nodeIdx}`);
+  const proxy = { n: 0 };
+  tl.to(el, { opacity: 1, duration: 0.25, ease: 'power2.out' }, startTime);
+  if (finalVal > 0) {
+    tl.to(proxy, {
+      n: finalVal,
+      duration: Math.max(0.35, finalVal * 0.15),
+      ease: 'power1.out',
+      onUpdate() { el.textContent = Math.round(proxy.n); },
+    }, startTime + 0.1);
+  } else {
+    tl.call(() => { el.textContent = 0; }, [], startTime + 0.1);
+  }
+}
+
+// Drive score counters for both entries in a match
+function matchCountUp(focusNode, startTime) {
+  nodes
+    .map((n,i) => ({n,i}))
+    .filter(({n}) => n.stage === focusNode.stage && n.side === focusNode.side && n.index === focusNode.index)
+    .forEach(({n,i}, j) => countUp(i, n.score, startTime + j * 0.12));
+}
+
+// Brief green border-glow pulse on focus team's pill when camera settles
+function arrivalGlow(focusNode, time) {
+  const sel = `#pill-${nodes.indexOf(focusNode)}`;
+  tl.to(sel, {
+    boxShadow: '0 8px 28px rgba(0,0,0,0.12), 0 0 0 2.5px rgba(30,138,90,0.52)',
+    duration: 0.35, ease: 'power2.out',
+  }, time);
+  tl.to(sel, {
+    boxShadow: '0 8px 24px rgba(0,0,0,0.10), 0 0 0 1px rgba(30,138,90,0.18)',
+    duration: 0.9, ease: 'power2.out',
+  }, time + 0.35);
+}
+
+if (reducedMotion) {
+  tl.set(worldEl, { x:fullPose.tx, y:fullPose.ty, scale:fullPose.scale }, 0);
+  tl.set('#header', { opacity:1 }, 0);
+  nodes.forEach((n,i) => {
+    tl.set(`#pill-${i}`, { opacity:1 }, 0);
+    tl.call(() => { document.getElementById(`score-${i}`).textContent = n.score; }, [], 0);
+    tl.set(`#score-${i}`, { opacity:1 }, 0);
+  });
+  edges.forEach((_,i) => tl.set(`#edge-${i}`, { opacity:0.8, strokeDashoffset:0 }, 0));
+  tl.set('#winner-ellipse', { opacity:1, strokeDashoffset:0 }, 0);
+} else {
+
+// ── PHASE 1: Bracket materialises (0 → 4s) ───────────────────────────────────
+tl.set(worldEl,    { x:fullPose.tx, y:fullPose.ty, scale:fullPose.scale }, 0);
+tl.set(focusLabel, { x:0, opacity:0 }, 0);
+
+tl.fromTo('#header', { y:12, opacity:0 }, { y:0, opacity:1, duration:0.9, ease:'power3.out' }, 0.2);
+
+pillsOfStage('R16').forEach((s,i) =>
+  tl.fromTo(s, {y:10, opacity:0}, {y:0, opacity:1, duration:0.48, ease:'power3.out'}, 0.4 + i*0.038));
+edgesOfRound(0, false).forEach((s,i) =>
+  tl.to(s, {opacity:0.75, strokeDashoffset:0, duration:0.7, ease:'power2.out'}, 1.3 + i*0.016));
+
+pillsOfStage('QF').forEach((s,i) =>
+  tl.fromTo(s, {y:10, opacity:0}, {y:0, opacity:1, duration:0.48, ease:'power3.out'}, 1.8 + i*0.065));
+edgesOfRound(1, false).forEach((s,i) =>
+  tl.to(s, {opacity:0.75, strokeDashoffset:0, duration:0.7, ease:'power2.out'}, 2.2 + i*0.022));
+
+[...pillsOfStage('SF'), ...pillsOfStage('Final')].forEach((s,i) =>
+  tl.fromTo(s, {y:10, opacity:0}, {y:0, opacity:1, duration:0.48, ease:'power3.out'}, 2.7 + i*0.08));
+edgesOfRound(2, false).forEach((s,i) =>
+  tl.to(s, {opacity:0.75, strokeDashoffset:0, duration:0.7, ease:'power2.out'}, 3.1 + i*0.028));
+
+// ── PHASE 2: The Dimming (4 → 5s) ────────────────────────────────────────────
+nodes.forEach((n,i) => {
+  if (!n.isFocus) tl.to(`#pill-${i}`, {opacity:0.08, duration:1.0, ease:'power2.inOut'}, 4.0);
+});
+tl.to('#header', {opacity:0.55, duration:1.0, ease:'power2.inOut'}, 4.0);
+// Camera holds at fullPose — this beat breathes
+
+// ── PHASE 3: Round of 16 (5 → ~7.2s) ─────────────────────────────────────────
+tl.to(worldEl, {x:r16Pose.tx, y:r16Pose.ty, scale:r16Pose.scale, duration:2.0, ease:'power2.inOut'}, 5.0);
+tl.fromTo(focusLabel, {x:32, opacity:0}, {x:0, opacity:1, duration:0.5, ease:'power3.out'}, 5.8);
+edgesOfRound(0, true).forEach(s =>
+  tl.to(s, {opacity:1, strokeDashoffset:0, duration:1.2, ease:'power3.out'}, 5.9));
+matchCountUp(ARG_R16, 6.2);
+arrivalGlow(ARG_R16, 7.0);
+
+// ── PHASE 4: Quarter-final (7.15 → ~9.1s) ────────────────────────────────────
+tl.fromTo(focusLabel, {x:0, opacity:1}, {x:-24, opacity:0, duration:0.35, ease:'power2.in'}, 6.95);
+tl.to(worldEl, {x:qfPose.tx, y:qfPose.ty, scale:qfPose.scale, duration:1.8, ease:'power2.inOut'}, 7.15);
+tl.call(() => { focusRoundEl.textContent = 'Quarter-final'; }, [], 7.3);
+tl.fromTo(focusLabel, {x:32, opacity:0}, {x:0, opacity:1, duration:0.5, ease:'power3.out'}, 7.5);
+edgesOfRound(1, true).forEach(s =>
+  tl.to(s, {opacity:1, strokeDashoffset:0, duration:1.2, ease:'power3.out'}, 7.85));
+matchCountUp(ARG_QF, 8.1);
+arrivalGlow(ARG_QF, 8.95);
+
+// ── PHASE 5: Semi-final (9.3 → ~11.1s) ──────────────────────────────────────
+tl.fromTo(focusLabel, {x:0, opacity:1}, {x:-24, opacity:0, duration:0.35, ease:'power2.in'}, 9.1);
+tl.to(worldEl, {x:sfPose.tx, y:sfPose.ty, scale:sfPose.scale, duration:1.6, ease:'power2.inOut'}, 9.3);
+tl.call(() => { focusRoundEl.textContent = 'Semi-final'; }, [], 9.45);
+tl.fromTo(focusLabel, {x:32, opacity:0}, {x:0, opacity:1, duration:0.5, ease:'power3.out'}, 9.65);
+edgesOfRound(2, true).forEach(s =>
+  tl.to(s, {opacity:1, strokeDashoffset:0, duration:1.2, ease:'power3.out'}, 10.05));
+matchCountUp(ARG_SF, 10.3);
+arrivalGlow(ARG_SF, 10.9);
+
+// ── PHASE 6: The Final (11.45 → 14.7s) ──────────────────────────────────────
+tl.fromTo(focusLabel, {x:0, opacity:1}, {x:-24, opacity:0, duration:0.35, ease:'power2.in'}, 11.25);
+tl.to(worldEl, {x:finPose.tx, y:finPose.ty, scale:finPose.scale, duration:1.8, ease:'power2.inOut'}, 11.45);
+tl.call(() => { focusRoundEl.textContent = 'The Final'; }, [], 11.7);
+tl.fromTo(focusLabel, {x:32, opacity:0}, {x:0, opacity:1, duration:0.5, ease:'power3.out'}, 11.9);
+matchCountUp(ARG_FIN, 12.4);
+tl.to('#winner-ellipse', {opacity:1, strokeDashoffset:0, duration:1.5, ease:'power3.out'}, 12.95);
+arrivalGlow(ARG_FIN, 13.25);
+
+// ── PHASE 7: Full Reveal (14.7 → 18s) ───────────────────────────────────────
+tl.fromTo(focusLabel, {x:0, opacity:1}, {x:-24, opacity:0, duration:0.35, ease:'power2.in'}, 14.5);
+tl.to(worldEl, {x:fullPose.tx, y:fullPose.ty, scale:fullPose.scale, duration:2.2, ease:'power2.inOut'}, 14.7);
+tl.to('#header', {opacity:1, duration:1.0, ease:'power2.out'}, 15.0);
+nodes.forEach((n,i) => {
+  if (!n.isFocus) tl.to(`#pill-${i}`, {opacity:1, duration:1.2, ease:'power2.out'}, 15.2);
+});
+// Restore all scores to final values before fading them in
+tl.call(() => {
+  nodes.forEach((n,i) => { document.getElementById(`score-${i}`).textContent = n.score; });
+}, [], 15.4);
+nodes.forEach((_,i) =>
+  tl.to(`#score-${i}`, {opacity:1, duration:0.5, ease:'power2.out'}, 15.5 + i*0.012));
+edges.forEach((e,i) =>
+  tl.to(`#edge-${i}`, {opacity: e.isActive ? 1.0 : 0.75, strokeDashoffset:0, duration:0.5, ease:'power2.out'}, 15.2 + i*0.009));
+
+} // end reduced-motion else
+
+// ── Grain flicker — deterministic 8fps cycle ──────────────────────────────────
+if (!reducedMotion) {
+  for (let t = 0; t < TOTAL; t += 0.125) {
+    const a = Math.floor(t / 0.125) % 2 === 0;
+    tl.set('#grain-a', { opacity: a ? 0.11 : 0   }, t);
+    tl.set('#grain-b', { opacity: a ? 0   : 0.11 }, t);
+  }
+}
+
+window.__timelines['tournament-bracket'] = tl;
+  </script>
+
+</div>
+</body>
+</html>

@@ -1,6 +1,12 @@
 /**
- * IntrcptConceptCard — Two large side-by-side clip frames for comparison.
- * Used for before/after, player A vs player B, etc.
+ * IntrcptClipCompare — Two large side-by-side clip frames for comparison.
+ *
+ * This is strictly a TWO-item comparison template (before/after, player A vs
+ * player B, tactic A vs tactic B). Do NOT use for single-topic illustrations.
+ * Each side must be a discrete, comparable item with its own clip + label.
+ *
+ * Formerly named IntrcptConceptCard (renamed 2026-04-24 — the old name caused
+ * the storyboard LLM to misroute single-concept topics here).
  */
 import React from "react";
 import {
@@ -13,17 +19,19 @@ import {
   Video,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema} from "./shared";
 
-export const IntrcptConceptCardPropsSchema = z.object({
+export const IntrcptClipComparePropsSchema = z.object({
   labelLeft:  z.string().optional().default("First Touch"),
   labelRight: z.string().optional().default("Final Ball"),
   clipLeft:   z.string().optional().default(""),
   clipRight:  z.string().optional().default(""),
   title:      z.string().optional().default(""),
   bgColor:    z.string().optional().default("#f0ece4"),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptConceptCardProps = z.infer<typeof IntrcptConceptCardPropsSchema>;
+export type IntrcptClipCompareProps = z.infer<typeof IntrcptClipComparePropsSchema>;
 
 const CLIP_W = 876;
 const CLIP_H = 493; // 16:9
@@ -169,7 +177,7 @@ const ClipFrame: React.FC<{
   );
 };
 
-export const IntrcptConceptCard: React.FC<IntrcptConceptCardProps> = ({
+export const IntrcptClipCompare: React.FC<IntrcptClipCompareProps> = ({
   labelLeft, labelRight, clipLeft, clipRight, title, bgColor,
 }) => {
   const frame      = useCurrentFrame();

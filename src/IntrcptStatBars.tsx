@@ -5,7 +5,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, WorldStateSchema } from "./shared";
 
 const StatItemSchema = z.object({
   label:    z.string().optional().default(""),
@@ -28,7 +28,9 @@ export const IntrcptStatBarsPropsSchema = z.object({
     { label: "Key Passes",  valueA: 8,   valueB: 5, suffix: "" },
     { label: "Dribbles",    valueA: 7,   valueB: 4, suffix: "" },
   ]),
-  bgColor: z.string().optional().default("#f0ece4"),
+  bgColor:    z.string().optional().default("#f0ece4"),
+  skipIntro:  z.boolean().optional().default(false),
+  worldState: WorldStateSchema.optional(),
 });
 
 export type IntrcptStatBarsProps = z.infer<typeof IntrcptStatBarsPropsSchema>;
@@ -37,8 +39,8 @@ const ROW_START   = 20;
 const ROW_STAGGER = 10;
 const LABEL_W     = 200;
 
-const StatRow: React.FC<{ stat: z.infer<typeof StatItemSchema>; colorA: string; colorB: string; rowFrame: number; frame: number; fps: number; barMaxW: number; }> = ({ stat, colorA, colorB, rowFrame, frame, fps, barMaxW }) => {
-  const prog    = spring({ frame: frame - rowFrame, fps, config: { damping: 28, stiffness: 55 } });
+const StatRow: React.FC<{ stat: z.infer<typeof StatItemSchema>; colorA: string; colorB: string; rowFrame: number; frame: number; fps: number; barMaxW: number; skipIntro?: boolean; }> = ({ stat, colorA, colorB, rowFrame, frame, fps, barMaxW, skipIntro }) => {
+  const prog    = skipIntro ? 1 : spring({ frame: frame - rowFrame, fps, config: { damping: 28, stiffness: 55 } });
   const opacity = interpolate(prog, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
   const maxV   = stat.maxValue ?? Math.max(stat.valueA, stat.valueB);
   const ratioA = maxV > 0 ? stat.valueA / maxV : 0;
@@ -64,11 +66,11 @@ const StatRow: React.FC<{ stat: z.infer<typeof StatItemSchema>; colorA: string; 
   );
 };
 
-export const IntrcptStatBars: React.FC<IntrcptStatBarsProps> = ({ title, subtitle, sideImage, teamA, teamB, stats, bgColor }) => {
+export const IntrcptStatBars: React.FC<IntrcptStatBarsProps> = ({ title, subtitle, sideImage, teamA, teamB, stats, bgColor, skipIntro = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
-  const imageProg  = spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
+  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
+  const imageProg  = skipIntro ? 1 : spring({ frame, fps, config: { damping: 24, stiffness: 50 }, delay: 6 });
   const BAR_MAX_W = sideImage ? 340 : 500;
 
   return (
@@ -99,7 +101,7 @@ export const IntrcptStatBars: React.FC<IntrcptStatBarsProps> = ({ title, subtitl
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {stats.map((stat, i) => (
-            <StatRow key={i} stat={stat} colorA={teamA.color} colorB={teamB.color} rowFrame={ROW_START + i * ROW_STAGGER} frame={frame} fps={fps} barMaxW={BAR_MAX_W} />
+            <StatRow key={i} stat={stat} colorA={teamA.color} colorB={teamB.color} rowFrame={ROW_START + i * ROW_STAGGER} frame={frame} fps={fps} barMaxW={BAR_MAX_W} skipIntro={skipIntro} />
           ))}
         </div>
       </div>

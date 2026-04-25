@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, TrophyIcon } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, TrophyIcon, WorldStateSchema} from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +22,8 @@ export const TablePropsSchema = z.object({
   season:  z.string().optional().default("2013-14"),
   teams:   z.array(TeamSchema).default([]),
   bgColor: z.string().optional().default("#f0ece4"),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type TableProps = z.infer<typeof TablePropsSchema>;
@@ -35,18 +37,18 @@ const BADGE_SIZE = 72;
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const PremierLeagueTable: React.FC<TableProps> = ({ season, teams, bgColor }) => {
+export const PremierLeagueTable: React.FC<TableProps> = ({ season, teams, bgColor, skipIntro = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
   const ROW_START   = 20;
   const ROW_STAGGER = 10;
 
-  const headerProg = spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
+  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
   const headerOp   = interpolate(headerProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
   const headerY    = interpolate(headerProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const colsProg = spring({ frame: frame - 10, fps, config: { damping: 20, stiffness: 80 } });
+  const colsProg = skipIntro ? 1 : spring({ frame: frame - 10, fps, config: { damping: 20, stiffness: 80 } });
   const colsOp   = interpolate(colsProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
   const ruleW    = interpolate(colsProg, [0, 1], [0, 100], { extrapolateRight: "clamp" });
 
@@ -109,7 +111,7 @@ export const PremierLeagueTable: React.FC<TableProps> = ({ season, teams, bgColo
         <div>
           {teams.map((team, i) => {
             const delay   = ROW_START + i * ROW_STAGGER;
-            const prog    = spring({ frame: frame - delay, fps, config: { damping: 24, stiffness: 60 } });
+            const prog    = skipIntro ? 1 : spring({ frame: frame - delay, fps, config: { damping: 24, stiffness: 60 } });
             const rowOp   = interpolate(prog, [0, 0.4], [0, 1], { extrapolateRight: "clamp" });
             const rowX    = interpolate(prog, [0, 1], [-36, 0], { extrapolateRight: "clamp" });
             const isChamp = team.pos === 1;

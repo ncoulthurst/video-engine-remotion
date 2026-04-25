@@ -106,6 +106,7 @@ export const ThumbnailPropsSchema = z.object({
    * -1 = use the layout preset default.
    */
   textWidth:   z.number().default(-1),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type ThumbnailProps = z.infer<typeof ThumbnailPropsSchema>;

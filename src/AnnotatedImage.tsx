@@ -6,7 +6,7 @@
 import React from "react";
 import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, COLORS, SPRINGS } from "./shared";
+import { fontFamily, serifFontFamily, Grain, COLORS, SPRINGS, WorldStateSchema} from "./shared";
 
 // ══════════════════════════════════════════════════════════════════════════════
 // SCHEMA
@@ -28,6 +28,8 @@ export const AnnotatedImagePropsSchema = z.object({
   accentColor:  z.string().optional().default("#C8102E"),
   bgColor:      z.string().optional().default("#f0ece4"),
   kenBurns:     z.boolean().default(true),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 
 export type AnnotatedImageProps = z.infer<typeof AnnotatedImagePropsSchema>;

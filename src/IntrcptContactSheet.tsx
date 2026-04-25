@@ -19,7 +19,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, Grain, PaperBackground, SmartImg } from "./shared";
+import { fontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema} from "./shared";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -37,6 +37,8 @@ export const IntrcptContactSheetPropsSchema = z.object({
   bgColor:       z.string().optional().default("#f0ece4"),
   shutterAudio:  z.string().optional().default("sounds/shutter.mp3"),
   shutterVolume: z.number().min(0).max(4).optional().default(1.5),
+  worldState: WorldStateSchema.optional(),
+  skipIntro: z.boolean().optional().default(false),
 });
 export type IntrcptContactSheetProps = z.infer<typeof IntrcptContactSheetPropsSchema>;
 

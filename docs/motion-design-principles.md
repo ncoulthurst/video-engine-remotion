@@ -306,7 +306,7 @@ Cutout portraits (player or manager photos placed against a coloured background)
 </div>
 ```
 
-**The right way (IntrcptPlayerReveal method):**
+**The right way (IntrcptPlayerRevealTrio method):**
 ```tsx
 <div style={{
   width: PORTRAIT_W,
@@ -329,7 +329,7 @@ Cutout portraits (player or manager photos placed against a coloured background)
 **Mask gradient guide:**
 - Portrait on left, fading right: `"linear-gradient(to right, black 50%, transparent 92%)"`
 - Portrait on right, fading left: `"linear-gradient(to left, black 50%, transparent 92%)"`
-- Portrait in centre (blends both sides): `"linear-gradient(to right, transparent, black 240px, black 85%, transparent)"` ← exact IntrcptPlayerReveal mask
+- Portrait in centre (blends both sides): `"linear-gradient(to right, transparent, black 240px, black 85%, transparent)"` ← exact IntrcptPlayerRevealTrio mask
 
 **Rule:** Always use CSS `maskImage` for portrait blending. A background-colour gradient div always produces a visible rectangle box artifact.
 
