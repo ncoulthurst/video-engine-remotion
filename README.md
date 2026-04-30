@@ -1,14 +1,12 @@
 # video-engine-remotion
 
-> Companion Remotion render project for **[The Documentary Engine](https://github.com/ncoulthurst/documentary-engine)** — the animated graphic compositions used to render AI-generated football documentaries.
-
-[REPLACE: hero screenshot or short GIF showing 3–4 compositions stitched together]
+> Companion Remotion render project for **[The Documentary Engine](https://github.com/ncoulthurst/video-engine)** — the animated graphic compositions used to render AI-generated football documentaries.
 
 ## What this is
 
 This repo contains the React/Remotion side of a two-repo system:
 
-- **The engine** ([documentary-engine](https://github.com/ncoulthurst/documentary-engine)) decides *what* to make. It runs LLM agents that produce a full 5-act script with embedded `[TAG: content]` markers describing every graphic the documentary needs.
+- **The engine** ([documentary-engine](https://github.com/ncoulthurst/video-engine)) decides *what* to make. It runs LLM agents that produce a full 5-act script with embedded `[TAG: content]` markers describing every graphic the documentary needs.
 - **This project** decides *how it looks*. Each tag maps to a Remotion composition here (`HeroBigStat.tsx`, `CareerTimeline.tsx`, `TournamentBracket.tsx`, …). The engine shells out to `npx remotion render <CompositionId>` for every tag, then stitches the resulting `.mp4` clips into a final cut via `VideoSequence.tsx`.
 
 You can also use this repo on its own as a Remotion Studio project to design and preview compositions interactively.
