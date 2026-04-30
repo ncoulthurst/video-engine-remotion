@@ -1,5 +1,5 @@
 /**
- * IntrcptTransferProfit — Brentford buy-low / sell-high transfer record.
+ * HeroTransferProfit — Brentford buy-low / sell-high transfer record.
  *
  * Narration-paced: each row reveals on its own frame window. Inactive rows dim.
  *
@@ -24,7 +24,8 @@ import {
   Grain,
   PaperBackground,
   COLORS,
-  SmartImg, WorldStateSchema
+  SmartImg, WorldStateSchema,
+  ContextChip,
 } from "./shared";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ const TransferSchema = z.object({
   sideImage: z.string().optional().default(""),
 });
 
-export const IntrcptTransferProfitPropsSchema = z.object({
+export const HeroTransferProfitPropsSchema = z.object({
   title:       z.string().optional().default("the brentford model"),
   subtitle:    z.string().optional().default("buy cheap. develop. sell big."),
   sideImage:   z.string().optional().default(""),
@@ -58,7 +59,7 @@ export const IntrcptTransferProfitPropsSchema = z.object({
   skipIntro: z.boolean().optional().default(false),
 });
 
-export type IntrcptTransferProfitProps = z.infer<typeof IntrcptTransferProfitPropsSchema>;
+export type HeroTransferProfitProps = z.infer<typeof HeroTransferProfitPropsSchema>;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // calculateMetadata
@@ -67,7 +68,7 @@ export type IntrcptTransferProfitProps = z.infer<typeof IntrcptTransferProfitPro
 const INTRO_F = 60;
 const OUTRO_F = 120;
 
-export const calculateMetadata: CalculateMetadataFunction<IntrcptTransferProfitProps> = ({
+export const calculateMetadata: CalculateMetadataFunction<HeroTransferProfitProps> = ({
   props,
 }) => {
   const n = props.transfers.length || 1;
@@ -91,7 +92,7 @@ const CHIP_COUNT_DUR = 10;  // frames for per-row profit counter
 // Component
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
+export const HeroTransferProfit: React.FC<HeroTransferProfitProps> = ({
   title,
   subtitle,
   sideImage: globalImage,
@@ -392,12 +393,8 @@ export const IntrcptTransferProfit: React.FC<IntrcptTransferProfitProps> = ({
           }}
         >
           {/* Label — always "total profit" from first reveal */}
-          <div style={{
-            fontFamily, fontSize: 13, fontWeight: 700, color: COLORS.muted,
-            letterSpacing: 2, textTransform: "uppercase", whiteSpace: "nowrap",
-            width: 120, flexShrink: 0,
-          }}>
-            total profit
+          <div style={{ width: 120, flexShrink: 0, whiteSpace: "nowrap" }}>
+            <ContextChip label="total profit" color={COLORS.muted} size={13} />
           </div>
 
           {/* Number — fixed font size, scale-only pop */}

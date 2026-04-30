@@ -1,5 +1,5 @@
 /**
- * IntrcptGoalRush — Season-by-season goal tally that builds row by row.
+ * HeroGoalRush — Season-by-season goal tally that builds row by row.
  *
  * Each season slides in staggered; goals count up as the spring settles.
  * Highlighted seasons get accent colour and a larger number.
@@ -15,11 +15,11 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, WorldStateSchema} from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, WorldStateSchema, ContextChip } from "./shared";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
-export const IntrcptGoalRushPropsSchema = z.object({
+export const HeroGoalRushPropsSchema = z.object({
   label: z.string().optional().default("Luis Suárez"),
   title: z.string().optional().default("Club Goals"),
   seasons: z.array(z.object({
@@ -47,14 +47,14 @@ export const IntrcptGoalRushPropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
 });
 
-export type IntrcptGoalRushProps = z.infer<typeof IntrcptGoalRushPropsSchema>;
+export type HeroGoalRushProps = z.infer<typeof HeroGoalRushPropsSchema>;
 
 // ─── Timing ───────────────────────────────────────────────────────────────────
 
 const INTRO_F      = 24;
 const TOTAL_DELAY  = 30; // extra frames after last row before total fires
 
-export const calculateMetadata: CalculateMetadataFunction<IntrcptGoalRushProps> = async ({ props }) => ({
+export const calculateMetadata: CalculateMetadataFunction<HeroGoalRushProps> = async ({ props }) => ({
   durationInFrames: INTRO_F + (props.seasons.length - 1) * props.stagger + TOTAL_DELAY + props.holdDuration,
 });
 
@@ -66,7 +66,7 @@ const TOTAL_CFG  = { damping: 7,  stiffness: 260, mass: 0.75 }; // underdamped �
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
+export const HeroGoalRush: React.FC<HeroGoalRushProps> = ({
   label, title, seasons, accentColor, bgColor, stagger, holdDuration, darkMode, skipIntro,
 }) => {
   const frame = useCurrentFrame();
@@ -119,16 +119,8 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
           transform: `translateY(${interpolate(headerSp, [0, 1], [14, 0])}px)`,
         }}>
           {label ? (
-            <div style={{
-              fontFamily,
-              fontSize:      13,
-              fontWeight:    700,
-              letterSpacing: 4,
-              textTransform: "uppercase",
-              color:         accent,
-              marginBottom:  10,
-            }}>
-              {label}
+            <div style={{ marginBottom: 10 }}>
+              <ContextChip label={label} color={accent} size={13} />
             </div>
           ) : null}
 
@@ -245,16 +237,10 @@ export const IntrcptGoalRush: React.FC<IntrcptGoalRushProps> = ({
           transformOrigin: "left bottom",
         }}>
           <div style={{
-            fontFamily,
-            fontSize:      13,
-            fontWeight:    700,
-            letterSpacing: 4,
-            textTransform: "uppercase",
-            color:         textMuted,
             marginRight:   30,
             paddingBottom: 10,
           }}>
-            Career Total
+            <ContextChip label="Career Total" color={textMuted} size={13} />
           </div>
 
           <div style={{

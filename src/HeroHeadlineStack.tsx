@@ -1,5 +1,5 @@
 /**
- * IntrcptHeadlineStack — Editorial headline reveal. Bold text lines snap in
+ * HeroHeadlineStack — Editorial headline reveal. Bold text lines snap in
  * staggered from the left with a slightly underdamped spring.
  *
  * Designed for punchy, narrative moments — "THE BITE. THE BAN. THE BRILLIANCE."
@@ -15,7 +15,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, WorldStateSchema} from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, WorldStateSchema, ContextChip } from "./shared";
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
@@ -31,7 +31,7 @@ const LineSchema = z.object({
   accent: z.boolean().optional().default(false),
 });
 
-export const IntrcptHeadlineStackPropsSchema = z.object({
+export const HeroHeadlineStackPropsSchema = z.object({
   lines: z.array(LineSchema).default([
     { text: "THE BITE.",       size: "hero", accent: false },
     { text: "THE BAN.",        size: "hero", accent: false },
@@ -50,14 +50,14 @@ export const IntrcptHeadlineStackPropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
 });
 
-export type IntrcptHeadlineStackProps = z.infer<typeof IntrcptHeadlineStackPropsSchema>;
+export type HeroHeadlineStackProps = z.infer<typeof HeroHeadlineStackPropsSchema>;
 
 // ─── Timing ───────────────────────────────────────────────────────────────────
 
 /** Frames before the first line fires — eyebrow + rule draw-in window */
 const INTRO_F = 20;
 
-export const calculateMetadata: CalculateMetadataFunction<IntrcptHeadlineStackProps> = async ({ props }) => ({
+export const calculateMetadata: CalculateMetadataFunction<HeroHeadlineStackProps> = async ({ props }) => ({
   durationInFrames: INTRO_F + (props.lines.length - 1) * props.stagger + props.holdDuration,
 });
 
@@ -100,7 +100,7 @@ const RULE_CFG    = { damping: 28, stiffness: 55 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export const IntrcptHeadlineStack: React.FC<IntrcptHeadlineStackProps> = ({
+export const HeroHeadlineStack: React.FC<HeroHeadlineStackProps> = ({
   lines, eyebrow, accentColor, bgColor, stagger, holdDuration, darkMode, skipIntro,
 }) => {
   const frame = useCurrentFrame();
@@ -131,17 +131,11 @@ export const IntrcptHeadlineStack: React.FC<IntrcptHeadlineStackProps> = ({
         {/* Eyebrow */}
         {eyebrow ? (
           <div style={{
-            fontFamily,
-            fontSize:      13,
-            fontWeight:    700,
-            letterSpacing: 4,
-            textTransform: "uppercase",
-            color:         textMuted,
             marginBottom:  18,
             opacity:       eyebrowSp,
             transform:     `translateY(${interpolate(eyebrowSp, [0, 1], [8, 0])}px)`,
           }}>
-            {eyebrow}
+            <ContextChip label={eyebrow} color={textMuted} size={13} />
           </div>
         ) : null}
 

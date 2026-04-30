@@ -3,7 +3,8 @@ import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } fr
 import { z } from "zod";
 import {
   Grain, PaperBackground,
-  COLORS, fontFamily, serifFontFamily, SmartImg, hexToRgb, WorldStateSchema
+  COLORS, fontFamily, serifFontFamily, SmartImg, hexToRgb, WorldStateSchema,
+  ContextChip, BadgeTreatment,
 } from "./shared";
 
 const PlayerSlotSchema = z.object({

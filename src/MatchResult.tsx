@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, WorldStateSchema} from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, WorldStateSchema, ContextChip, BadgeTreatment } from "./shared";
 
 const ScorerSchema = z.object({
   name:   z.string().optional().default(""),
@@ -136,7 +136,7 @@ export const MatchResult: React.FC<MatchResultProps> = ({
           alignItems:   "center",
           marginBottom: 52,
         }}>
-          <div style={{ fontFamily, fontSize: 26, fontWeight: 700, letterSpacing: 2, color: COLORS.muted, textTransform: "uppercase" as const }}>{competition}</div>
+          <ContextChip label={competition} color={COLORS.muted} size={26} />
           <div style={{ width: 7, height: 7, borderRadius: "50%", background: COLORS.muted }} />
           <div style={{ fontFamily, fontSize: 26, fontWeight: 400, color: COLORS.muted }}>{date}</div>
           {venue && <>
@@ -162,7 +162,7 @@ export const MatchResult: React.FC<MatchResultProps> = ({
             gap: 24, flex: 1, maxWidth: 480,
           }}>
             {homeBadgeSlug
-              ? <SmartImg src={`badges/${homeBadgeSlug}`} style={{ width: BADGE_SIZE, height: BADGE_SIZE, objectFit: "contain" as const }} />
+              ? <BadgeTreatment src={`badges/${homeBadgeSlug}`} size={BADGE_SIZE} />
               : <div style={{
                   width: BADGE_SIZE, height: BADGE_SIZE, borderRadius: "50%",
                   background: `rgba(200,16,46,0.12)`, border: `3px solid rgba(200,16,46,0.35)`,
@@ -206,7 +206,7 @@ export const MatchResult: React.FC<MatchResultProps> = ({
             gap: 24, flex: 1, maxWidth: 480,
           }}>
             {awayBadgeSlug
-              ? <SmartImg src={`badges/${awayBadgeSlug}`} style={{ width: BADGE_SIZE, height: BADGE_SIZE, objectFit: "contain" as const }} />
+              ? <BadgeTreatment src={`badges/${awayBadgeSlug}`} size={BADGE_SIZE} />
               : <div style={{
                   width: BADGE_SIZE, height: BADGE_SIZE, borderRadius: "50%",
                   background: `rgba(3,70,148,0.12)`, border: `3px solid rgba(3,70,148,0.35)`,

@@ -1,5 +1,5 @@
 /**
- * IntrcptClipSingle — One large centred clip frame with traveling border glow.
+ * HeroClipSingle — One large centred clip frame with traveling border glow.
  * Used for goal analysis, key moments, tactical highlights.
  */
 import React from "react";
@@ -15,7 +15,7 @@ import {
 import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
 
-export const IntrcptClipSinglePropsSchema = z.object({
+export const HeroClipSinglePropsSchema = z.object({
   label:   z.string().optional().default(""),
   clip:    z.string().optional().default(""),
   title:   z.string().optional().default(""),
@@ -30,7 +30,7 @@ export const IntrcptClipSinglePropsSchema = z.object({
   playerImage: z.string().optional().default(""),
   skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptClipSingleProps = z.infer<typeof IntrcptClipSinglePropsSchema>;
+export type HeroClipSingleProps = z.infer<typeof HeroClipSinglePropsSchema>;
 
 const CLIP_W = 1400;
 const CLIP_H = 788; // 16:9
@@ -87,7 +87,7 @@ const BorderGlow: React.FC<{
   );
 };
 
-export const IntrcptClipSingle: React.FC<IntrcptClipSingleProps> = ({
+export const HeroClipSingle: React.FC<HeroClipSingleProps> = ({
   label, clip, title, bgColor, trimIn, trimOut, soundOn = false,
 }) => {
   const frame   = useCurrentFrame();

@@ -1,7 +1,7 @@
 # Motion Design Principles
 ## Rules for building graphics that feel like a professional motion designer built them
 
-Derived from: TimelineScroll, IntrcptDualPanel, reference video analysis (Search Party / MOON).
+Derived from: TimelineScroll, HeroDualPanel, reference video analysis (Search Party / MOON).
 Maintained as living rules — correct them when they prove wrong in practice.
 
 ---
@@ -222,7 +222,7 @@ The best documentary motion designers treat all compositions as existing on a si
 
 **When NOT to use it:** topic switches, scale changes, and non-linear time jumps still call for a cut (see Rule 1).
 
-Use `IntrcptDualPanel` when you want to make the shared world explicit: two parallel events living side by side on one canvas.
+Use `HeroDualPanel` when you want to make the shared world explicit: two parallel events living side by side on one canvas.
 
 **Rule:** Build a world, not a slideshow. Move the camera — don't replace the stage.
 
@@ -276,7 +276,7 @@ This is what separates documentary motion design from a slideshow.
 
 3. **The `skipIntro` prop**: When a composition follows another in an `evolve` sequence, set `skipIntro: true` in its props. This skips all entrance animations for persistent elements (background, portrait, decorative lines) so they are already settled from frame 0. Only the PRIMARY NEW CONTENT animates in. The viewer never sees the background "start up" — it was already there.
 
-4. **What NOT to do**: Never insert `letterbox`, `push`, or any cut-style transition between two consecutive INTRCPT-style scenes in the same act with the same background. That signals "we are now somewhere new" — which is false if the subject and background are the same.
+4. **What NOT to do**: Never insert `letterbox`, `push`, or any cut-style transition between two consecutive HERO-style scenes in the same act with the same background. That signals "we are now somewhere new" — which is false if the subject and background are the same.
 
 **Transition selection cheat-sheet:**
 | Situation | Transition |
@@ -306,7 +306,7 @@ Cutout portraits (player or manager photos placed against a coloured background)
 </div>
 ```
 
-**The right way (IntrcptPlayerRevealTrio method):**
+**The right way (HeroPlayerRevealTrio method):**
 ```tsx
 <div style={{
   width: PORTRAIT_W,
@@ -329,7 +329,7 @@ Cutout portraits (player or manager photos placed against a coloured background)
 **Mask gradient guide:**
 - Portrait on left, fading right: `"linear-gradient(to right, black 50%, transparent 92%)"`
 - Portrait on right, fading left: `"linear-gradient(to left, black 50%, transparent 92%)"`
-- Portrait in centre (blends both sides): `"linear-gradient(to right, transparent, black 240px, black 85%, transparent)"` ← exact IntrcptPlayerRevealTrio mask
+- Portrait in centre (blends both sides): `"linear-gradient(to right, transparent, black 240px, black 85%, transparent)"` ← exact HeroPlayerRevealTrio mask
 
 **Rule:** Always use CSS `maskImage` for portrait blending. A background-colour gradient div always produces a visible rectangle box artifact.
 

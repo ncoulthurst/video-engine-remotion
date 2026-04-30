@@ -215,7 +215,7 @@ const HeadlineItemSchema = z.object({
   image: z.string().optional(),
 });
 
-export const IntrcptNewsFeedPropsSchema = z.object({
+export const HeroNewsFeedPropsSchema = z.object({
   headlines: z.array(HeadlineItemSchema).min(1),
   bgColor: z.string().optional().default(DEFAULT_BG),
   accentColor: z.string().optional().default(DEFAULT_ACCENT),
@@ -227,7 +227,7 @@ export const IntrcptNewsFeedPropsSchema = z.object({
   skipIntro: z.boolean().optional().default(false),
 });
 
-export type IntrcptNewsFeedProps = z.input<typeof IntrcptNewsFeedPropsSchema>;
+export type HeroNewsFeedProps = z.input<typeof HeroNewsFeedPropsSchema>;
 type HeadlineItem = z.input<typeof HeadlineItemSchema>;
 
 type TimelineEntry = {
@@ -242,7 +242,7 @@ function dwellFor(headline: string, minDwell: number): number {
   return Math.max(minDwell, 10 + Math.ceil(headline.length * 1.2) + 50);
 }
 
-export function calculateMetadata({ props }: { props: IntrcptNewsFeedProps }) {
+export function calculateMetadata({ props }: { props: HeroNewsFeedProps }) {
   const minDwell = props.dwellFrames ?? 120;
   const pan = props.panFrames ?? 20;
   const total = (props.headlines ?? []).reduce(
@@ -536,7 +536,7 @@ const WorldLayer: React.FC<WorldLayerProps> = ({
   );
 };
 
-export const IntrcptNewsFeed: React.FC<IntrcptNewsFeedProps> = ({
+export const HeroNewsFeed: React.FC<HeroNewsFeedProps> = ({
   headlines,
   bgColor = DEFAULT_BG,
   accentColor = DEFAULT_ACCENT,

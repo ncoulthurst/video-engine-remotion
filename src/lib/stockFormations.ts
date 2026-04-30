@@ -1,7 +1,7 @@
 /**
  * Track B — Canonical stock formation layouts.
  *
- * Used by IntrcptTactical / TeamLineup as the fallback layout when the
+ * Used by HeroTactical / TeamLineup as the fallback layout when the
  * Python validator (utils/formation_validator.py) rejects an LLM-produced
  * coordinate set. The Python side mirrors this table at
  * STOCK_FORMATION_PYTHON.

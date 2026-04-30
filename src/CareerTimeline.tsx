@@ -4,7 +4,7 @@
  * Broadcast/newsprint aesthetic per STYLE_GUIDE §0–§10:
  *   • Folio dateline top-left: serif italic subject (44px) + 36×3 accent tab
  *     + small-caps dateline ("CAREER · 2008–2024") — same anchor pattern as
- *     IntrcptBigStat.
+ *     HeroBigStat.
  *   • A single accent rule (the timeline rail) is the ONE decorative device.
  *   • The rail draws on via stroke-dashoffset / pathLength={1} —
  *     Easing.out(Easing.cubic) per §6.
@@ -39,6 +39,8 @@ import {
   DarkBackground,
   SmartImg,
   WorldStateSchema,
+  ContextChip,
+  BadgeTreatment,
 } from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
@@ -323,17 +325,7 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
             marginBottom: 14,
           }} />
           {/* Small-caps dateline */}
-          <div style={{
-            fontFamily,
-            fontSize:      12,
-            fontWeight:    700,
-            letterSpacing: 3.5,
-            textTransform: "uppercase" as const,
-            color:         mutedColor,
-            lineHeight:    1,
-          }}>
-            {datelineText}
-          </div>
+          <ContextChip label={datelineText} color={mutedColor} size={12} />
         </div>
 
         {/* ── Timeline rail (the ONE decorative device) ────────────────────
@@ -458,23 +450,13 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
                 position:        "absolute",
                 left:            x - badgeSize / 2,
                 top:             badgeTop,
-                width:           badgeSize,
-                height:          badgeSize,
                 opacity,
                 transform:       `translateY(${ne.ty}px) scale(${scale})`,
                 transformOrigin: "50% 100%",
                 zIndex:          12,
                 filter:          isFocus ? "none" : (darkMode ? "none" : "saturate(0.7)"),
               }}>
-                <SmartImg
-                  src={`badges/${event.badgeSlug}`}
-                  style={{
-                    width:     "100%",
-                    height:    "100%",
-                    objectFit: "contain",
-                    display:   "block",
-                  }}
-                />
+                <BadgeTreatment src={`badges/${event.badgeSlug}`} size={badgeSize} />
               </div>
 
               {/* Node dot on the rail (accent on focus, ink-muted otherwise) */}
@@ -566,16 +548,10 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
             position:      "absolute",
             right:         130,
             bottom:        80,
-            fontFamily,
-            fontSize:      12,
-            fontWeight:    700,
-            letterSpacing: 3.5,
-            textTransform: "uppercase" as const,
-            color:         mutedColor,
             opacity:       interpolate(sourceProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" }),
             zIndex:        30,
           }}>
-            {source}
+            <ContextChip label={source} color={mutedColor} size={12} />
           </div>
         )}
       </div>

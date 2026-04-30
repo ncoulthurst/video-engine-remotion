@@ -1,5 +1,5 @@
 /**
- * IntrcptPhotoReel — Cycling photo gallery with camera shutter transitions.
+ * HeroPhotoReel — Cycling photo gallery with camera shutter transitions.
  * Each image switch triggers a shutter sound and iris-close/open animation.
  */
 import React from "react";
@@ -17,7 +17,7 @@ import {
 import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema} from "./shared";
 
-export const IntrcptPhotoReelPropsSchema = z.object({
+export const HeroPhotoReelPropsSchema = z.object({
   /** Array of image paths relative to /public */
   images:        z.array(z.string()).default(["frame1.png", "frame2.png", "frame3.png"]),
   /** Frames each image is shown (default 90 = 3 s at 30 fps) */
@@ -32,9 +32,9 @@ export const IntrcptPhotoReelPropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptPhotoReelProps = z.infer<typeof IntrcptPhotoReelPropsSchema>;
+export type HeroPhotoReelProps = z.infer<typeof HeroPhotoReelPropsSchema>;
 
-export const calculateMetadata: CalculateMetadataFunction<IntrcptPhotoReelProps> = async ({ props }) => ({
+export const calculateMetadata: CalculateMetadataFunction<HeroPhotoReelProps> = async ({ props }) => ({
   durationInFrames: Math.max(1, props.images.length) * props.frameDuration,
 });
 
@@ -57,7 +57,7 @@ function shutterAt(frame: number, T: number): number {
   return 1 - (frame - T) / OPEN_DUR;                       // 1 → 0
 }
 
-// ─── BorderGlow (same as IntrcptClipSingle) ───────────────────────────────────
+// ─── BorderGlow (same as HeroClipSingle) ───────────────────────────────────
 const BorderGlow: React.FC<{ w: number; h: number; frame: number; fps: number; delay: number }> = ({
   w, h, frame, fps, delay,
 }) => {
@@ -161,7 +161,7 @@ const PhotoCounter: React.FC<{ current: number; total: number; opacity: number }
 );
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export const IntrcptPhotoReel: React.FC<IntrcptPhotoReelProps> = ({
+export const HeroPhotoReel: React.FC<HeroPhotoReelProps> = ({
   images, frameDuration, title, label, bgColor, shutterAudio, shutterVolume, skipIntro = false,
 }) => {
   const frame   = useCurrentFrame();

@@ -1,5 +1,5 @@
 /**
- * IntrcptLeagueGraph — Title race chart, editorial paper aesthetic.
+ * HeroLeagueGraph — Title race chart, editorial paper aesthetic.
  *
  * Folio top-left, accent rule, paper + Grain. Subject team renders in accent
  * with a draw-on stroke-dashoffset; peer renders muted gray as a reference,
@@ -8,7 +8,7 @@
 import React from "react";
 import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, SmartImg, COLORS, WorldStateSchema } from "./shared";
+import { fontFamily, serifFontFamily, PaperBackground, Grain, SmartImg, COLORS, WorldStateSchema, ContextChip, BadgeTreatment } from "./shared";
 
 const DataPointSchema = z.object({ matchday: z.number(), position: z.number() });
 
@@ -19,7 +19,7 @@ const TeamSchema = z.object({
   badgeSlug: z.string().optional().default(""),
 });
 
-export const IntrcptLeagueGraphPropsSchema = z.object({
+export const HeroLeagueGraphPropsSchema = z.object({
   season:      z.string().optional().default("2013–14"),
   title:       z.string().optional().default("Title Race"),
   competition: z.string().optional().default("Premier League"),
@@ -34,7 +34,7 @@ export const IntrcptLeagueGraphPropsSchema = z.object({
   worldState:  WorldStateSchema.optional(),
   skipIntro:   z.boolean().optional().default(false),
 });
-export type IntrcptLeagueGraphProps = z.infer<typeof IntrcptLeagueGraphPropsSchema>;
+export type HeroLeagueGraphProps = z.infer<typeof HeroLeagueGraphPropsSchema>;
 
 const PAD_L = 160;
 const PAD_R = 160;
@@ -72,7 +72,7 @@ function lastVisiblePoint(
 
 const ordinal = (n: number) => n === 1 ? "1st" : n === 2 ? "2nd" : n === 3 ? "3rd" : `${n}th`;
 
-export const IntrcptLeagueGraph: React.FC<IntrcptLeagueGraphProps> = ({
+export const HeroLeagueGraph: React.FC<HeroLeagueGraphProps> = ({
   season, title, competition, source, teamA, teamB, maxPosition = 6,
   bgColor, accentColor, skipIntro = false,
 }) => {
@@ -142,17 +142,7 @@ export const IntrcptLeagueGraph: React.FC<IntrcptLeagueGraphProps> = ({
             color:         inkColor,
           }}>{title}</div>
           <div style={{ width: 36, height: 3, background: subjectAccent, marginTop: 18, marginBottom: 14 }} />
-          {dateline && (
-            <div style={{
-              fontFamily,
-              fontSize:      12,
-              fontWeight:    700,
-              letterSpacing: 3.5,
-              textTransform: "uppercase" as const,
-              color:         mutedInk,
-              lineHeight:    1,
-            }}>{dateline}</div>
-          )}
+          {dateline && (<ContextChip label={dateline} color={mutedInk} size={12} />)}
         </div>
 
         {/* SVG chart */}
@@ -314,10 +304,10 @@ export const IntrcptLeagueGraph: React.FC<IntrcptLeagueGraphProps> = ({
             opacity:       folioProg,
           }}>
             {teamA.badgeSlug && (
-              <SmartImg src={`badges/${teamA.badgeSlug}`} style={{ width: 96, height: 96, objectFit: "contain" }} />
+              <BadgeTreatment src={`badges/${teamA.badgeSlug}`} size={96} />
             )}
             {teamB?.badgeSlug && (
-              <SmartImg src={`badges/${teamB.badgeSlug}`} style={{ width: 56, height: 56, objectFit: "contain", opacity: 0.5 }} />
+              <BadgeTreatment src={`badges/${teamB.badgeSlug}`} size={56} opacity={0.5} />
             )}
           </div>
         )}
@@ -325,18 +315,9 @@ export const IntrcptLeagueGraph: React.FC<IntrcptLeagueGraphProps> = ({
 
       {/* Source attribution — bottom-right */}
       {source && (
-        <div style={{
-          position:      "absolute",
-          right:         PAD_R,
-          bottom:        72,
-          fontFamily,
-          fontSize:      11,
-          fontWeight:    700,
-          letterSpacing: 3.5,
-          textTransform: "uppercase" as const,
-          color:         mutedInk,
-          opacity:       folioProg,
-        }}>{source}</div>
+        <div style={{ position: "absolute", right: PAD_R, bottom: 72, opacity: folioProg }}>
+          <ContextChip label={source} color={mutedInk} size={11} />
+        </div>
       )}
 
       <Grain />

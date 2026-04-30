@@ -38,6 +38,8 @@ import {
   COLORS,
   SmartImg,
   WorldStateSchema,
+  ContextChip,
+  BadgeTreatment,
 } from "./shared";
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -108,7 +110,7 @@ const PORTRAIT_MASK =
 
 // Content layout (canvas 1920×1080)
 const CONTENT_X    = 760;     // portrait width + ~80px gap
-const CONTENT_TOP  = 200;     // matches folio top in IntrcptBigStat
+const CONTENT_TOP  = 200;     // matches folio top in HeroBigStat
 const CONTENT_W    = 1080;    // 1920 - 760 - 80 right margin
 
 // Animation timing (frames @ 30fps)
@@ -376,17 +378,8 @@ export const ScoutReport: React.FC<ScoutReportProps> = ({
               marginBottom: 14,
             }} />
             {/* Dateline — small caps, sans, tracked */}
-            <div style={{
-              fontFamily,
-              fontSize:      12,
-              fontWeight:    700,
-              letterSpacing: 3.5,
-              textTransform: "uppercase" as const,
-              color:         inkMuted,
-              lineHeight:    1.2,
-              maxWidth:      CONTENT_W - 220,
-            }}>
-              {datelineText}
+            <div style={{ maxWidth: CONTENT_W - 220 }}>
+              <ContextChip label={datelineText} color={inkMuted} size={12} />
             </div>
           </div>
 
@@ -425,10 +418,7 @@ export const ScoutReport: React.FC<ScoutReportProps> = ({
             maxWidth:   CONTENT_W - 80,
           }}>
             {badgeSlug && (
-              <SmartImg
-                src={`badges/${badgeSlug}`}
-                style={{ width: 32, height: 32, objectFit: "contain", opacity: 0.9 }}
-              />
+              <BadgeTreatment src={`badges/${badgeSlug}`} size={32} opacity={0.9} />
             )}
             {origin && (
               <span style={{
@@ -672,16 +662,10 @@ export const ScoutReport: React.FC<ScoutReportProps> = ({
           bottom:        44,
           opacity:       footerProg,
           transform:     `translateY(${interpolate(footerProg, [0, 1], [8, 0], { extrapolateRight: "clamp" })}px)`,
-          fontFamily,
-          fontSize:      11,
-          fontWeight:    700,
-          letterSpacing: 2.8,
-          textTransform: "uppercase" as const,
-          color:         inkDim,
           whiteSpace:    "nowrap",
           zIndex:        12,
         }}>
-          {source}
+          <ContextChip label={source} color={inkDim} size={11} />
         </div>
       )}
 

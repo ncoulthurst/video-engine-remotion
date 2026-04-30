@@ -1,5 +1,5 @@
 /**
- * IntrcptChapterWord — Oversized chapter word with two duotoned player cutouts.
+ * HeroChapterWord — Oversized chapter word with two duotoned player cutouts.
  *
  * The word is the hero. Player images are duotoned to the blob colours (so they
  * read as part of the colour world, not raw photos), feathered into the canvas
@@ -9,9 +9,9 @@
 import React from "react";
 import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema, ContextChip } from "./shared";
 
-export const IntrcptChapterWordPropsSchema = z.object({
+export const HeroChapterWordPropsSchema = z.object({
   word:         z.string().optional().default("aesthetics."),
   chapterLabel: z.string().optional().default("CHAPTER"),
   player1Image: z.string().optional().default("suarez.jpg"),
@@ -22,12 +22,12 @@ export const IntrcptChapterWordPropsSchema = z.object({
   worldState:   WorldStateSchema.optional(),
   skipIntro:    z.boolean().optional().default(false),
 });
-export type IntrcptChapterWordProps = z.infer<typeof IntrcptChapterWordPropsSchema>;
+export type HeroChapterWordProps = z.infer<typeof HeroChapterWordPropsSchema>;
 
 const FEATHER_MASK_LEFT  = "radial-gradient(ellipse 75% 95% at 30% 70%, #000 50%, transparent 100%)";
 const FEATHER_MASK_RIGHT = "radial-gradient(ellipse 75% 95% at 70% 70%, #000 50%, transparent 100%)";
 
-export const IntrcptChapterWord: React.FC<IntrcptChapterWordProps> = ({
+export const HeroChapterWord: React.FC<HeroChapterWordProps> = ({
   word, chapterLabel, player1Image, player2Image, blob1Color, blob2Color, bgColor, skipIntro,
 }) => {
   const frame = useCurrentFrame();
@@ -68,15 +68,11 @@ export const IntrcptChapterWord: React.FC<IntrcptChapterWordProps> = ({
         position:      "absolute",
         top:           120,
         left:          140,
-        fontFamily,
-        fontSize:      13,
-        fontWeight:    700,
-        letterSpacing: 4,
-        textTransform: "uppercase" as const,
-        color:         "rgba(17,17,17,0.45)",
         opacity:       labelIn,
         transform:     `translateY(${interpolate(labelIn, [0, 1], [8, 0])}px)`,
-      }}>{chapterLabel}</div>
+      }}>
+        <ContextChip label={chapterLabel} color="rgba(17,17,17,0.45)" size={13} />
+      </div>
 
       {/* Blob 1 — bottom-left */}
       <div style={{

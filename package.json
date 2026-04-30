@@ -1,11 +1,11 @@
 {
-  "name": "remotiontest",
+  "name": "video-engine-remotion",
   "version": "1.0.0",
-  "description": "Premier League 2013/14 infographic animation",
+  "description": "Companion Remotion render project for The Documentary Engine — animated infographic compositions for AI-generated football documentaries.",
   "main": "src/index.ts",
   "scripts": {
     "start": "remotion studio",
-    "build": "remotion render PremierLeagueTable out/video.mp4",
+    "render": "remotion render",
     "upgrade": "remotion upgrade",
     "postinstall": "patch-package"
   },

@@ -1,16 +1,16 @@
 /**
- * IntrcptPlayerRevealTrio — Full-height multi-player portrait reveal, 1–4 players.
+ * HeroPlayerRevealTrio — Full-height multi-player portrait reveal, 1–4 players.
  *
  * Visual-only montage: stacked overlapping portraits with staggered entry.
  * Named "Trio" because the canonical use is three players (left-facing, hero,
  * right-facing). Accepts 1–4, but the design is tuned for three.
  *
- * Portrait treatment mirrors IntrcptTransferRecord's sideImage: masked with
+ * Portrait treatment mirrors HeroTransferRecord's sideImage: masked with
  * `transparent → black 300px → black 85% → transparent`, max opacity 0.88.
  * Portraits overlap rather than dividing into columns. Central 1520px zone,
  * 200px breathing room each side.
  *
- * Formerly named IntrcptPlayerReveal (renamed 2026-04-24 — the old name
+ * Formerly named HeroPlayerReveal (renamed 2026-04-24 — the old name
  * implied single-player reveal and caused storyboard misrouting).
  */
 import React from "react";
@@ -27,7 +27,7 @@ import { Grain, PaperBackground, DarkBackground, SmartImg, WorldStateSchema} fro
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
-export const IntrcptPlayerRevealTrioPropsSchema = z.object({
+export const HeroPlayerRevealTrioPropsSchema = z.object({
   players: z.array(z.object({
     src: z.string(),
     /**
@@ -51,7 +51,7 @@ export const IntrcptPlayerRevealTrioPropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptPlayerRevealTrioProps = z.infer<typeof IntrcptPlayerRevealTrioPropsSchema>;
+export type HeroPlayerRevealTrioProps = z.infer<typeof HeroPlayerRevealTrioPropsSchema>;
 
 // ─── Layout constants ─────────────────────────────────────────────────────────
 
@@ -73,22 +73,22 @@ const ZONE_W     = 1820;
 
 const INTRO_F = 10;
 
-export const calculateMetadata: CalculateMetadataFunction<IntrcptPlayerRevealTrioProps> = async ({ props }) => {
+export const calculateMetadata: CalculateMetadataFunction<HeroPlayerRevealTrioProps> = async ({ props }) => {
   const n = Math.max(1, Math.min(4, props.players.length));
   return {
     durationInFrames: INTRO_F + (n - 1) * props.stagger + props.holdDuration,
   };
 };
 
-// ─── Spring config — same as IntrcptTransferRecord ────────────────────────────
+// ─── Spring config — same as HeroTransferRecord ────────────────────────────
 const REVEAL_CFG = { damping: 24, stiffness: 50 } as const;
 
-// ─── Gradient mask — identical to IntrcptTransferRecord sideImage ─────────────
+// ─── Gradient mask — identical to HeroTransferRecord sideImage ─────────────
 const MASK = "linear-gradient(to right, transparent, black 240px, black 85%, transparent)";
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export const IntrcptPlayerRevealTrio: React.FC<IntrcptPlayerRevealTrioProps> = ({
+export const HeroPlayerRevealTrio: React.FC<HeroPlayerRevealTrioProps> = ({
   players, bgColor, darkMode, stagger, holdDuration, skipIntro = false,
 }) => {
   const frame   = useCurrentFrame();
@@ -199,7 +199,7 @@ export const IntrcptPlayerRevealTrio: React.FC<IntrcptPlayerRevealTrioProps> = (
         );
       })}
 
-      {/* Grain on top — same z-index pattern as IntrcptTransferRecord */}
+      {/* Grain on top — same z-index pattern as HeroTransferRecord */}
       <div style={{ position: "absolute", inset: 0, zIndex: 10, pointerEvents: "none" }}>
         <Grain />
       </div>

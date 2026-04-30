@@ -1,5 +1,5 @@
 /**
- * IntrcptTactical — Editorial tactical-pitch annotation with opposition + depth.
+ * HeroTactical — Editorial tactical-pitch annotation with opposition + depth.
  *
  * Two-team broadcast aesthetic. Own team in `teamColor` press toward
  * opposition (in `oppositionColor`) with curved Bézier arrows targetting
@@ -63,7 +63,7 @@ const ArrowSchema = z.object({
   style: z.enum(["solid", "dashed"]).default("solid"),
 });
 
-export const IntrcptTacticalPropsSchema = z.object({
+export const HeroTacticalPropsSchema = z.object({
   title:       z.string().optional().default("the press"),
   description: z.string().optional().default("Coordinated high press from the front three traps the build-up at source."),
   /** Kept for back-compat; no longer rendered. */
@@ -110,7 +110,7 @@ export const IntrcptTacticalPropsSchema = z.object({
   skipIntro:       z.boolean().optional().default(false),
 });
 
-export type IntrcptTacticalProps = z.infer<typeof IntrcptTacticalPropsSchema>;
+export type HeroTacticalProps = z.infer<typeof HeroTacticalPropsSchema>;
 
 // ── Layout ────────────────────────────────────────────────────────────────────
 
@@ -183,7 +183,7 @@ function evalBezier(
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const IntrcptTactical: React.FC<IntrcptTacticalProps> = ({
+export const HeroTactical: React.FC<HeroTacticalProps> = ({
   title,
   description,
   players,

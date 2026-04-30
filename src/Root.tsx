@@ -9,16 +9,17 @@ import { CareerTimeline, CareerTimelinePropsSchema } from "./CareerTimeline";
 import { SeasonComparison, SeasonComparisonPropsSchema } from "./SeasonComparison";
 import { TeamLineup, TeamLineupPropsSchema } from "./TeamLineup";
 import { ArticleHeadline, ArticleHeadlinePropsSchema } from "./ArticleHeadline";
-import { IntrcptIntro, IntrcptIntroPropsSchema } from "./IntrcptIntro";
-import { IntrcptStatBars, IntrcptStatBarsPropsSchema } from "./IntrcptStatBars";
-import { IntrcptFormRun, IntrcptFormRunPropsSchema } from "./IntrcptFormRun";
-import { IntrcptTactical, IntrcptTacticalPropsSchema } from "./IntrcptTactical";
-import { IntrcptLeagueGraph, IntrcptLeagueGraphPropsSchema } from "./IntrcptLeagueGraph";
-import { IntrcptTransferRecord, IntrcptTransferRecordPropsSchema } from "./IntrcptTransferRecord";
-import { IntrcptChapterWord, IntrcptChapterWordPropsSchema } from "./IntrcptChapterWord";
-import { IntrcptClipCompare, IntrcptClipComparePropsSchema } from "./IntrcptClipCompare";
-import { IntrcptClipSingle, IntrcptClipSinglePropsSchema } from "./IntrcptClipSingle";
-import { IntrcptScatterPlot, IntrcptScatterPlotPropsSchema } from "./IntrcptScatterPlot";
+import { HeroIntro, HeroIntroPropsSchema } from "./HeroIntro";
+import { HeroOutro, HeroOutroPropsSchema } from "./HeroOutro";
+import { HeroStatBars, HeroStatBarsPropsSchema } from "./HeroStatBars";
+import { HeroFormRun, HeroFormRunPropsSchema } from "./HeroFormRun";
+import { HeroTactical, HeroTacticalPropsSchema } from "./HeroTactical";
+import { HeroLeagueGraph, HeroLeagueGraphPropsSchema } from "./HeroLeagueGraph";
+import { HeroTransferRecord, HeroTransferRecordPropsSchema } from "./HeroTransferRecord";
+import { HeroChapterWord, HeroChapterWordPropsSchema } from "./HeroChapterWord";
+import { HeroClipCompare, HeroClipComparePropsSchema } from "./HeroClipCompare";
+import { HeroClipSingle, HeroClipSinglePropsSchema } from "./HeroClipSingle";
+import { HeroScatterPlot, HeroScatterPlotPropsSchema } from "./HeroScatterPlot";
 import { AttackingRadar, AttackingRadarPropsSchema } from "./AttackingRadar";
 import { PlayerTrio, PlayerTrioPropsSchema } from "./PlayerTrio";
 import { TrioFeature, TrioFeaturePropsSchema } from "./TrioFeature";
@@ -29,28 +30,28 @@ import { CountdownReveal, CountdownRevealPropsSchema, calculateMetadata as count
 import { StatPulse, StatPulsePropsSchema } from "./StatPulse";
 import { ScoutReport, ScoutReportPropsSchema } from "./ScoutReport";
 import { ValueCurve, ValueCurvePropsSchema } from "./ValueCurve";
-import { IntrcptTransferProfit, IntrcptTransferProfitPropsSchema, calculateMetadata as transferProfitV2CalculateMetadata } from "./IntrcptTransferProfit";
-import { IntrcptPlayerRevealTrio, IntrcptPlayerRevealTrioPropsSchema, calculateMetadata as playerRevealTrioCalculateMetadata } from "./IntrcptPlayerRevealTrio";
+import { HeroTransferProfit, HeroTransferProfitPropsSchema, calculateMetadata as transferProfitV2CalculateMetadata } from "./HeroTransferProfit";
+import { HeroPlayerRevealTrio, HeroPlayerRevealTrioPropsSchema, calculateMetadata as playerRevealTrioCalculateMetadata } from "./HeroPlayerRevealTrio";
 import {
   VideoSequence,
   VideoSequencePropsSchema,
   calculateMetadata as videoSequenceCalculateMetadata,
 } from "./VideoSequence";
 import { Thumbnail, ThumbnailPropsSchema } from "./Thumbnail";
-import { IntrcptShotMap, IntrcptShotMapPropsSchema } from "./IntrcptShotMap";
-import { IntrcptAwardsList, IntrcptAwardsListPropsSchema } from "./IntrcptAwardsList";
-import { IntrcptBigStat, IntrcptBigStatPropsSchema } from "./IntrcptBigStat";
-import { IntrcptComparisonRadar, IntrcptComparisonRadarPropsSchema } from "./IntrcptComparisonRadar";
-import { IntrcptNewsFeed, IntrcptNewsFeedPropsSchema, calculateMetadata as calcNewsFeed } from "./IntrcptNewsFeed";
-import { IntrcptSeasonTimeline, IntrcptSeasonTimelinePropsSchema } from "./IntrcptSeasonTimeline";
+import { HeroShotMap, HeroShotMapPropsSchema } from "./HeroShotMap";
+import { HeroAwardsList, HeroAwardsListPropsSchema } from "./HeroAwardsList";
+import { HeroBigStat, HeroBigStatPropsSchema } from "./HeroBigStat";
+import { HeroComparisonRadar, HeroComparisonRadarPropsSchema } from "./HeroComparisonRadar";
+import { HeroNewsFeed, HeroNewsFeedPropsSchema, calculateMetadata as calcNewsFeed } from "./HeroNewsFeed";
+import { HeroSeasonTimeline, HeroSeasonTimelinePropsSchema } from "./HeroSeasonTimeline";
 import { TournamentBracket, TournamentBracketPropsSchema } from "./TournamentBracket";
-// Track E — register IntrcptQuote (was missing) + new hybrid templates
-import { IntrcptQuote, IntrcptQuotePropsSchema } from "./IntrcptQuote";
+// Track E — register HeroQuote (was missing) + new hybrid templates
+import { HeroQuote, HeroQuotePropsSchema } from "./HeroQuote";
 import { PortraitStatHero, PortraitStatHeroPropsSchema } from "./PortraitStatHero";
 import { PortraitWithBars, PortraitWithBarsPropsSchema } from "./PortraitWithBars";
 
 import type { CareerTimelineProps } from "./CareerTimeline";
-import type { IntrcptTransferRecordProps } from "./IntrcptTransferRecord";
+import type { HeroTransferRecordProps } from "./HeroTransferRecord";
 
 const DEFAULT_TIMELINE: CareerTimelineProps = {
   playerName: "Luis Suárez",
@@ -73,7 +74,7 @@ const DEFAULT_TIMELINE: CareerTimelineProps = {
   ],
 };
 
-const DEFAULT_INTRCPT_TRANSFER_RECORD: IntrcptTransferRecordProps = {
+const DEFAULT_HERO_TRANSFER_RECORD: HeroTransferRecordProps = {
   title: "world record transfer fees",
   subtitle: "the escalation of the market over two decades",
   sideImage: "neymar.png",
@@ -94,9 +95,9 @@ export const Root: React.FC = () => {
   return (
     <>
       <Composition
-        id="IntrcptIntro"
-        component={IntrcptIntro}
-        schema={IntrcptIntroPropsSchema}
+        id="HeroIntro"
+        component={HeroIntro}
+        schema={HeroIntroPropsSchema}
         durationInFrames={240}
         fps={30}
         width={1920}
@@ -104,13 +105,39 @@ export const Root: React.FC = () => {
         defaultProps={{
           subtitle: "the greatest league season ever told",
           bgColor: "#f0ece4",
+          sideImage: "",
+          sideImageX: 0,
+          sideImageY: 0,
+          sideImageScale: 1,
           skipIntro: false,
         }}
       />
       <Composition
-        id="IntrcptStatBars"
-        component={IntrcptStatBars}
-        schema={IntrcptStatBarsPropsSchema}
+        id="HeroOutro"
+        component={HeroOutro}
+        schema={HeroOutroPropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          leadIn:          "If this story stayed with you, there's more where it came from.",
+          subscribeAsk:    "Subscribe for a new story every week.",
+          videoLeftTitle:  "The Genius & Madness of Luis Suárez",
+          videoRightTitle: "Why Brazil Stopped Producing Playmakers",
+          videoLeftSrc:    "",
+          videoRightSrc:   "",
+          videoLeftImage:  "",
+          videoRightImage: "",
+          bgColor:         "#f0ece4",
+          accentColor:     "#0a0a0a",
+          skipIntro:       false,
+        }}
+      />
+      <Composition
+        id="HeroStatBars"
+        component={HeroStatBars}
+        schema={HeroStatBarsPropsSchema}
         durationInFrames={270}
         fps={30}
         width={1920}
@@ -125,13 +152,14 @@ export const Root: React.FC = () => {
             { label: "Shots", valueA: 14, valueB: 9, suffix: "" },
           ],
           bgColor: "#f0ece4",
+          sideImage: "",
           skipIntro: false,
         }}
       />
       <Composition
-        id="IntrcptFormRun"
-        component={IntrcptFormRun}
-        schema={IntrcptFormRunPropsSchema}
+        id="HeroFormRun"
+        component={HeroFormRun}
+        schema={HeroFormRunPropsSchema}
         durationInFrames={270}
         fps={30}
         width={1920}
@@ -144,13 +172,15 @@ export const Root: React.FC = () => {
             { result: "W", opponent: "Arsenal", score: "4-0" }
           ],
           bgColor: "#f0ece4",
+          sideImage: "",
+          darkMode: false,
           skipIntro: false,
         }}
       />
       <Composition
-        id="IntrcptTactical"
-        component={IntrcptTactical}
-        schema={IntrcptTacticalPropsSchema}
+        id="HeroTactical"
+        component={HeroTactical}
+        schema={HeroTacticalPropsSchema}
         durationInFrames={420}
         fps={30}
         width={1920}
@@ -197,13 +227,14 @@ export const Root: React.FC = () => {
           accentColor: "#C8102E",
           textColor: "#f5f0e8",
           bgColor: "#141414",
+          playerImage: "",
           skipIntro: false,
         }}
       />
       <Composition
-        id="IntrcptLeagueGraph"
-        component={IntrcptLeagueGraph}
-        schema={IntrcptLeagueGraphPropsSchema}
+        id="HeroLeagueGraph"
+        component={HeroLeagueGraph}
+        schema={HeroLeagueGraphPropsSchema}
         durationInFrames={300}
         fps={30}
         width={1920}
@@ -216,6 +247,7 @@ export const Root: React.FC = () => {
           maxPosition: 6,
           bgColor:     "",
           accentColor: "",
+          entityImage: "",
           skipIntro: false,
           teamA: {
             name:      "Liverpool",
@@ -242,25 +274,26 @@ export const Root: React.FC = () => {
         }}
       />
       <Composition
-        id="IntrcptTransferRecord"
-        component={IntrcptTransferRecord}
-        schema={IntrcptTransferRecordPropsSchema}
+        id="HeroTransferRecord"
+        component={HeroTransferRecord}
+        schema={HeroTransferRecordPropsSchema}
         durationInFrames={300}
         fps={30}
         width={1920}
         height={1080}
-        defaultProps={DEFAULT_INTRCPT_TRANSFER_RECORD}
+        defaultProps={DEFAULT_HERO_TRANSFER_RECORD}
       />
       <Composition
-        id="IntrcptChapterWord"
-        component={IntrcptChapterWord}
-        schema={IntrcptChapterWordPropsSchema}
+        id="HeroChapterWord"
+        component={HeroChapterWord}
+        schema={HeroChapterWordPropsSchema}
         durationInFrames={180}
         fps={30}
         width={1920}
         height={1080}
         defaultProps={{
           word: "aesthetics.",
+          chapterLabel: "",
           player1Image: "suarez.jpg",
           player2Image: "aguero.png",
           blob1Color: "#7C5CBF",
@@ -270,9 +303,9 @@ export const Root: React.FC = () => {
         }}
       />
       <Composition
-        id="IntrcptClipCompare"
-        component={IntrcptClipCompare}
-        schema={IntrcptClipComparePropsSchema}
+        id="HeroClipCompare"
+        component={HeroClipCompare}
+        schema={HeroClipComparePropsSchema}
         durationInFrames={210}
         fps={30}
         width={1920}
@@ -291,9 +324,9 @@ export const Root: React.FC = () => {
         }}
       />
       <Composition
-        id="IntrcptClipSingle"
-        component={IntrcptClipSingle}
-        schema={IntrcptClipSinglePropsSchema}
+        id="HeroClipSingle"
+        component={HeroClipSingle}
+        schema={HeroClipSinglePropsSchema}
         durationInFrames={270}
         fps={30}
         width={1920}
@@ -307,6 +340,8 @@ export const Root: React.FC = () => {
           title:   "",
           bgColor: "#f0ece4",
           soundOn: false,
+          playerImage: "",
+          skipIntro: false,
         }}
       />
       <Composition
@@ -339,12 +374,14 @@ export const Root: React.FC = () => {
             { label: "Progressive\nPasses",    value: 6.8,  percentile: 82, unit: "", highlight: false },
             { label: "Touches in\nPenalty Box",value: 7.1,  percentile: 85, unit: "", highlight: false },
           ],
+          sideImage: "",
+          skipIntro: false,
         }}
       />
       <Composition
-        id="IntrcptScatterPlot"
-        component={IntrcptScatterPlot}
-        schema={IntrcptScatterPlotPropsSchema}
+        id="HeroScatterPlot"
+        component={HeroScatterPlot}
+        schema={HeroScatterPlotPropsSchema}
         durationInFrames={270}
         fps={30}
         width={1920}
@@ -358,7 +395,8 @@ export const Root: React.FC = () => {
           q4Label: "robotic",
           showWizardArrow: true,
           players: [{ name: "Player A", image: "suarez.jpg", ringColor: "#C8102E", x: 72, y: 75 }],
-          bgColor: "#111111"
+          bgColor: "#111111",
+          skipIntro: false,
         }}
       />
       <Composition
@@ -371,10 +409,11 @@ export const Root: React.FC = () => {
         height={1080}
         defaultProps={{
           bgColor: "#f0ece4",
+          skipIntro: false,
           players: [
-            { name: "Sergio Agüero",    image: "aguero.jpg",  nationality: "Argentina",    clubColor: "#6CABDD" },
-            { name: "Wayne Rooney",     image: "rooney.jpg",  nationality: "England",      clubColor: "#DA291C" },
-            { name: "Luis Suárez",      image: "suarez.jpg",  nationality: "Uruguay",      clubColor: "#C8102E" },
+            { name: "Sergio Agüero",    image: "aguero.jpg",  nationality: "Argentina",    clubColor: "#6CABDD", badgeSlug: "manchester-city.svg" },
+            { name: "Wayne Rooney",     image: "rooney.jpg",  nationality: "England",      clubColor: "#DA291C", badgeSlug: "manchester-united.svg" },
+            { name: "Luis Suárez",      image: "suarez.jpg",  nationality: "Uruguay",      clubColor: "#C8102E", badgeSlug: "liverpool.svg" },
           ],
         }}
       />
@@ -390,12 +429,14 @@ export const Root: React.FC = () => {
           title:    "the contenders",
           subtitle: "2013–14 Premier League Golden Boot race",
           bgColor:  "#f0ece4",
+          skipIntro: false,
           players: [
             {
               name:      "Sergio Agüero",
               image:     "aguero.jpg",
               club:      "Manchester City",
               clubColor: "#6CABDD",
+              badgeSlug: "manchester-city.svg",
               stat:      "17",
               statLabel: "goals",
             },
@@ -404,6 +445,7 @@ export const Root: React.FC = () => {
               image:     "rooney.jpg",
               club:      "Manchester United",
               clubColor: "#DA291C",
+              badgeSlug: "manchester-united.svg",
               stat:      "17",
               statLabel: "goals",
             },
@@ -412,6 +454,7 @@ export const Root: React.FC = () => {
               image:     "suarez.jpg",
               club:      "Liverpool",
               clubColor: "#C8102E",
+              badgeSlug: "liverpool.svg",
               stat:      "31",
               statLabel: "goals",
             },
@@ -446,7 +489,8 @@ export const Root: React.FC = () => {
             { pos: 4, name: "Arsenal",             badgeSlug: "arsenal.svg",            color: "#EF0107", p: 38, w: 24, d: 7,  l: 7,  gd: 27,  pts: 79 },
             { pos: 5, name: "Everton",             badgeSlug: "everton.svg",            color: "#003399", p: 38, w: 21, d: 9,  l: 8,  gd: 28,  pts: 72 },
             { pos: 6, name: "Tottenham Hotspur",   badgeSlug: "tottenham.png",          color: "#132257", p: 38, w: 21, d: 6,  l: 11, gd: 17,  pts: 69 },
-          ]
+          ],
+          skipIntro: false,
         }}
       />
       <Composition
@@ -461,7 +505,9 @@ export const Root: React.FC = () => {
           season: "2013–14",
           competition: "Premier League",
           statLabel: "Goals",
+          statKey: "goals",
           bgColor: "#f0ece4",
+          skipIntro: false,
           players: [
             { pos: 1, name: "Luis Suárez",       club: "Liverpool",         badgeSlug: "liverpool.svg",       clubColor: "#C8102E", goals: 31, assists: 12, apps: 33 },
             { pos: 2, name: "Daniel Sturridge",   club: "Liverpool",         badgeSlug: "liverpool.svg",       clubColor: "#C8102E", goals: 21, assists: 5,  apps: 29 },
@@ -491,10 +537,11 @@ export const Root: React.FC = () => {
           bgColor:         "#f0ece4",
           stats: [
             { label: "Goals",       value: 31, sub: "in 33 appearances" },
-            { label: "Assists",     value: 12 },
-            { label: "Apps",        value: 33 },
-            { label: "Mins / Goal", value: 90 },
-          ]
+            { label: "Assists",     value: 12, sub: "" },
+            { label: "Apps",        value: 33, sub: "" },
+            { label: "Mins / Goal", value: 90, sub: "" },
+          ],
+          skipIntro: false,
         }}
       />
       <Composition
@@ -525,7 +572,9 @@ export const Root: React.FC = () => {
             { name: "Suárez",   minute: "37", team: "home" },
             { name: "Suárez",   minute: "43", team: "home" },
             { name: "Giroud",   minute: "9",  team: "away" },
-          ]
+          ],
+          playerImage: "",
+          skipIntro: false,
         }}
       />
       <Composition
@@ -549,6 +598,7 @@ export const Root: React.FC = () => {
             { label: "Shots",         valueA: 148, valueB: 115 },
             { label: "Dribbles",      valueA: 38, valueB: 97 },
           ],
+          skipIntro: false,
         }}
       />
       <Composition
@@ -583,7 +633,9 @@ export const Root: React.FC = () => {
             { name: "Sturridge", number: 15, x: 75, y: 76, positionLabel: "RW", isCaptain: false, appearFrame: 185 },
             { name: "Suárez",    number: 7,  x: 50, y: 82, positionLabel: "ST", isCaptain: false, appearFrame: 200 },
             { name: "Sterling",  number: 31, x: 25, y: 76, positionLabel: "LW", isCaptain: false, appearFrame: 215 },
-          ]
+          ],
+          managerImageSlug: "",
+          skipIntro: false,
         }}
       />
       <Composition
@@ -600,6 +652,15 @@ export const Root: React.FC = () => {
           byline:         "Luis Suárez · 2013–14",
           highlightColor: "#f5d020",
           bgColor:        "#f0ece4",
+          publication:    "",
+          author:         "",
+          date:           "",
+          edition:        "",
+          lede:           "",
+          imageSrc:       "",
+          imageCaption:   "",
+          accentColor:    "#C8102E",
+          skipIntro:      false,
         }}
       />
 
@@ -653,6 +714,7 @@ export const Root: React.FC = () => {
             { x: 15, y: 55, label: "The Kop",       direction: "right", color: "#C8102E" },
             { x: 82, y: 55, label: "Anfield Road",  direction: "left",  color: "#ffffff" },
           ],
+          skipIntro: false,
         }}
       />
       <Composition
@@ -671,12 +733,13 @@ export const Root: React.FC = () => {
           bgColor:     "#f0ece4",
           darkMode:    false,
           events: [
-            { year: "1992", title: "Premier League founded",    description: "22 clubs breakaway from the Football League.",         highlight: true  },
-            { year: "1995", title: "Bosman ruling",             description: "Freedom of movement transforms the transfer market.",  highlight: false },
-            { year: "2003", title: "Roman Abramovich",          description: "Chelsea's transformation begins.",                     highlight: false },
-            { year: "2012", title: "Financial Fair Play",       description: "UEFA introduces new spending regulations.",           highlight: false },
-            { year: "2017", title: "£5bn TV deal",              description: "Record broadcast rights reshape the game.",           highlight: true  },
+            { year: "1992", title: "Premier League founded",    description: "22 clubs breakaway from the Football League.",         highlight: true,  color: "#3D0099" },
+            { year: "1995", title: "Bosman ruling",             description: "Freedom of movement transforms the transfer market.",  highlight: false, color: "#3D0099" },
+            { year: "2003", title: "Roman Abramovich",          description: "Chelsea's transformation begins.",                     highlight: false, color: "#3D0099" },
+            { year: "2012", title: "Financial Fair Play",       description: "UEFA introduces new spending regulations.",           highlight: false, color: "#3D0099" },
+            { year: "2017", title: "£5bn TV deal",              description: "Record broadcast rights reshape the game.",           highlight: true,  color: "#3D0099" },
           ],
+          skipIntro: false,
         }}
       />
 
@@ -697,17 +760,19 @@ export const Root: React.FC = () => {
           bgColor:     "#f0ece4",
           darkMode:    false,
           items: [
-            { name: "Alan Shearer",      detail: "1994/95 · Blackburn",      value: "34 goals" },
-            { name: "Andrew Cole",       detail: "1993/94 · Newcastle",      value: "34 goals" },
-            { name: "Erling Haaland",    detail: "2022/23 · Man City",       value: "36 goals" },
-            { name: "Mohamed Salah",     detail: "2017/18 · Liverpool",      value: "32 goals" },
-            { name: "Luis Suárez",       detail: "2013/14 · Liverpool",      value: "31 goals" },
-            { name: "Cristiano Ronaldo", detail: "2007/08 · Man Utd",        value: "31 goals" },
-            { name: "Alan Shearer",      detail: "1995/96 · Newcastle",      value: "31 goals" },
-            { name: "Kevin Phillips",    detail: "1999/00 · Sunderland",     value: "30 goals" },
-            { name: "Harry Kane",        detail: "2016/17 · Spurs",          value: "29 goals" },
-            { name: "Thierry Henry",     detail: "2004/05 · Arsenal",        value: "25 goals" },
+            { name: "Alan Shearer",      detail: "1994/95 · Blackburn",      value: "34 goals", color: "#C8102E" },
+            { name: "Andrew Cole",       detail: "1993/94 · Newcastle",      value: "34 goals", color: "#C8102E" },
+            { name: "Erling Haaland",    detail: "2022/23 · Man City",       value: "36 goals", color: "#C8102E" },
+            { name: "Mohamed Salah",     detail: "2017/18 · Liverpool",      value: "32 goals", color: "#C8102E" },
+            { name: "Luis Suárez",       detail: "2013/14 · Liverpool",      value: "31 goals", color: "#C8102E" },
+            { name: "Cristiano Ronaldo", detail: "2007/08 · Man Utd",        value: "31 goals", color: "#C8102E" },
+            { name: "Alan Shearer",      detail: "1995/96 · Newcastle",      value: "31 goals", color: "#C8102E" },
+            { name: "Kevin Phillips",    detail: "1999/00 · Sunderland",     value: "30 goals", color: "#C8102E" },
+            { name: "Harry Kane",        detail: "2016/17 · Spurs",          value: "29 goals", color: "#C8102E" },
+            { name: "Thierry Henry",     detail: "2004/05 · Arsenal",        value: "25 goals", color: "#C8102E" },
           ],
+          teamColor: "#C8102E",
+          skipIntro: false,
         }}
       />
       <Composition
@@ -728,17 +793,18 @@ export const Root: React.FC = () => {
           showArea:    true,
           dwellFrames: 55,
           dataPoints: [
-            { label: "07/08", value: 23  },
-            { label: "08/09", value: 28  },
+            { label: "07/08", value: 23, annotation: "" },
+            { label: "08/09", value: 28, annotation: "" },
             { label: "09/10", value: 35, annotation: "Ajax peak" },
-            { label: "10/11", value: 49  },
-            { label: "11/12", value: 17  },
-            { label: "12/13", value: 23  },
+            { label: "10/11", value: 49, annotation: "" },
+            { label: "11/12", value: 17, annotation: "" },
+            { label: "12/13", value: 23, annotation: "" },
             { label: "13/14", value: 31, annotation: "Golden Boot" },
-            { label: "14/15", value: 25  },
+            { label: "14/15", value: 25, annotation: "" },
             { label: "15/16", value: 59, annotation: "All-time record" },
-            { label: "16/17", value: 37  },
+            { label: "16/17", value: 37, annotation: "" },
           ],
+          skipIntro: false,
         }}
       />
 
@@ -775,6 +841,11 @@ export const Root: React.FC = () => {
             { label: "Free kicks",  value: "9",   detail: "set-piece specialist",   bar: 82 },
             { label: "Flair",       value: "99",  detail: "samba in the box",       bar: 99 },
           ],
+          competition: "",
+          dateline:    "",
+          badgeSlug:   "",
+          portraitSrc: "",
+          skipIntro:   false,
         }}
       />
       <Composition
@@ -796,20 +867,21 @@ export const Root: React.FC = () => {
           bgColor:     "#f0ece4",
           darkMode:    false,
           dataPoints: [
-            { label: "Sign",    value: 1.8  },
-            { label: "2017/18", value: 3.5  },
-            { label: "2018/19", value: 8.0  },
+            { label: "Sign",    value: 1.8,  annotation: "" },
+            { label: "2017/18", value: 3.5,  annotation: "" },
+            { label: "2018/19", value: 8.0,  annotation: "" },
             { label: "2019/20", value: 18.0, annotation: "25 Championship goals" },
-            { label: "Sale",    value: 28.0 },
+            { label: "Sale",    value: 28.0, annotation: "" },
           ],
+          skipIntro: false,
         }}
       />
 
-      {/* ── IntrcptTransferProfit ─────────────────────────────────────────── */}
+      {/* ── HeroTransferProfit ─────────────────────────────────────────── */}
       <Composition
-        id="IntrcptTransferProfit"
-        component={IntrcptTransferProfit}
-        schema={IntrcptTransferProfitPropsSchema}
+        id="HeroTransferProfit"
+        component={HeroTransferProfit}
+        schema={HeroTransferProfitPropsSchema}
         calculateMetadata={transferProfitV2CalculateMetadata}
         durationInFrames={900}
         fps={30}
@@ -830,14 +902,16 @@ export const Root: React.FC = () => {
             { year: "2021", player: "Bryan Mbeumo",    fromClub: "Troyes",        toClub: "Man Utd",      buyFee: "£1.5m", buyValue: 1.5, sellFee: "£85m",  sellValue: 85,  highlight: true,  sideImage: "mbeumo.jpg"   },
             { year: "2020", player: "Ivan Toney",      fromClub: "Peterborough",  toClub: "Nottm Forest", buyFee: "£5m",   buyValue: 5,   sellFee: "£40m",  sellValue: 40,  highlight: true,  sideImage: "toney.jpg"    },
           ],
+          sideImage: "",
+          skipIntro: false,
         }}
       />
 
-      {/* ── IntrcptPlayerRevealTrio — full-height player images, no text ─────── */}
+      {/* ── HeroPlayerRevealTrio — full-height player images, no text ─────── */}
       <Composition
-        id="IntrcptPlayerRevealTrio"
-        component={IntrcptPlayerRevealTrio}
-        schema={IntrcptPlayerRevealTrioPropsSchema}
+        id="HeroPlayerRevealTrio"
+        component={HeroPlayerRevealTrio}
+        schema={HeroPlayerRevealTrioPropsSchema}
         calculateMetadata={playerRevealTrioCalculateMetadata}
         durationInFrames={162}
         fps={30}
@@ -850,8 +924,10 @@ export const Root: React.FC = () => {
             { src: "suarez.png", zIndex: 2 },  // right-facing
           ],
           bgColor:      "#f0ece4",
+          darkMode:     false,
           stagger:      20,
           holdDuration: 90,
+          skipIntro:    false,
         }}
       />
 
@@ -874,9 +950,10 @@ export const Root: React.FC = () => {
           scenes: [
             // ── Scene 1 — intro title ──────────────────────────────────────
             {
-              compositionId:   "IntrcptIntro",
+              compositionId:   "HeroIntro",
               durationInFrames: 240,
               transition:       "push",
+              accentColor:      "",
               props: {
                 subtitle: "the greatest league season ever told",
                 bgColor:  "#f0ece4",
@@ -887,6 +964,7 @@ export const Root: React.FC = () => {
               compositionId:   "AttackingRadar",
               durationInFrames: 540,
               transition:       "letterbox",
+              accentColor:      "",
               props: {
                 entityName:     "Florian Wirtz",
                 competition:    "Premier League",
@@ -916,6 +994,7 @@ export const Root: React.FC = () => {
               compositionId:   "PremierLeagueTable",
               durationInFrames: 270,
               transition:       "flash",
+              accentColor:      "",
               props: {
                 season:  "2013–14",
                 bgColor: "#f0ece4",
@@ -929,9 +1008,10 @@ export const Root: React.FC = () => {
             },
             // ── Scene 6 — chapter word ─────────────────────────────────────
             {
-              compositionId:   "IntrcptChapterWord",
+              compositionId:   "HeroChapterWord",
               durationInFrames: 180,
               transition:       "grain",
+              accentColor:      "",
               props: {
                 word:        "aesthetics.",
                 player1Image: "suarez.jpg",
@@ -946,6 +1026,7 @@ export const Root: React.FC = () => {
               compositionId:   "TopScorersTable",
               durationInFrames: 270,
               transition:       "none",
+              accentColor:      "",
               props: {
                 season:      "2013–14",
                 competition: "Premier League",
@@ -962,11 +1043,11 @@ export const Root: React.FC = () => {
         }}
       />
 
-      {/* ── IntrcptShotMap — xG shot location map ────────────────────────── */}
+      {/* ── HeroShotMap — xG shot location map ────────────────────────── */}
       <Composition
-        id="IntrcptShotMap"
-        component={IntrcptShotMap}
-        schema={IntrcptShotMapPropsSchema}
+        id="HeroShotMap"
+        component={HeroShotMap}
+        schema={HeroShotMapPropsSchema}
         durationInFrames={240}
         fps={30}
         width={1920}
@@ -987,14 +1068,18 @@ export const Root: React.FC = () => {
             { x: 38, y: 10, xg: 0.61, goal: false, saved: true,  minute: 81, label: "" },
             { x: 52, y: 6,  xg: 0.88, goal: true,  saved: false, minute: 90, label: "" },
           ],
+          playerImage: "",
+          totalXg:     0,
+          totalGoals:  0,
+          skipIntro:   false,
         }}
       />
 
-      {/* ── IntrcptBigStat — single large stat with player image ────────── */}
+      {/* ── HeroBigStat — single large stat with player image ────────── */}
       <Composition
-        id="IntrcptBigStat"
-        component={IntrcptBigStat}
-        schema={IntrcptBigStatPropsSchema}
+        id="HeroBigStat"
+        component={HeroBigStat}
+        schema={HeroBigStatPropsSchema}
         durationInFrames={240}
         fps={30}
         width={1920}
@@ -1022,11 +1107,11 @@ export const Root: React.FC = () => {
         }}
       />
 
-      {/* ── IntrcptAwardsList — year-by-year award podium ────────────────── */}
+      {/* ── HeroAwardsList — year-by-year award podium ────────────────── */}
       <Composition
-        id="IntrcptAwardsList"
-        component={IntrcptAwardsList}
-        schema={IntrcptAwardsListPropsSchema}
+        id="HeroAwardsList"
+        component={HeroAwardsList}
+        schema={HeroAwardsListPropsSchema}
         durationInFrames={240}
         fps={30}
         width={1920}
@@ -1047,14 +1132,21 @@ export const Root: React.FC = () => {
             { year: "2014", winner: "Cristiano Ronaldo", entity: "Lionel Messi", position: 3, detail: "Real Madrid" },
             { year: "2015", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
           ],
+          subjectImage: "",
+          entityImage:  "",
+          awardImage:   "",
+          clubColor:    "",
+          dateline:     "",
+          source:       "",
+          skipIntro:    false,
         }}
       />
 
-      {/* ── IntrcptComparisonRadar — dual player radar overlay ───────────── */}
+      {/* ── HeroComparisonRadar — dual player radar overlay ───────────── */}
       <Composition
-        id="IntrcptComparisonRadar"
-        component={IntrcptComparisonRadar}
-        schema={IntrcptComparisonRadarPropsSchema}
+        id="HeroComparisonRadar"
+        component={HeroComparisonRadar}
+        schema={HeroComparisonRadarPropsSchema}
         durationInFrames={300}
         fps={30}
         width={1920}
@@ -1078,14 +1170,17 @@ export const Root: React.FC = () => {
             { label: "Chances\nCreated", percentileA: 94, percentileB: 72, valueA: 0, valueB: 0,   unit: "" },
             { label: "Aerial\nWins",  percentileA: 32, percentileB: 88, valueA: 0,    valueB: 0,    unit: "" },
           ],
+          imageA:    "",
+          imageB:    "",
+          skipIntro: false,
         }}
       />
 
-      {/* ── IntrcptNewsFeed — rolling news headlines with world-pan ─────── */}
+      {/* ── HeroNewsFeed — rolling news headlines with world-pan ─────── */}
       <Composition
-        id="IntrcptNewsFeed"
-        component={IntrcptNewsFeed}
-        schema={IntrcptNewsFeedPropsSchema}
+        id="HeroNewsFeed"
+        component={HeroNewsFeed}
+        schema={HeroNewsFeedPropsSchema}
         calculateMetadata={calcNewsFeed}
         fps={30}
         width={1920}
@@ -1105,11 +1200,11 @@ export const Root: React.FC = () => {
         }}
       />
 
-      {/* ── IntrcptSeasonTimeline — red-grain opening sequence ──────────── */}
+      {/* ── HeroSeasonTimeline — red-grain opening sequence ──────────── */}
       <Composition
-        id="IntrcptSeasonTimeline"
-        component={IntrcptSeasonTimeline}
-        schema={IntrcptSeasonTimelinePropsSchema}
+        id="HeroSeasonTimeline"
+        component={HeroSeasonTimeline}
+        schema={HeroSeasonTimelinePropsSchema}
         durationInFrames={300}
         fps={30}
         width={1920}
@@ -1144,6 +1239,8 @@ export const Root: React.FC = () => {
         height={1080}
         defaultProps={{
           focusTeam: "Brazil",
+          title:    "",
+          subtitle: "",
           accentColor: "#1E8A5A",
           highlightLineColor: "#D62828",
           bgColor: "#f0ece4",
@@ -1216,14 +1313,15 @@ export const Root: React.FC = () => {
           gradientAngle:     135,
           showWatermark:     true,
           watermarkPosition: "bottom-right" as const,
+          skipIntro:         false,
         }}
       />
 
-      {/* ── Track E — IntrcptQuote (was missing from registry) ── */}
+      {/* ── Track E — HeroQuote (was missing from registry) ── */}
       <Composition
-        id="IntrcptQuote"
-        component={IntrcptQuote}
-        schema={IntrcptQuotePropsSchema}
+        id="HeroQuote"
+        component={HeroQuote}
+        schema={HeroQuotePropsSchema}
         durationInFrames={150}
         fps={30}
         width={1920}

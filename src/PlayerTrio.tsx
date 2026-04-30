@@ -6,7 +6,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, TRIO_PORTRAIT_MASK, WorldStateSchema} from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, TRIO_PORTRAIT_MASK, WorldStateSchema, ContextChip } from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -23,7 +23,7 @@ const PlayerSlotSchema = z.object({
 export const PlayerTrioPropsSchema = z.object({
   title:    z.string().optional().default("the contenders"),
   subtitle: z.string().optional().default(""),
-  players:  z.tuple([PlayerSlotSchema, PlayerSlotSchema, PlayerSlotSchema]),
+  players:  z.array(PlayerSlotSchema).length(3),
   bgColor:    z.string().optional().default("#f0ece4"),
   skipIntro:  z.boolean().optional().default(false),
   worldState: WorldStateSchema.optional(),
@@ -210,16 +210,8 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
 
                 {/* Club */}
                 {player.club && (
-                  <div style={{
-                    fontFamily,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    letterSpacing: 2.5,
-                    color: COLORS.muted,
-                    textTransform: "uppercase" as const,
-                    marginBottom: player.stat ? 10 : 0,
-                  }}>
-                    {player.club}
+                  <div style={{ marginBottom: player.stat ? 10 : 0 }}>
+                    <ContextChip label={player.club} color={COLORS.muted} size={13} />
                   </div>
                 )}
 

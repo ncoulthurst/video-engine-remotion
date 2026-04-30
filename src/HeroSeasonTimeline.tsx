@@ -1,15 +1,15 @@
 /**
- * IntrcptSeasonTimeline — Opening-sequence template.
+ * HeroSeasonTimeline — Opening-sequence template.
  *
  * Cinematic zoom-out cold open: starts hyper-zoomed into red grain, pulls back
  * to reveal B&W portrait (left) + scrolling season timeline (right).
  *
- * Portrait masking: identical technique to IntrcptPlayerRevealTrio —
+ * Portrait masking: identical technique to HeroPlayerRevealTrio —
  *   WebkitMaskImage + bottom/top vignette divs inside the container.
  *   No background-colour overlay on the container itself.
  *
  * Tag:
- *   [INTRCPT SEASON TIMELINE: Subject | img:file.png | 22/23:8th, 23/24:2nd, 25/26:1st(PL,FA) | headline:word?]
+ *   [HERO SEASON TIMELINE: Subject | img:file.png | 22/23:8th, 23/24:2nd, 25/26:1st(PL,FA) | headline:word?]
  */
 
 import React from "react";
@@ -32,7 +32,7 @@ const SeasonEntrySchema = z.object({
   trophies:      z.array(z.string()).optional(),    // ["PL","FA"]
 });
 
-export const IntrcptSeasonTimelinePropsSchema = z.object({
+export const HeroSeasonTimelinePropsSchema = z.object({
   subjectName:   z.string().optional(),
   subjectImage:  z.string().optional(),    // portrait filename in public/
   seasons:       z.array(SeasonEntrySchema),
@@ -53,7 +53,7 @@ export const IntrcptSeasonTimelinePropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
 });
 
-export type IntrcptSeasonTimelineProps = z.infer<typeof IntrcptSeasonTimelinePropsSchema>;
+export type HeroSeasonTimelineProps = z.infer<typeof HeroSeasonTimelinePropsSchema>;
 
 // ── Design constants ───────────────────────────────────────────────────────────
 
@@ -153,7 +153,7 @@ const TrophyMini: React.FC<{ label: string }> = ({ label }) => (
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export const IntrcptSeasonTimeline: React.FC<IntrcptSeasonTimelineProps> = ({
+export const HeroSeasonTimeline: React.FC<HeroSeasonTimelineProps> = ({
   subjectName,
   subjectImage,
   seasons = [],
@@ -242,7 +242,7 @@ export const IntrcptSeasonTimeline: React.FC<IntrcptSeasonTimelineProps> = ({
         {/* Solid colour base that zooms with the content */}
         <AbsoluteFill style={{ background: bgColor }} />
 
-        {/* ── Portrait (IntrcptPlayerRevealTrio masking method) ── */}
+        {/* ── Portrait (HeroPlayerRevealTrio masking method) ── */}
         {subjectImage && (
           <div style={{
             position:        "absolute",
@@ -250,7 +250,7 @@ export const IntrcptSeasonTimeline: React.FC<IntrcptSeasonTimelineProps> = ({
             top:             0,
             width:           PORTRAIT_W,
             height:          H,
-            opacity:         portraitOp * 0.88,   // max 0.88 — same as IntrcptPlayerRevealTrio
+            opacity:         portraitOp * 0.88,   // max 0.88 — same as HeroPlayerRevealTrio
             WebkitMaskImage: PORTRAIT_MASK,
             maskImage:       PORTRAIT_MASK,
             zIndex:          2,

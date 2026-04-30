@@ -1,5 +1,5 @@
 /**
- * IntrcptBigStat — Editorial hero-stat reveal.
+ * HeroBigStat — Editorial hero-stat reveal.
  *
  * Broadcast/newsprint aesthetic: folio dateline top-left, massive serif hero
  * number left-anchored with inline italic unit, a single accent rule as the
@@ -34,6 +34,8 @@ import {
   COLORS,
   SmartImg,
   WorldStateSchema,
+  ContextChip,
+  BadgeTreatment,
 } from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
@@ -47,7 +49,7 @@ const ComparatorSchema = z.object({
   rank:  z.number().optional(),
 });
 
-export const IntrcptBigStatPropsSchema = z.object({
+export const HeroBigStatPropsSchema = z.object({
   stat:        z.string().optional().default("31"),
   unit:        z.string().optional().default("goals"),
   label:       z.string().optional().default("in a single Premier League season."),
@@ -70,7 +72,7 @@ export const IntrcptBigStatPropsSchema = z.object({
   comparator:  ComparatorSchema.optional(),
   worldState:  WorldStateSchema,
 });
-export type IntrcptBigStatProps = z.infer<typeof IntrcptBigStatPropsSchema>;
+export type HeroBigStatProps = z.infer<typeof HeroBigStatPropsSchema>;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -133,7 +135,7 @@ function parseFolio(ctx: string): string[] {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const IntrcptBigStat: React.FC<IntrcptBigStatProps> = ({
+export const HeroBigStat: React.FC<HeroBigStatProps> = ({
   stat,
   unit,
   label,
@@ -308,17 +310,7 @@ export const IntrcptBigStat: React.FC<IntrcptBigStatProps> = ({
               }} />
               {/* Dateline — small caps, supporting */}
               {dateline && (
-                <div style={{
-                  fontFamily,
-                  fontSize:      12,
-                  fontWeight:    700,
-                  letterSpacing: 3.5,
-                  textTransform: "uppercase" as const,
-                  color:         mutedColor,
-                  lineHeight:    1,
-                }}>
-                  {dateline}
-                </div>
+                <ContextChip label={dateline} color={mutedColor} size={12} />
               )}
             </div>
           );
@@ -330,20 +322,10 @@ export const IntrcptBigStat: React.FC<IntrcptBigStatProps> = ({
             position:  "absolute",
             right:     contentRight,
             top:       180,
-            width:     140,
-            height:    140,
             opacity:   interpolate(datelineProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" }),
             transform: `translateY(${interpolate(datelineProg, [0, 1], [8, 0], { extrapolateRight: "clamp" })}px)`,
           }}>
-            <SmartImg
-              src={`badges/${badgeSlug}`}
-              style={{
-                width:     "100%",
-                height:    "100%",
-                objectFit: "contain",
-                display:   "block",
-              }}
-            />
+            <BadgeTreatment src={`badges/${badgeSlug}`} size={140} />
           </div>
         )}
 
@@ -487,15 +469,9 @@ export const IntrcptBigStat: React.FC<IntrcptBigStatProps> = ({
             position:      "absolute",
             right:         contentRight,
             bottom:        80,
-            fontFamily,
-            fontSize:      12,
-            fontWeight:    700,
-            letterSpacing: 3.5,
-            textTransform: "uppercase" as const,
-            color:         mutedColor,
             opacity:       interpolate(sourceProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" }),
           }}>
-            {source}
+            <ContextChip label={source} color={mutedColor} size={12} />
           </div>
         )}
       </div>

@@ -1,5 +1,5 @@
 /**
- * IntrcptDualPanel — Two parallel events on a shared canvas.
+ * HeroDualPanel — Two parallel events on a shared canvas.
  *
  * The "same container" principle made explicit: two panels share one spatial world,
  * divided by a single vertical seam. Each panel has its own context chip
@@ -8,7 +8,7 @@
  * Primary use: "Meanwhile..." | "By contrast..." | "Same day, different worlds"
  * e.g. show Trump in a diplomatic meeting (left) and on a golf course (right).
  *
- * Tag: [INTRCPT DUAL PANEL: Left Label | Right Label | leftTitle | rightTitle]
+ * Tag: [HERO DUAL PANEL: Left Label | Right Label | leftTitle | rightTitle]
  *
  * Animation model:
  *  - Divider draws top→bottom (spring, first)
@@ -38,7 +38,7 @@ import {
 // SCHEMA
 // ══════════════════════════════════════════════════════════════════════════════
 
-export const IntrcptDualPanelPropsSchema = z.object({
+export const HeroDualPanelPropsSchema = z.object({
   // Context chips — "/ LABEL" format, top-left of each panel
   leftLabel:       z.string().optional().default(""),
   rightLabel:      z.string().optional().default(""),
@@ -70,7 +70,7 @@ export const IntrcptDualPanelPropsSchema = z.object({
   skipIntro: z.boolean().optional().default(false),
 });
 
-export type IntrcptDualPanelProps = z.infer<typeof IntrcptDualPanelPropsSchema>;
+export type HeroDualPanelProps = z.infer<typeof HeroDualPanelPropsSchema>;
 
 // ══════════════════════════════════════════════════════════════════════════════
 // TIMING
@@ -250,7 +250,7 @@ const PanelContent: React.FC<PanelContentProps> = ({
 // MAIN COMPONENT
 // ══════════════════════════════════════════════════════════════════════════════
 
-export const IntrcptDualPanel: React.FC<IntrcptDualPanelProps> = ({
+export const HeroDualPanel: React.FC<HeroDualPanelProps> = ({
   leftLabel, rightLabel, leftChipColor, rightChipColor,
   leftImage, rightImage,
   leftTitle, rightTitle,

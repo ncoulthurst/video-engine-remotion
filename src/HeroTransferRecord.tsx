@@ -1,5 +1,5 @@
 /**
- * IntrcptTransferRecord — Transfer fee timeline as animated horizontal bars.
+ * HeroTransferRecord — Transfer fee timeline as animated horizontal bars.
  * Updated: Improved layering, soft gradient masking, and scaled layout.
  */
 import React from "react";
@@ -8,16 +8,16 @@ import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, WorldStateSchema} from "./shared";
 
 const TransferSchema = z.object({ year: z.string().optional().default(""), player: z.string().optional().default(""), fromClub: z.string().optional().default(""), toClub: z.string().optional().default(""), fee: z.string().optional().default(""), feeValue: z.number(), highlight: z.boolean().default(false) });
-export const IntrcptTransferRecordPropsSchema = z.object({
+export const HeroTransferRecordPropsSchema = z.object({
   title: z.string().optional().default("world record transfer fees"), subtitle: z.string().optional().default(""), sideImage: z.string().optional().default(""), accentColor: z.string().optional().default("#C9A84C"), transfers: z.array(TransferSchema).default([ { year: "2017", player: "Neymar", fromClub: "Barcelona", toClub: "PSG", fee: "£198m", feeValue: 198, highlight: true } ]), bgColor: z.string().optional().default("#f0ece4"),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptTransferRecordProps = z.infer<typeof IntrcptTransferRecordPropsSchema>;
+export type HeroTransferRecordProps = z.infer<typeof HeroTransferRecordPropsSchema>;
 
 const ROW_START = 18; const ROW_STAGGER = 10;
 
-export const IntrcptTransferRecord: React.FC<IntrcptTransferRecordProps> = ({ title, subtitle, sideImage, accentColor, transfers, bgColor, skipIntro = false }) => {
+export const HeroTransferRecord: React.FC<HeroTransferRecordProps> = ({ title, subtitle, sideImage, accentColor, transfers, bgColor, skipIntro = false }) => {
   const frame = useCurrentFrame(); const { fps } = useVideoConfig();
   const maxFee = Math.max(1, ...transfers.map(t => t.feeValue || 0));
   const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });

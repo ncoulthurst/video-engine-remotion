@@ -19,7 +19,7 @@ const PlayerSlotSchema = z.object({
 });
 
 export const TrioFeaturePropsSchema = z.object({
-  players: z.tuple([PlayerSlotSchema, PlayerSlotSchema, PlayerSlotSchema]),
+  players: z.array(PlayerSlotSchema).length(3),
   bgColor: z.string().optional().default("#f0ece4"),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),

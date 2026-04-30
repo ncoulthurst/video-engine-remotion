@@ -1,7 +1,7 @@
 /**
- * IntrcptContactSheet — Photograph on paper. One frame at a time.
+ * HeroContactSheet — Photograph on paper. One frame at a time.
  *
- * Brand-matched: #f0ece4 paper + Grain, same as IntrcptTransferProfit.
+ * Brand-matched: #f0ece4 paper + Grain, same as HeroTransferProfit.
  * Each print arrives with a weighted spring and a shadow that smacks the surface.
  * Between arrivals: Ken Burns keeps the image alive. Outgoing print gets picked
  * up and turned as it leaves. Nothing cuts. Everything breathes.
@@ -23,7 +23,7 @@ import { fontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema} from ".
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 
-export const IntrcptContactSheetPropsSchema = z.object({
+export const HeroContactSheetPropsSchema = z.object({
   images: z.array(z.object({
     src:     z.string(),
     caption: z.string().optional().default(""),
@@ -40,9 +40,9 @@ export const IntrcptContactSheetPropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptContactSheetProps = z.infer<typeof IntrcptContactSheetPropsSchema>;
+export type HeroContactSheetProps = z.infer<typeof HeroContactSheetPropsSchema>;
 
-export const calculateMetadata: CalculateMetadataFunction<IntrcptContactSheetProps> = async ({ props }) => ({
+export const calculateMetadata: CalculateMetadataFunction<HeroContactSheetProps> = async ({ props }) => ({
   durationInFrames: Math.max(1, props.images.length) * props.frameDuration,
 });
 
@@ -319,7 +319,7 @@ const PhotoPrint: React.FC<{
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export const IntrcptContactSheet: React.FC<IntrcptContactSheetProps> = ({
+export const HeroContactSheet: React.FC<HeroContactSheetProps> = ({
   images, frameDuration, bgColor, shutterAudio, shutterVolume,
 }) => {
   const frame          = useCurrentFrame();
@@ -341,7 +341,7 @@ export const IntrcptContactSheet: React.FC<IntrcptContactSheetProps> = ({
   return (
     <AbsoluteFill>
 
-      {/* Brand-matched background — identical stack to IntrcptTransferProfit */}
+      {/* Brand-matched background — identical stack to HeroTransferProfit */}
       <PaperBackground color={bgColor ?? "#f0ece4"} />
       <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
         <Grain />

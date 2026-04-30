@@ -1,5 +1,5 @@
 /**
- * IntrcptStatBars — Head-to-head animated stat comparison bars.
+ * HeroStatBars — Head-to-head animated stat comparison bars.
  * Updated: Improved layering, soft gradient masking, and scaled layout.
  */
 import React from "react";
@@ -15,7 +15,7 @@ const StatItemSchema = z.object({
   suffix:   z.string().optional().default(""),
 });
 
-export const IntrcptStatBarsPropsSchema = z.object({
+export const HeroStatBarsPropsSchema = z.object({
   title:     z.string().optional().default("head to head"),
   subtitle:  z.string().optional().default(""),
   sideImage: z.string().optional().default(""),
@@ -33,7 +33,7 @@ export const IntrcptStatBarsPropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
 });
 
-export type IntrcptStatBarsProps = z.infer<typeof IntrcptStatBarsPropsSchema>;
+export type HeroStatBarsProps = z.infer<typeof HeroStatBarsPropsSchema>;
 
 const ROW_START   = 20;
 const ROW_STAGGER = 10;
@@ -66,7 +66,7 @@ const StatRow: React.FC<{ stat: z.infer<typeof StatItemSchema>; colorA: string; 
   );
 };
 
-export const IntrcptStatBars: React.FC<IntrcptStatBarsProps> = ({ title, subtitle, sideImage, teamA, teamB, stats, bgColor, skipIntro = false }) => {
+export const HeroStatBars: React.FC<HeroStatBarsProps> = ({ title, subtitle, sideImage, teamA, teamB, stats, bgColor, skipIntro = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });

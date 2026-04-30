@@ -1,5 +1,5 @@
 /**
- * IntrcptIntro — Channel intro card.
+ * HeroIntro — Channel intro card.
  * Style: full-bleed warm paper, large bold serif channel name, light subtitle.
  * Animation: typewriter character-by-character reveal with blinking cursor.
  *
@@ -15,7 +15,7 @@ import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldSta
 const CHANNEL_NAME = "Frequency";
 const H = 720;
 
-export const IntrcptIntroPropsSchema = z.object({
+export const HeroIntroPropsSchema = z.object({
   subtitle:       z.string().optional().default("the science of football"),
   bgColor:        z.string().optional().default("#f0ece4"),
   sideImage:      z.string().optional(),
@@ -28,7 +28,7 @@ export const IntrcptIntroPropsSchema = z.object({
   skipIntro:      z.boolean().optional().default(false),
   worldState:     WorldStateSchema.optional(),
 });
-export type IntrcptIntroProps = z.infer<typeof IntrcptIntroPropsSchema>;
+export type HeroIntroProps = z.infer<typeof HeroIntroPropsSchema>;
 
 const TITLE_FPC         = 3;
 const SUB_FPC           = 2;
@@ -36,14 +36,14 @@ const TITLE_START       = 12;
 const PAUSE_AFTER_TITLE = 20;
 
 // ── Studio prop pusher ────────────────────────────────────────────────────────
-function pushStudioProps(updates: Partial<IntrcptIntroProps>) {
+function pushStudioProps(updates: Partial<HeroIntroProps>) {
   try {
     (import("remotion") as Promise<any>).then(({ Internals }) => {
       const store = Internals?.editorPropsProviderRef?.current;
       if (!store) return;
       store.setProps((prev: Record<string, Record<string, unknown>>) => ({
         ...prev,
-        IntrcptIntro: { ...(prev["IntrcptIntro"] ?? {}), ...updates },
+        HeroIntro: { ...(prev["HeroIntro"] ?? {}), ...updates },
       }));
       window.dispatchEvent(
         new CustomEvent(
@@ -125,7 +125,7 @@ function SideImageLayers({ src, cx, cy, scale, grabbing }: {
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export const IntrcptIntro: React.FC<IntrcptIntroProps> = ({
+export const HeroIntro: React.FC<HeroIntroProps> = ({
   subtitle,
   bgColor,
   sideImage,
@@ -220,9 +220,9 @@ export const IntrcptIntro: React.FC<IntrcptIntroProps> = ({
       )}
 
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, pointerEvents: "none" }}>
-        <div style={{ fontFamily: serifFontFamily, fontSize: 108, fontWeight: 900, color: "#1660FF", letterSpacing: -3, lineHeight: 1, minHeight: "1.1em" }}>
+        <div style={{ fontFamily: serifFontFamily, fontSize: 108, fontWeight: 900, color: "#0a0a0a", letterSpacing: -3, lineHeight: 1, minHeight: "1.1em" }}>
           {visibleTitle}
-          {titleCursorOn && <span style={{ display: "inline-block", width: "0.06em", backgroundColor: "#1660FF", marginLeft: "0.04em", verticalAlign: "middle", height: "0.88em", position: "relative", top: "-0.04em" }} />}
+          {titleCursorOn && <span style={{ display: "inline-block", width: "0.06em", backgroundColor: "#0a0a0a", marginLeft: "0.04em", verticalAlign: "middle", height: "0.88em", position: "relative", top: "-0.04em" }} />}
         </div>
         {titleDone && (
           <div style={{ fontFamily, fontSize: 20, fontWeight: 400, color: "#666", letterSpacing: 0.3, minHeight: "1.5em" }}>

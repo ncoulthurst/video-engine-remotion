@@ -1,5 +1,5 @@
 /**
- * IntrcptShotMap — xG-weighted shot location map on a half-pitch.
+ * HeroShotMap — xG-weighted shot location map on a half-pitch.
  *
  * Motion design:
  *  - Player name types on character by character
@@ -12,7 +12,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema } from "./shared";
+import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema, ContextChip } from "./shared";
 
 const ShotSchema = z.object({
   x:      z.number(),
@@ -24,7 +24,7 @@ const ShotSchema = z.object({
   label:  z.string().default(""),
 });
 
-export const IntrcptShotMapPropsSchema = z.object({
+export const HeroShotMapPropsSchema = z.object({
   playerName:   z.string().default("Luis Suárez"),
   competition:  z.string().default("Premier League 2013/14"),
   playerImage:  z.string().optional(),
@@ -37,7 +37,7 @@ export const IntrcptShotMapPropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptShotMapProps = z.infer<typeof IntrcptShotMapPropsSchema>;
+export type HeroShotMapProps = z.infer<typeof HeroShotMapPropsSchema>;
 
 // ── Pitch geometry ──────────────────────────────────────────────────────────
 const PW         = 1120;
@@ -78,7 +78,7 @@ const Typewriter: React.FC<{ text: string; startF: number; speed?: number; color
   );
 };
 
-export const IntrcptShotMap: React.FC<IntrcptShotMapProps> = ({
+export const HeroShotMap: React.FC<HeroShotMapProps> = ({
   playerName, competition, playerImage, totalXg, totalGoals,
   accentColor, bgColor, stagger, shots: shotsProp, skipIntro = false,
 }) => {
@@ -175,10 +175,11 @@ export const IntrcptShotMap: React.FC<IntrcptShotMapProps> = ({
 
           {/* "Shot Map" eyebrow — fades in immediately */}
           <div style={{
-            fontFamily, fontSize: 13, fontWeight: 700, textTransform: "uppercase",
-            letterSpacing: "0.18em", color: COLORS.muted, marginBottom: 10,
+            marginBottom: 10,
             opacity: interpolate(imageProg, [0, 0.5], [0, 1], { extrapolateRight: "clamp" }),
-          }}>Shot Map</div>
+          }}>
+            <ContextChip label="Shot Map" color={COLORS.muted} size={13} />
+          </div>
 
           {/* Player name — typewriter */}
           <div style={{
@@ -207,10 +208,11 @@ export const IntrcptShotMap: React.FC<IntrcptShotMapProps> = ({
         {/* ── Legend ──────────────────────────────────────────────────── */}
         <div style={{ position: "absolute", left: 72, top: 340, zIndex: 12 }}>
           <div style={{
-            fontFamily, fontSize: 12, fontWeight: 700, textTransform: "uppercase",
-            letterSpacing: "0.18em", color: COLORS.muted, marginBottom: 16,
+            marginBottom: 16,
             opacity: legendSprings[0],
-          }}>Key</div>
+          }}>
+            <ContextChip label="Key" color={COLORS.muted} size={12} />
+          </div>
           {LEGEND_ITEMS.map(({ colour, label }, i) => (
             <div key={label} style={{
               display: "flex", alignItems: "center", gap: 14, marginBottom: 20,
@@ -235,10 +237,9 @@ export const IntrcptShotMap: React.FC<IntrcptShotMapProps> = ({
           opacity: tickerOpacity,
           zIndex: 12,
         }}>
-          <div style={{
-            fontFamily, fontSize: 12, fontWeight: 700, textTransform: "uppercase",
-            letterSpacing: "0.18em", color: COLORS.muted, marginBottom: 6,
-          }}>Live xG</div>
+          <div style={{ marginBottom: 6 }}>
+            <ContextChip label="Live xG" color={COLORS.muted} size={12} />
+          </div>
           <div style={{
             fontFamily: serifFontFamily, fontSize: 64, fontWeight: 900,
             color: accentColor, letterSpacing: -2, lineHeight: 1,
@@ -269,9 +270,8 @@ export const IntrcptShotMap: React.FC<IntrcptShotMapProps> = ({
                 fontFamily: serifFontFamily, fontSize: 72, fontWeight: 900,
                 color: accentColor, letterSpacing: -3, lineHeight: 1,
               }}>{displayXg.toFixed(1)}</div>
-              <div style={{ fontFamily, fontSize: 12, fontWeight: 700, color: COLORS.muted,
-                textTransform: "uppercase", letterSpacing: "0.16em", marginTop: 8 }}>
-                Expected Goals
+              <div style={{ marginTop: 8 }}>
+                <ContextChip label="Expected Goals" color={COLORS.muted} size={12} />
               </div>
             </div>
             <div style={{ width: 1, alignSelf: "stretch", background: "rgba(0,0,0,0.10)", flexShrink: 0 }} />
@@ -280,9 +280,8 @@ export const IntrcptShotMap: React.FC<IntrcptShotMapProps> = ({
                 fontFamily: serifFontFamily, fontSize: 72, fontWeight: 900,
                 color: COLORS.primary, letterSpacing: -3, lineHeight: 1,
               }}>{displayGoals}</div>
-              <div style={{ fontFamily, fontSize: 12, fontWeight: 700, color: COLORS.muted,
-                textTransform: "uppercase", letterSpacing: "0.16em", marginTop: 8 }}>
-                Actual Goals
+              <div style={{ marginTop: 8 }}>
+                <ContextChip label="Actual Goals" color={COLORS.muted} size={12} />
               </div>
             </div>
           </div>

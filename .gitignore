@@ -1,10 +1,42 @@
+# Node
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Remotion outputs
 out/
 output/
 build/
+*.mp4
+*.mov
+*.mp3
+*.wav
+
+# Env / secrets
 .env
-*.log
-*.deb
+.env.local
+.env.*.local
+
+# OS / Windows alt-streams
+.DS_Store
+Thumbs.db
 *Zone.Identifier
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Claude Code local settings
+.claude/
+
+# Logs
+*.log
+
+# Manually-placed footage clips (not part of the repo)
 public/clips/
-src/*.mp4
+
+# Stray debs / installers
+*.deb

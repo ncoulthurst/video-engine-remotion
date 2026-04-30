@@ -7,7 +7,7 @@
  * Dot / pill colours are 100% percentile-driven — no manual override needed.
  * The polygon stays team colour; each axis dot uses a heat scale.
  *
- * lightMode: true  → warm cream background, dark text (matches Intrcpt series)
+ * lightMode: true  → warm cream background, dark text (matches Hero series)
  * lightMode: false → dark background, light text
  */
 import React from "react";
@@ -19,7 +19,7 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, PaperBackground, DarkBackground, Grain, Vignette, SmartImg, WorldStateSchema } from "./shared";
+import { fontFamily, PaperBackground, DarkBackground, Grain, Vignette, SmartImg, WorldStateSchema, ContextChip } from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -275,13 +275,8 @@ export const AttackingRadar: React.FC<AttackingRadarProps> = ({
         </div>
       </div>
 
-      <div style={{
-        position: "absolute", top: 62, right: 68,
-        opacity: titleIn, textAlign: "right",
-        color: T.textMuted,
-        fontSize: 13, fontWeight: 700, letterSpacing: 2.5, textTransform: "uppercase",
-      }}>
-        Player Radar
+      <div style={{ position: "absolute", top: 62, right: 68, opacity: titleIn }}>
+        <ContextChip label="Player Radar" color={T.textMuted} size={13} />
       </div>
 
       {/* ── SVG radar ── */}

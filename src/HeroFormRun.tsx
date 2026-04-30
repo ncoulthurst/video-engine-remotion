@@ -1,12 +1,12 @@
 /**
- * IntrcptFormRun — Recent match results displayed as animated coloured squares.
+ * HeroFormRun — Recent match results displayed as animated coloured squares.
  * Updated: Improved layering, soft gradient masking, and scaled layout.
  * Colors: Win=Green, Loss=Red, Draw=Orangey Yellow.
  */
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SmartImg, WorldStateSchema } from "./shared";
+import { fontFamily, serifFontFamily, Grain, PaperBackground, DarkBackground, COLORS, SmartImg, WorldStateSchema, ContextChip } from "./shared";
 
 const ResultSchema = z.object({
   result:   z.enum(["W", "D", "L"]),
@@ -14,7 +14,7 @@ const ResultSchema = z.object({
   score:    z.string().optional().default(""),
 });
 
-export const IntrcptFormRunPropsSchema = z.object({
+export const HeroFormRunPropsSchema = z.object({
   teamName:  z.string().optional().default("Liverpool"),
   teamColor: z.string().optional().default("#C8102E"),
   label:     z.string().optional().default("last 10 matches"),
@@ -37,7 +37,7 @@ export const IntrcptFormRunPropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
 });
 
-export type IntrcptFormRunProps = z.infer<typeof IntrcptFormRunPropsSchema>;
+export type HeroFormRunProps = z.infer<typeof HeroFormRunPropsSchema>;
 
 const RESULT_START   = 18;
 const RESULT_STAGGER = 8;
@@ -45,7 +45,7 @@ const WIN_COLOR      = "#22c55e"; // Bright Green
 const DRAW_COLOR     = "#f59e0b"; // Orangey Yellow
 const LOSS_COLOR     = "#ef4444"; // Red
 
-export const IntrcptFormRun: React.FC<IntrcptFormRunProps> = ({ teamName, teamColor, label, sideImage, results, bgColor, darkMode, skipIntro = false }) => {
+export const HeroFormRun: React.FC<HeroFormRunProps> = ({ teamName, teamColor, label, sideImage, results, bgColor, darkMode, skipIntro = false }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
@@ -71,7 +71,7 @@ export const IntrcptFormRun: React.FC<IntrcptFormRunProps> = ({ teamName, teamCo
       <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}><Grain /></div>
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 140px", maxWidth: sideImage ? 1200 : 1920, zIndex: 10 }}>
         <div style={{ opacity: headerProg, transform: `translateY(${interpolate(headerProg, [0, 1], [-16, 0])}px)`, marginBottom: 80 }}>
-          <div style={{ fontFamily, fontSize: 14, fontWeight: 800, color: textMuted, letterSpacing: 3, textTransform: "uppercase", marginBottom: 12 }}>{label}</div>
+          <div style={{ marginBottom: 12 }}><ContextChip label={label} color={textMuted} size={14} /></div>
           <div style={{ fontFamily: serifFontFamily, fontSize: 100, fontWeight: 900, color: textPrimary, letterSpacing: -4, lineHeight: 1 }}>{teamName}</div>
           <div style={{ display: "flex", gap: 60, marginTop: 32 }}>
             {([ { key: "W", count: wins, color: WIN_COLOR }, { key: "D", count: draws, color: DRAW_COLOR }, { key: "L", count: losses, color: LOSS_COLOR } ] as const).map(({ key, count, color }) => (

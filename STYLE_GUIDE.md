@@ -1,4 +1,4 @@
-# intrcpt Motion Design System — Remotion Templates
+# Hero Motion Design System — Remotion Templates
 
 **The canonical reference for all template design, layout, animation, and code patterns.**
 All new templates must conform exactly. The approved templates are the source of truth.
@@ -9,14 +9,14 @@ All new templates must conform exactly. The approved templates are the source of
 
 | Template | File | Notes |
 |---|---|---|
-| IntrcptSeasonTimeline | `IntrcptSeasonTimeline.tsx` | Gold standard for portraits + timeline |
-| IntrcptNewsFeed | `IntrcptNewsFeed.tsx` | Gold standard for world-pan + typewriter |
-| IntrcptTransferProfit | `IntrcptTransferProfit.tsx` | Gold standard for narrated row reveals |
+| HeroSeasonTimeline | `HeroSeasonTimeline.tsx` | Gold standard for portraits + timeline |
+| HeroNewsFeed | `HeroNewsFeed.tsx` | Gold standard for world-pan + typewriter |
+| HeroTransferProfit | `HeroTransferProfit.tsx` | Gold standard for narrated row reveals |
 | CountdownReveal | `CountdownReveal.tsx` | Gold standard for ranked list + camera |
 | TimelineScroll | `TimelineScroll.tsx` | Gold standard for horizontal camera scroll |
-| IntrcptPlayerRevealTrio | `IntrcptPlayerRevealTrio.tsx` | Gold standard for portrait masking method (renamed 2026-04-24 from IntrcptPlayerReveal) |
+| HeroPlayerRevealTrio | `HeroPlayerRevealTrio.tsx` | Gold standard for portrait masking method (renamed 2026-04-24 from HeroPlayerReveal) |
 
-**Mediocre (concept valid, needs rework):** IntrcptLeagueGraph, IntrcptChapterWord, IntrcptScatterPlot, MapCallout, ScoutReport, IntrcptAwardsList
+**Mediocre (concept valid, needs rework):** HeroLeagueGraph, HeroChapterWord, HeroScatterPlot, MapCallout, ScoutReport, HeroAwardsList
 
 ---
 
@@ -117,7 +117,7 @@ Z-Index 30  →  Fixed headers (visible during camera pans)
 
 ## 5. Portrait Images (Side Images)
 
-This is the defining visual technique of the intrcpt aesthetic. Get it exactly right.
+This is the defining visual technique of the hero aesthetic. Get it exactly right.
 
 ### Container
 
@@ -255,16 +255,16 @@ element — pick one motion language per element.
    2.4–2.6) with `transformOrigin` pinned to that element, pull back to scale
    1.0 with `Easing.out(Easing.cubic)` over 36–50 frames. Single-subject
    reveals: hero stat number, lone portrait, focal map region. Reference:
-   `IntrcptBigStat.tsx`, `IntrcptSeasonTimeline.tsx`.
+   `HeroBigStat.tsx`, `HeroSeasonTimeline.tsx`.
 
 3. **Side-Slide Reveal** — element enters from off-frame on one side via
    `translateX` interpolation (or absolute `left`) with ease-out. Used for
-   portrait + content panel splits. Reference: `IntrcptSeasonTimeline.tsx`,
+   portrait + content panel splits. Reference: `HeroSeasonTimeline.tsx`,
    `TeamLineup.tsx`.
 
 4. **Stagger Reveal** — list items / rows / timeline nodes enter one at a
    time with 14–20 frame gaps. Each item composes opacity (0→1) + small
-   translateY (12→0) with a medium spring. Reference: `IntrcptTransferProfit.tsx`,
+   translateY (12→0) with a medium spring. Reference: `HeroTransferProfit.tsx`,
    `CountdownReveal.tsx`.
 
 5. **Draw-On Line/Path** — SVG `stroke-dasharray` + `stroke-dashoffset`
@@ -274,12 +274,12 @@ element — pick one motion language per element.
 
 6. **Count-Up Odometer** — numbers tick from 0 to target with
    `Easing.out(Easing.cubic)`. Duration scales to the value, never linear.
-   Reference: `TournamentBracket.tsx` `getDisplayScore`, `IntrcptBigStat.tsx`,
+   Reference: `TournamentBracket.tsx` `getDisplayScore`, `HeroBigStat.tsx`,
    `PlayerStats.tsx`.
 
 7. **Word-by-Word Typewriter** — `~0.7` chars/frame with persistent (always-
    in-DOM) cursor. Used for headlines, narrative quotes. Reference:
-   `IntrcptNewsFeed.tsx`.
+   `HeroNewsFeed.tsx`.
 
 8. **Fade-and-Rise** — opacity 0→1 with `translateY` 10–14px → 0. The
    bread-and-butter for caption text, secondary lines, supporting elements
@@ -298,11 +298,11 @@ element — pick one motion language per element.
 
 4. **Target Pulse** — brief scale `1.0 → 1.2 → 1.0` + accent ring expanding
    outward. Used to highlight "this is the target/the answer/the hit."
-   Reference: `IntrcptTactical.tsx` opposition pulse on arrow arrival.
+   Reference: `HeroTactical.tsx` opposition pulse on arrow arrival.
 
 5. **Position Morph** — element interpolates from one (x,y) to another with
    the same easing language as the entry curve (visual cohesion).
-   Reference: `IntrcptTactical.tsx` `pressX/pressY`.
+   Reference: `HeroTactical.tsx` `pressX/pressY`.
 
 #### Approved Micro-Motions (continuous, low-energy)
 
@@ -457,7 +457,7 @@ interpolate(transitionSpring, [0, 1], [fromX, toX], {
 
 For compositions where a major plane (pitch, dashboard, hero card, board)
 enters dramatically, use the SaaS-style float-in. Reference implementation:
-`IntrcptTactical.tsx`. Visual reference: Linear / Stripe / Vercel hero
+`HeroTactical.tsx`. Visual reference: Linear / Stripe / Vercel hero
 graphics — element drops down from above the camera, comes forward in 3D
 space, and settles into its resting tilt with a heavy-deceleration curve.
 
@@ -519,7 +519,7 @@ the plane (overlay text, folio dateline) can start a few frames earlier
 that benefits from cinematic arrival — tactical pitches, dashboards, hero
 data boards, large-format charts. Do NOT use for templates whose subject
 is text-led (use a serif italic byline + accent tab pattern instead — see
-`IntrcptBigStat.tsx`).
+`HeroBigStat.tsx`).
 
 ### Timing Conventions
 

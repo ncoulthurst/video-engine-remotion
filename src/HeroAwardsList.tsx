@@ -1,5 +1,5 @@
 /**
- * IntrcptAwardsList — Editorial year-by-year award history.
+ * HeroAwardsList — Editorial year-by-year award history.
  *
  * Layout (1920×1080, paper bg):
  *   • LEFT 680px  — masked portrait of the subject (canonical §5).
@@ -39,6 +39,7 @@ import {
   COLORS,
   SmartImg,
   WorldStateSchema,
+  ContextChip,
 } from "./shared";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
@@ -54,7 +55,7 @@ const AwardYearSchema = z.object({
   detail:   z.string().default(""),
 });
 
-export const IntrcptAwardsListPropsSchema = z.object({
+export const HeroAwardsListPropsSchema = z.object({
   award:        z.string().default("Ballon d'Or"),
   entityName:   z.string().default("Lionel Messi"),
   /** Subject portrait (filename in /public). Canonical §5 left-side mask. */
@@ -82,7 +83,7 @@ export const IntrcptAwardsListPropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptAwardsListProps = z.infer<typeof IntrcptAwardsListPropsSchema>;
+export type HeroAwardsListProps = z.infer<typeof HeroAwardsListPropsSchema>;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -123,7 +124,7 @@ function clamp01(v: number) { return Math.max(0, Math.min(1, v)); }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const IntrcptAwardsList: React.FC<IntrcptAwardsListProps> = ({
+export const HeroAwardsList: React.FC<HeroAwardsListProps> = ({
   award,
   entityName,
   subjectImage,
@@ -337,17 +338,11 @@ export const IntrcptAwardsList: React.FC<IntrcptAwardsListProps> = ({
             marginBottom: 14,
           }} />
           {/* Dateline — small caps */}
-          <div style={{
-            fontFamily,
-            fontSize:      12,
-            fontWeight:    700,
-            letterSpacing: 3.5,
-            textTransform: "uppercase" as const,
-            color:         mutedColor,
-            lineHeight:    1,
-          }}>
-            {dateline ?? `${N} editions  ·  ${wins} ${wins === 1 ? "win" : "wins"}`}
-          </div>
+          <ContextChip
+            label={dateline ?? `${N} editions  ·  ${wins} ${wins === 1 ? "win" : "wins"}`}
+            color={mutedColor}
+            size={12}
+          />
         </div>
 
         {/* Subject name — large black serif, the hero anchor */}
@@ -393,16 +388,8 @@ export const IntrcptAwardsList: React.FC<IntrcptAwardsListProps> = ({
           }}>
             {heroCount}
           </div>
-          <div style={{
-            fontFamily,
-            fontSize:      18,
-            fontWeight:    700,
-            letterSpacing: 3.5,
-            textTransform: "uppercase" as const,
-            color:         mutedColor,
-            paddingBottom: 16,
-          }}>
-            {wins === 1 ? "win" : "wins"}
+          <div style={{ paddingBottom: 16 }}>
+            <ContextChip label={wins === 1 ? "win" : "wins"} color={mutedColor} size={18} />
           </div>
         </div>
 
@@ -603,15 +590,9 @@ export const IntrcptAwardsList: React.FC<IntrcptAwardsListProps> = ({
             position:  "absolute",
             right:     CONTENT_RIGHT,
             bottom:    72,
-            fontFamily,
-            fontSize:      12,
-            fontWeight:    700,
-            letterSpacing: 3.5,
-            textTransform: "uppercase" as const,
-            color:         mutedColor,
             opacity:       skipIntro ? 1 : interpolate(sourceProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" }),
           }}>
-            {source}
+            <ContextChip label={source} color={mutedColor} size={12} />
           </div>
         )}
       </div>

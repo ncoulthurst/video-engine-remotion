@@ -122,7 +122,7 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
   const infoX  = skipIntro ? 0 : spring({ frame: frame - infoAppearFrame, fps, from: -50, to: 0, config: { damping: 22, stiffness: 70 } });
 
   // ── Pitch SaaS Float-In entry ────────────────────────────────────────────
-  // Same cinematic plane drop used in IntrcptTactical: drops down + comes
+  // Same cinematic plane drop used in HeroTactical: drops down + comes
   // forward + un-tilts, all driven off one eased progress with the iOS
   // easeOutExpo curve. The pitch is the dominant subject plane here, so it
   // earns the hero entry.

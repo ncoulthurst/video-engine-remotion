@@ -25,6 +25,7 @@ import { z } from "zod";
 import {
   Grain, PaperBackground,
   COLORS, fontFamily, serifFontFamily, SmartImg, WorldStateSchema,
+  ContextChip, BadgeTreatment,
 } from "./shared";
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
@@ -283,21 +284,12 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
                 display:       "flex",
                 alignItems:    "center",
                 gap:           14,
-                fontFamily,
-                fontSize:      13,
-                fontWeight:    700,
-                letterSpacing: 3.5,
-                color:         "rgba(0,0,0,0.45)",
-                textTransform: "uppercase",
                 marginBottom:  18,
               }}>
                 {badgeSlug && (
-                  <SmartImg
-                    src={`badges/${badgeSlug}`}
-                    style={{ width: 26, height: 26, objectFit: "contain", opacity: 0.85 }}
-                  />
+                  <BadgeTreatment src={`badges/${badgeSlug}`} size={26} opacity={0.85} />
                 )}
-                <span>{[competition, season].filter(Boolean).join(" · ")}</span>
+                <ContextChip label={[competition, season].filter(Boolean).join(" · ")} color="rgba(0,0,0,0.45)" size={13} />
               </div>
             )}
 

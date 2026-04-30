@@ -1,5 +1,5 @@
 /**
- * IntrcptComparisonRadar — two overlapping radar polygons for player vs player comparison.
+ * HeroComparisonRadar — two overlapping radar polygons for player vs player comparison.
  *
  * Player A polygon uses accentColorA (default red), Player B uses accentColorB (default blue).
  * Both polygons reveal simultaneously, metric by metric with stagger.
@@ -10,7 +10,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema} from "./shared";
+import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema, ContextChip } from "./shared";
 
 const MetricSchema = z.object({
   label:        z.string(),
@@ -21,7 +21,7 @@ const MetricSchema = z.object({
   unit:         z.string().default(""),
 });
 
-export const IntrcptComparisonRadarPropsSchema = z.object({
+export const HeroComparisonRadarPropsSchema = z.object({
   playerA:       z.string().default("Lionel Messi"),
   playerB:       z.string().default("Cristiano Ronaldo"),
   imageA:        z.string().optional(),
@@ -39,7 +39,7 @@ export const IntrcptComparisonRadarPropsSchema = z.object({
   skipIntro: z.boolean().optional().default(false),
 });
 
-export type IntrcptComparisonRadarProps = z.infer<typeof IntrcptComparisonRadarPropsSchema>;
+export type HeroComparisonRadarProps = z.infer<typeof HeroComparisonRadarPropsSchema>;
 
 function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -48,7 +48,7 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-export const IntrcptComparisonRadar: React.FC<IntrcptComparisonRadarProps> = ({
+export const HeroComparisonRadar: React.FC<HeroComparisonRadarProps> = ({
   playerA, playerB, imageA, imageB, seasonA, seasonB, competition,
   accentColorA, accentColorB, bgColor, stagger, introFrames, metrics: metricsProp,
 }) => {
@@ -158,9 +158,8 @@ export const IntrcptComparisonRadar: React.FC<IntrcptComparisonRadarProps> = ({
           opacity: titleIn,
           transform: `translateY(${interpolate(titleIn, [0, 1], [-16, 0])}px)`,
         }}>
-          <div style={{ fontFamily, fontSize: 13, fontWeight: 700, textTransform: "uppercase",
-            letterSpacing: "0.18em", color: COLORS.muted, marginBottom: 8 }}>
-            {competition} · Head-to-Head
+          <div style={{ marginBottom: 8 }}>
+            <ContextChip label={`${competition} · Head-to-Head`} color={COLORS.muted} size={13} />
           </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 20 }}>
             <div style={{ fontFamily: serifFontFamily, fontSize: 48, fontWeight: 900,

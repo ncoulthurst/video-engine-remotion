@@ -14,17 +14,17 @@ import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { z } from "zod";
 
 // ── Scene components ───────────────────────────────────────────────────────────
-import { IntrcptIntro } from "./IntrcptIntro";
-import { IntrcptStatBars } from "./IntrcptStatBars";
-import { IntrcptFormRun } from "./IntrcptFormRun";
-import { IntrcptTactical } from "./IntrcptTactical";
-import { IntrcptBigStat } from "./IntrcptBigStat";
-import { IntrcptLeagueGraph } from "./IntrcptLeagueGraph";
-import { IntrcptTransferRecord } from "./IntrcptTransferRecord";
-import { IntrcptQuote } from "./IntrcptQuote";
-import { IntrcptChapterWord } from "./IntrcptChapterWord";
-import { IntrcptClipCompare } from "./IntrcptClipCompare";
-import { IntrcptScatterPlot } from "./IntrcptScatterPlot";
+import { HeroIntro } from "./HeroIntro";
+import { HeroStatBars } from "./HeroStatBars";
+import { HeroFormRun } from "./HeroFormRun";
+import { HeroTactical } from "./HeroTactical";
+import { HeroBigStat } from "./HeroBigStat";
+import { HeroLeagueGraph } from "./HeroLeagueGraph";
+import { HeroTransferRecord } from "./HeroTransferRecord";
+import { HeroQuote } from "./HeroQuote";
+import { HeroChapterWord } from "./HeroChapterWord";
+import { HeroClipCompare } from "./HeroClipCompare";
+import { HeroScatterPlot } from "./HeroScatterPlot";
 import { TrioFeature } from "./TrioFeature";
 import { PlayerTrio } from "./PlayerTrio";
 import { CareerTimeline } from "./CareerTimeline";
@@ -51,23 +51,24 @@ import { MatchMoment } from "./MatchMoment";
 import { TransferProfit } from "./TransferProfit";
 import { ScoutReport } from "./ScoutReport";
 import { ValueCurve } from "./ValueCurve";
-import { IntrcptTransferProfit } from "./IntrcptTransferProfit";
-import { IntrcptPhotoReel } from "./IntrcptPhotoReel";
-import { IntrcptContactSheet } from "./IntrcptContactSheet";
-import { IntrcptPlayerRevealTrio } from "./IntrcptPlayerRevealTrio";
-import { IntrcptGoalRush } from "./IntrcptGoalRush";
-import { IntrcptHeadlineStack } from "./IntrcptHeadlineStack";
-import { IntrcptShotMap } from "./IntrcptShotMap";
-import { IntrcptMatchTimeline } from "./IntrcptMatchTimeline";
-import { IntrcptAwardsList } from "./IntrcptAwardsList";
-import { IntrcptComparisonRadar } from "./IntrcptComparisonRadar";
-import { IntrcptDualPanel } from "./IntrcptDualPanel";
-import { IntrcptNewsFeed } from "./IntrcptNewsFeed";
-import { IntrcptSeasonTimeline } from "./IntrcptSeasonTimeline";
+import { HeroTransferProfit } from "./HeroTransferProfit";
+import { HeroPhotoReel } from "./HeroPhotoReel";
+import { HeroContactSheet } from "./HeroContactSheet";
+import { HeroPlayerRevealTrio } from "./HeroPlayerRevealTrio";
+import { HeroGoalRush } from "./HeroGoalRush";
+import { HeroHeadlineStack } from "./HeroHeadlineStack";
+import { HeroShotMap } from "./HeroShotMap";
+import { HeroMatchTimeline } from "./HeroMatchTimeline";
+import { HeroAwardsList } from "./HeroAwardsList";
+import { HeroComparisonRadar } from "./HeroComparisonRadar";
+import { HeroDualPanel } from "./HeroDualPanel";
+import { HeroNewsFeed } from "./HeroNewsFeed";
+import { HeroSeasonTimeline } from "./HeroSeasonTimeline";
 import { TournamentBracket } from "./TournamentBracket";
 // Track E — new hybrid templates + world classification
 import { PortraitStatHero } from "./PortraitStatHero";
 import { PortraitWithBars } from "./PortraitWithBars";
+import { HeroOutro } from "./HeroOutro";
 import { worldFor, type TemplateWorld } from "./lib/worldRegistry";
 
 // ── Generated components (motion_agent.py) ────────────────────────────────────
@@ -92,17 +93,18 @@ import {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
-  IntrcptIntro,
-  IntrcptStatBars,
-  IntrcptFormRun,
-  IntrcptTactical,
-  IntrcptBigStat,
-  IntrcptLeagueGraph,
-  IntrcptTransferRecord,
-  IntrcptQuote,
-  IntrcptChapterWord,
-  IntrcptClipCompare,
-  IntrcptScatterPlot,
+  HeroIntro,
+  HeroOutro,
+  HeroStatBars,
+  HeroFormRun,
+  HeroTactical,
+  HeroBigStat,
+  HeroLeagueGraph,
+  HeroTransferRecord,
+  HeroQuote,
+  HeroChapterWord,
+  HeroClipCompare,
+  HeroScatterPlot,
   TrioFeature,
   PlayerTrio,
   CareerTimeline,
@@ -129,19 +131,19 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   TransferProfit,
   ScoutReport,
   ValueCurve,
-  IntrcptTransferProfit,
-  IntrcptPhotoReel,
-  IntrcptContactSheet,
-  IntrcptPlayerRevealTrio,
-  IntrcptGoalRush,
-  IntrcptHeadlineStack,
-  IntrcptShotMap,
-  IntrcptMatchTimeline,
-  IntrcptAwardsList,
-  IntrcptComparisonRadar,
-  IntrcptDualPanel,
-  IntrcptNewsFeed,
-  IntrcptSeasonTimeline,
+  HeroTransferProfit,
+  HeroPhotoReel,
+  HeroContactSheet,
+  HeroPlayerRevealTrio,
+  HeroGoalRush,
+  HeroHeadlineStack,
+  HeroShotMap,
+  HeroMatchTimeline,
+  HeroAwardsList,
+  HeroComparisonRadar,
+  HeroDualPanel,
+  HeroNewsFeed,
+  HeroSeasonTimeline,
   TournamentBracket,
   // Track E hybrids
   PortraitStatHero,

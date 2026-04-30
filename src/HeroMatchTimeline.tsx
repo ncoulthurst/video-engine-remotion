@@ -1,5 +1,5 @@
 /**
- * IntrcptMatchTimeline — minute-by-minute key match events on a horizontal timeline.
+ * HeroMatchTimeline — minute-by-minute key match events on a horizontal timeline.
  *
  * Events reveal left-to-right as if the match is being replayed.
  * Goals get a gold pulse. Red cards get a red flash.
@@ -8,7 +8,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema } from "./shared";
+import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema, ContextChip } from "./shared";
 
 const EventSchema = z.object({
   minute:  z.number(),
@@ -20,7 +20,7 @@ const EventSchema = z.object({
   team:    z.string().default("home"),
 });
 
-export const IntrcptMatchTimelinePropsSchema = z.object({
+export const HeroMatchTimelinePropsSchema = z.object({
   homeTeam:    z.string().default("Liverpool"),
   awayTeam:    z.string().default("Arsenal"),
   homeScore:   z.number().default(2),
@@ -38,7 +38,7 @@ export const IntrcptMatchTimelinePropsSchema = z.object({
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptMatchTimelineProps = z.infer<typeof IntrcptMatchTimelinePropsSchema>;
+export type HeroMatchTimelineProps = z.infer<typeof HeroMatchTimelinePropsSchema>;
 
 const EVENT_ICONS: Record<string, string> = {
   goal:       "⚽",
@@ -62,7 +62,7 @@ const EVENT_COLORS: Record<string, string> = {
   var:        "#60a5fa",
 };
 
-export const IntrcptMatchTimeline: React.FC<IntrcptMatchTimelineProps> = ({
+export const HeroMatchTimeline: React.FC<HeroMatchTimelineProps> = ({
   homeTeam, awayTeam, homeScore, awayScore, competition, date,
   homeImage, awayImage, accentColor, bgColor, stagger, events, skipIntro = false,
 }) => {
@@ -151,10 +151,9 @@ export const IntrcptMatchTimeline: React.FC<IntrcptMatchTimelineProps> = ({
           opacity: interpolate(titleProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" }),
           transform: `translateY(${interpolate(titleProg, [0, 1], [14, 0])}px)`,
         }}>
-          <div style={{
-            fontFamily, fontSize: 14, fontWeight: 700, textTransform: "uppercase",
-            letterSpacing: "0.15em", color: COLORS.muted, marginBottom: 10,
-          }}>{competition} · {date}</div>
+          <div style={{ marginBottom: 10 }}>
+            <ContextChip label={`${competition} · ${date}`} color={COLORS.muted} size={14} />
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
             <div style={{ fontFamily: serifFontFamily, fontSize: 72, fontWeight: 900,
               color: accentColor, letterSpacing: -2 }}>{homeTeam}</div>

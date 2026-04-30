@@ -1,5 +1,5 @@
 /**
- * IntrcptScatterPlot — Player scatter plot on dark background.
+ * HeroScatterPlot — Player scatter plot on dark background.
  */
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
@@ -7,14 +7,14 @@ import { z } from "zod";
 import { serifFontFamily, DarkBackground, SmartImg, WorldStateSchema} from "./shared";
 
 const PlayerSchema = z.object({ name: z.string().optional().default(""), image: z.string().optional().default(""), ringColor: z.string().optional().default("#ffffff"), x: z.number(), y: z.number() });
-export const IntrcptScatterPlotPropsSchema = z.object({
+export const HeroScatterPlotPropsSchema = z.object({
   axisXLabel: z.string().optional().default("speed"), axisYLabel: z.string().optional().default("space efficiency"), q1Label: z.string().optional().default("Wizard Zone"), q2Label: z.string().optional().default("maestros"), q3Label: z.string().optional().default("stiff"), q4Label: z.string().optional().default("robotic"), showWizardArrow: z.boolean().default(true), players: z.array(PlayerSchema).default([ { name: "Player A", image: "suarez.jpg", ringColor: "#C8102E", x: 72, y: 75 } ]), bgColor: z.string().optional().default("#111111"),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
 });
-export type IntrcptScatterPlotProps = z.infer<typeof IntrcptScatterPlotPropsSchema>;
+export type HeroScatterPlotProps = z.infer<typeof HeroScatterPlotPropsSchema>;
 
-export const IntrcptScatterPlot: React.FC<IntrcptScatterPlotProps> = ({ axisXLabel, axisYLabel, q1Label, q2Label, q3Label, q4Label, showWizardArrow, players, bgColor }) => {
+export const HeroScatterPlot: React.FC<HeroScatterPlotProps> = ({ axisXLabel, axisYLabel, q1Label, q2Label, q3Label, q4Label, showWizardArrow, players, bgColor }) => {
   const frame = useCurrentFrame(); const { fps, width, height } = useVideoConfig();
   const axisProgress = spring({ frame, fps, config: { damping: 28, stiffness: 40 }, delay: 0 });
   const playerSprings = players.map((_, i) => spring({ frame, fps, config: { damping: 16, stiffness: 180 }, delay: 28 + i * 8 }));
