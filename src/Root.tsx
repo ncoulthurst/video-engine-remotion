@@ -50,6 +50,13 @@ import { HeroQuote, HeroQuotePropsSchema } from "./HeroQuote";
 import { PortraitStatHero, PortraitStatHeroPropsSchema } from "./PortraitStatHero";
 import { PortraitWithBars, PortraitWithBarsPropsSchema } from "./PortraitWithBars";
 
+// Domain-agnostic compositions (Phase 10 — for non-football documentaries)
+import { TimelineGeneric, TimelineGenericPropsSchema, calculateMetadata as timelineGenericCalc } from "./TimelineGeneric";
+import { StatComparison, StatComparisonPropsSchema, calculateMetadata as statComparisonCalc } from "./StatComparison";
+import { BulletBreakdown, BulletBreakdownPropsSchema } from "./BulletBreakdown";
+import { RankingList, RankingListPropsSchema } from "./RankingList";
+import { MetricTrajectory, MetricTrajectoryPropsSchema } from "./MetricTrajectory";
+
 import type { CareerTimelineProps } from "./CareerTimeline";
 import type { HeroTransferRecordProps } from "./HeroTransferRecord";
 
@@ -1380,6 +1387,133 @@ export const Root: React.FC = () => {
           accentColor: "#C8102E",
           bgColor:     "#f0ece4",
           skipIntro:   false,
+        }}
+      />
+
+      {/* ── Phase 10 — Domain-agnostic compositions ─────────────────────── */}
+
+      {/* TimelineGeneric — pure event timeline, no club badges or team colours */}
+      <Composition
+        id="TimelineGeneric"
+        component={TimelineGeneric}
+        schema={TimelineGenericPropsSchema}
+        calculateMetadata={timelineGenericCalc}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:    "OpenAI — A Decade of AGI Ambition",
+          events:   [
+            { year: "2015", label: "Founded",          sub: "Sam Altman, Elon Musk + others" },
+            { year: "2019", label: "Microsoft $1B",    sub: "First major strategic backer" },
+            { year: "2022", label: "ChatGPT launch",   sub: "1M users in five days" },
+            { year: "2023", label: "$13B raise",       sub: "Largest private AI round to date" },
+            { year: "2024", label: "Sora + reasoning", sub: "Multimodal expansion" },
+          ],
+          palette:   "paper" as const,
+          accent:    "#C9A84C",
+          source:    "",
+          dateline:  "",
+          skipIntro: false,
+        }}
+      />
+
+      {/* StatComparison — generic head-to-head bars, no badges */}
+      <Composition
+        id="StatComparison"
+        component={StatComparison}
+        schema={StatComparisonPropsSchema}
+        calculateMetadata={statComparisonCalc}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:       "OpenAI vs Anthropic — by the numbers",
+          leftLabel:   "OpenAI",
+          rightLabel:  "Anthropic",
+          leftAccent:  "",
+          rightAccent: "",
+          rows: [
+            { metric: "Founded",      left: 2015, right: 2021, unit: "" },
+            { metric: "Total raised", left: 13,   right: 8.5,  unit: "$B" },
+            { metric: "Employees",    left: 1700, right: 500,  unit: "" },
+            { metric: "Valuation",    left: 90,   right: 18,   unit: "$B" },
+          ],
+          palette:   "paper" as const,
+          source:    "",
+          dateline:  "",
+          skipIntro: false,
+        }}
+      />
+
+      {/* BulletBreakdown — generic titled argument/breakdown card */}
+      <Composition
+        id="BulletBreakdown"
+        component={BulletBreakdown}
+        schema={BulletBreakdownPropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:    "The case against",
+          subtitle: "",
+          points: [
+            { heading: "Unlimited risk appetite", detail: "A normal fund protects the downside. Alameda had billions it never had to answer for." },
+            { heading: "Survivorship bias",        detail: "We remember Solana and Anthropic. We forget the dead tokens and bad bets." },
+            { heading: "Paper vs realised",        detail: "A valuation is not a cheque. Most of it could never be cashed." },
+          ],
+          accent:  "",
+          palette: "paper" as const,
+        }}
+      />
+
+      {/* RankingList — generic ranked rows with bars */}
+      <Composition
+        id="RankingList"
+        component={RankingList}
+        schema={RankingListPropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:    "FTX estate — largest recovered stakes",
+          subtitle: "",
+          rows: [
+            { label: "Anthropic", value: 1.3, unit: "$B", secondary: "AI",        highlight: true },
+            { label: "Solana",    value: 1.1, unit: "$B", secondary: "crypto",    highlight: false },
+            { label: "SpaceX",    value: 0.5, unit: "$B", secondary: "aerospace", highlight: false },
+          ],
+          accent:  "",
+          palette: "paper" as const,
+        }}
+      />
+
+      {/* MetricTrajectory — generic value-over-time line/area chart */}
+      <Composition
+        id="MetricTrajectory"
+        component={MetricTrajectory}
+        schema={MetricTrajectoryPropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title:    "Solana (SOL) — price",
+          subtitle: "",
+          unit:     "$",
+          points: [
+            { t: "2020",      value: 0.1, label: "" },
+            { t: "early '21", value: 3,   label: "" },
+            { t: "May '21",   value: 40,  label: "" },
+            { t: "Nov 2021",  value: 260, label: "peak" },
+            { t: "Nov 2022",  value: 13,  label: "" },
+          ],
+          accent:  "",
+          palette: "paper" as const,
         }}
       />
     </>
