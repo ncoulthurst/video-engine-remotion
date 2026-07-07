@@ -24,6 +24,7 @@ import {
   Grain,
   PaperBackground,
   DarkBackground,
+  InkBackground,
   COLORS,
   SPRINGS,
   rgbaFromHex,
@@ -47,13 +48,14 @@ export const RankingListPropsSchema = z.object({
     { label: "SpaceX",    value: 0.5, unit: "$B", secondary: "aerospace" },
   ]),
   accent:     z.string().optional().default(""),
-  palette:    z.enum(["dark", "paper"]).optional().default("paper"),
+  palette:    z.enum(["ink", "dark", "paper"]).optional().default("ink"),
   worldState: WorldStateSchema,
 });
 export type RankingListProps = z.infer<typeof RankingListPropsSchema>;
 
 const PADDING_X   = 180;
 const DEFAULT_ACCENT = "#3b82c4";
+const INK_ACCENT = "#FFD23F";
 
 const fmtValue = (n: number, unit: string): string => {
   const num = Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1);
@@ -75,11 +77,12 @@ export const RankingList: React.FC<RankingListProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
+  const isInk   = palette === "ink";
   const isDark  = palette === "dark";
-  const fg      = isDark ? "#f5f0e8" : COLORS.primary;
-  const muted   = isDark ? "rgba(245,240,232,0.55)" : COLORS.muted;
-  const trackBg = isDark ? "rgba(245,240,232,0.06)" : "rgba(0,0,0,0.05)";
-  const ac      = accent || DEFAULT_ACCENT;
+  const fg      = (isInk || isDark) ? "#ffffff" : COLORS.primary;
+  const muted   = isInk ? "rgba(255,255,255,0.60)" : isDark ? "rgba(245,240,232,0.55)" : COLORS.muted;
+  const trackBg = isInk ? "rgba(255,255,255,0.10)" : isDark ? "rgba(245,240,232,0.06)" : "rgba(0,0,0,0.05)";
+  const ac      = accent || (isInk ? INK_ACCENT : DEFAULT_ACCENT);
 
   const data = (rows || []).slice(0, 6);
   const n = data.length;
@@ -94,7 +97,7 @@ export const RankingList: React.FC<RankingListProps> = ({
 
   return (
     <AbsoluteFill style={{ fontFamily }}>
-      {isDark ? <DarkBackground /> : <PaperBackground />}
+      {isInk ? <InkBackground /> : isDark ? <DarkBackground /> : <PaperBackground />}
 
       <AbsoluteFill style={{ zIndex: 10, padding: `120px ${PADDING_X}px` }}>
         <div style={{ opacity: titleP, transform: `translateY(${titleY}px)` }}>
@@ -147,7 +150,7 @@ export const RankingList: React.FC<RankingListProps> = ({
         </div>
       </AbsoluteFill>
 
-      <Grain />
+      {!isInk ? <Grain /> : null}
     </AbsoluteFill>
   );
 };

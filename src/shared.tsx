@@ -148,6 +148,35 @@ export const DarkBackground: React.FC<{ color?: string }> = ({ color = "#111111"
   <AbsoluteFill style={{ background: color }} />
 );
 
+// Electric-blue "ink" background: solid base + radial depth + visible monochrome
+// film grain. The bold, textured base for finance/news documentary graphics
+// (Vox / Johnny Harris register). Grain is baked in here, so comps using it must
+// NOT also render the warm paper <Grain/> (it would tint the blue).
+export const InkBackground: React.FC<{ color?: string }> = ({ color = "#0b0be5" }) => {
+  const { width, height } = useVideoConfig();
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      <AbsoluteFill style={{ background: color }} />
+      <AbsoluteFill
+        style={{
+          background:
+            "radial-gradient(135% 100% at 50% -12%, rgba(255,255,255,0.20), rgba(255,255,255,0) 46%), " +
+            "radial-gradient(130% 120% at 50% 118%, rgba(0,0,0,0.50), rgba(0,0,0,0) 56%)",
+        }}
+      />
+      <svg width={width} height={height} style={{ position: "absolute", inset: 0, opacity: 0.17, mixBlendMode: "overlay" as const }}>
+        <defs>
+          <filter id="ink-grain" x="0" y="0" width="100%" height="100%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed={7} stitchTiles="stitch" />
+            <feColorMatrix type="saturate" values="0" />
+          </filter>
+        </defs>
+        <rect width={width} height={height} filter="url(#ink-grain)" />
+      </svg>
+    </AbsoluteFill>
+  );
+};
+
 // ── Typography helpers ────────────────────────────────────────────────────────
 
 export const Overline: React.FC<{ children: React.ReactNode }> = ({ children }) => (

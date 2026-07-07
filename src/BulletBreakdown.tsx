@@ -24,6 +24,7 @@ import {
   Grain,
   PaperBackground,
   DarkBackground,
+  InkBackground,
   COLORS,
   SPRINGS,
   rgbaFromHex,
@@ -44,13 +45,14 @@ export const BulletBreakdownPropsSchema = z.object({
     { heading: "Paper vs realised",        detail: "A valuation is not a cheque. Most of it could never be cashed." },
   ]),
   accent:     z.string().optional().default(""),
-  palette:    z.enum(["dark", "paper"]).optional().default("paper"),
+  palette:    z.enum(["ink", "dark", "paper"]).optional().default("ink"),
   worldState: WorldStateSchema,
 });
 export type BulletBreakdownProps = z.infer<typeof BulletBreakdownPropsSchema>;
 
 const PADDING_X = 200;
 const DEFAULT_ACCENT = "#d97a3e";
+const INK_ACCENT = "#FFD23F";
 
 export const BulletBreakdown: React.FC<BulletBreakdownProps> = ({
   title,
@@ -62,11 +64,12 @@ export const BulletBreakdown: React.FC<BulletBreakdownProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
+  const isInk   = palette === "ink";
   const isDark  = palette === "dark";
-  const fg      = isDark ? "#f5f0e8" : COLORS.primary;
-  const muted   = isDark ? "rgba(245,240,232,0.60)" : COLORS.secondary;
-  const divider = isDark ? "rgba(245,240,232,0.14)" : "rgba(0,0,0,0.10)";
-  const ac      = accent || DEFAULT_ACCENT;
+  const fg      = (isInk || isDark) ? "#ffffff" : COLORS.primary;
+  const muted   = isInk ? "rgba(255,255,255,0.68)" : isDark ? "rgba(245,240,232,0.60)" : COLORS.secondary;
+  const divider = isInk ? "rgba(255,255,255,0.16)" : isDark ? "rgba(245,240,232,0.14)" : "rgba(0,0,0,0.10)";
+  const ac      = accent || (isInk ? INK_ACCENT : DEFAULT_ACCENT);
 
   const rows = (points || []).slice(0, 4);
   const n = rows.length;
@@ -81,7 +84,7 @@ export const BulletBreakdown: React.FC<BulletBreakdownProps> = ({
 
   return (
     <AbsoluteFill style={{ fontFamily }}>
-      {isDark ? <DarkBackground /> : <PaperBackground />}
+      {isInk ? <InkBackground /> : isDark ? <DarkBackground /> : <PaperBackground />}
 
       <AbsoluteFill style={{ zIndex: 10, padding: `120px ${PADDING_X}px` }}>
         {/* Overline / accent kicker */}
@@ -142,7 +145,7 @@ export const BulletBreakdown: React.FC<BulletBreakdownProps> = ({
         </div>
       </AbsoluteFill>
 
-      <Grain />
+      {!isInk ? <Grain /> : null}
     </AbsoluteFill>
   );
 };

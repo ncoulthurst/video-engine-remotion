@@ -27,6 +27,7 @@ import {
   Grain,
   PaperBackground,
   DarkBackground,
+  InkBackground,
   COLORS,
   SPRINGS,
   rgbaFromHex,
@@ -51,7 +52,7 @@ export const MetricTrajectoryPropsSchema = z.object({
     { t: "Nov 2022", value: 13 },
   ]),
   accent:     z.string().optional().default(""),
-  palette:    z.enum(["dark", "paper"]).optional().default("paper"),
+  palette:    z.enum(["ink", "dark", "paper"]).optional().default("ink"),
   worldState: WorldStateSchema,
 });
 export type MetricTrajectoryProps = z.infer<typeof MetricTrajectoryPropsSchema>;
@@ -61,6 +62,7 @@ const PLOT_R = 1690;
 const PLOT_T = 380;
 const PLOT_B = 880;
 const DEFAULT_ACCENT = "#3b82c4";
+const INK_ACCENT = "#FFD23F";
 
 const fmtVal = (n: number, unit: string): string => {
   const abs = Math.abs(n);
@@ -82,11 +84,12 @@ export const MetricTrajectory: React.FC<MetricTrajectoryProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
+  const isInk   = palette === "ink";
   const isDark  = palette === "dark";
-  const fg      = isDark ? "#f5f0e8" : COLORS.primary;
-  const muted   = isDark ? "rgba(245,240,232,0.55)" : COLORS.muted;
-  const grid    = isDark ? "rgba(245,240,232,0.10)" : "rgba(0,0,0,0.07)";
-  const ac      = accent || DEFAULT_ACCENT;
+  const fg      = (isInk || isDark) ? "#ffffff" : COLORS.primary;
+  const muted   = isInk ? "rgba(255,255,255,0.62)" : isDark ? "rgba(245,240,232,0.55)" : COLORS.muted;
+  const grid    = isInk ? "rgba(255,255,255,0.14)" : isDark ? "rgba(245,240,232,0.10)" : "rgba(0,0,0,0.07)";
+  const ac      = accent || (isInk ? INK_ACCENT : DEFAULT_ACCENT);
 
   const pts = (points || []).filter((p) => typeof p.value === "number");
   const n = pts.length;
@@ -116,7 +119,7 @@ export const MetricTrajectory: React.FC<MetricTrajectoryProps> = ({
 
   return (
     <AbsoluteFill style={{ fontFamily }}>
-      {isDark ? <DarkBackground /> : <PaperBackground />}
+      {isInk ? <InkBackground /> : isDark ? <DarkBackground /> : <PaperBackground />}
 
       <AbsoluteFill style={{ zIndex: 10, padding: `120px 200px` }}>
         <div style={{ opacity: titleP, transform: `translateY(${titleY}px)` }}>
@@ -139,7 +142,7 @@ export const MetricTrajectory: React.FC<MetricTrajectoryProps> = ({
             <rect x={PLOT_L - 6} y={PLOT_T - 60} width={revealW} height={PLOT_B - PLOT_T + 120} />
           </clipPath>
           <linearGradient id="mt-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%"   stopColor={rgbaFromHex(ac, isDark ? 0.42 : 0.30)} />
+            <stop offset="0%"   stopColor={rgbaFromHex(ac, isInk ? 0.34 : isDark ? 0.42 : 0.30)} />
             <stop offset="100%" stopColor={rgbaFromHex(ac, 0)} />
           </linearGradient>
         </defs>
@@ -195,7 +198,7 @@ export const MetricTrajectory: React.FC<MetricTrajectoryProps> = ({
         ) : null}
       </div>
 
-      <Grain />
+      {!isInk ? <Grain /> : null}
     </AbsoluteFill>
   );
 };

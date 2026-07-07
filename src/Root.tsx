@@ -1466,7 +1466,7 @@ export const Root: React.FC = () => {
             { heading: "Paper vs realised",        detail: "A valuation is not a cheque. Most of it could never be cashed." },
           ],
           accent:  "",
-          palette: "paper" as const,
+          palette: "ink" as const,
         }}
       />
 
@@ -1488,7 +1488,7 @@ export const Root: React.FC = () => {
             { label: "SpaceX",    value: 0.5, unit: "$B", secondary: "aerospace", highlight: false },
           ],
           accent:  "",
-          palette: "paper" as const,
+          palette: "ink" as const,
         }}
       />
 
@@ -1513,7 +1513,7 @@ export const Root: React.FC = () => {
             { t: "Nov 2022",  value: 13,  label: "" },
           ],
           accent:  "",
-          palette: "paper" as const,
+          palette: "ink" as const,
         }}
       />
     </>
