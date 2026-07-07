@@ -6,9 +6,14 @@ import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, us
 import { z } from "zod";
 import { loadFont } from "@remotion/google-fonts/Inter";
 import { loadFont as loadPlayfair } from "@remotion/google-fonts/PlayfairDisplay";
+import { loadFont as loadPlexSans } from "@remotion/google-fonts/IBMPlexSans";
+import { loadFont as loadPlexMono } from "@remotion/google-fonts/IBMPlexMono";
 
 export const { fontFamily } = loadFont("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
 export const { fontFamily: serifFontFamily } = loadPlayfair("normal", { weights: ["400", "700", "900"] });
+// IBM Plex — display/body + mono for numbers/labels (generic finance primitives).
+export const { fontFamily: plexFontFamily } = loadPlexSans("normal", { weights: ["400", "500", "600", "700"] });
+export const { fontFamily: plexMonoFamily } = loadPlexMono("normal", { weights: ["400", "500", "600"] });
 
 export const COLORS = {
   bgFrom:          "#f5f0e8",
@@ -148,34 +153,32 @@ export const DarkBackground: React.FC<{ color?: string }> = ({ color = "#111111"
   <AbsoluteFill style={{ background: color }} />
 );
 
-// Electric-blue "ink" background: solid base + radial depth + visible monochrome
-// film grain. The bold, textured base for finance/news documentary graphics
-// (Vox / Johnny Harris register). Grain is baked in here, so comps using it must
-// NOT also render the warm paper <Grain/> (it would tint the blue).
-export const InkBackground: React.FC<{ color?: string }> = ({ color = "#0b0be5" }) => {
-  const { width, height } = useVideoConfig();
-  return (
-    <AbsoluteFill style={{ pointerEvents: "none" }}>
-      <AbsoluteFill style={{ background: color }} />
-      <AbsoluteFill
-        style={{
-          background:
-            "radial-gradient(135% 100% at 50% -12%, rgba(255,255,255,0.20), rgba(255,255,255,0) 46%), " +
-            "radial-gradient(130% 120% at 50% 118%, rgba(0,0,0,0.50), rgba(0,0,0,0) 56%)",
-        }}
-      />
-      <svg width={width} height={height} style={{ position: "absolute", inset: 0, opacity: 0.17, mixBlendMode: "overlay" as const }}>
-        <defs>
-          <filter id="ink-grain" x="0" y="0" width="100%" height="100%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed={7} stitchTiles="stitch" />
-            <feColorMatrix type="saturate" values="0" />
-          </filter>
-        </defs>
-        <rect width={width} height={height} filter="url(#ink-grain)" />
-      </svg>
-    </AbsoluteFill>
-  );
-};
+// Electric-blue "ink" background: solid base + radial light depth + an intentional
+// fine dot-grid texture (NOT random noise/grain). The dot grid reads as designed
+// material — the bold, textured base for finance/news documentary graphics
+// (Vox / Bloomberg / Johnny Harris register).
+export const InkBackground: React.FC<{ color?: string }> = ({ color = "#0b0be5" }) => (
+  <AbsoluteFill style={{ pointerEvents: "none" }}>
+    <AbsoluteFill style={{ background: color }} />
+    {/* light + shadow depth so the field is not flat */}
+    <AbsoluteFill
+      style={{
+        background:
+          "radial-gradient(130% 95% at 50% -14%, rgba(255,255,255,0.22), rgba(255,255,255,0) 48%), " +
+          "radial-gradient(130% 120% at 50% 120%, rgba(0,0,0,0.52), rgba(0,0,0,0) 58%)",
+      }}
+    />
+    {/* fine dot grid — intentional texture (not noise), visible across the field */}
+    <AbsoluteFill
+      style={{
+        backgroundImage: "radial-gradient(rgba(255,255,255,0.26) 1.7px, transparent 1.9px)",
+        backgroundSize: "38px 38px",
+        WebkitMaskImage: "radial-gradient(135% 115% at 50% 28%, #000 70%, transparent 100%)",
+        maskImage: "radial-gradient(135% 115% at 50% 28%, #000 70%, transparent 100%)",
+      }}
+    />
+  </AbsoluteFill>
+);
 
 // ── Typography helpers ────────────────────────────────────────────────────────
 

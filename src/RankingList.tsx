@@ -20,7 +20,7 @@ import {
 import { z } from "zod";
 import {
   fontFamily,
-  serifFontFamily,
+  plexFontFamily,
   Grain,
   PaperBackground,
   DarkBackground,
@@ -55,7 +55,7 @@ export type RankingListProps = z.infer<typeof RankingListPropsSchema>;
 
 const PADDING_X   = 180;
 const DEFAULT_ACCENT = "#3b82c4";
-const INK_ACCENT = "#FFD23F";
+const INK_ACCENT = "#FFDD00";
 
 const fmtValue = (n: number, unit: string): string => {
   const num = Number.isInteger(n) ? n.toLocaleString() : n.toFixed(1);
@@ -96,14 +96,14 @@ export const RankingList: React.FC<RankingListProps> = ({
   const BAR_MAX = 1180;
 
   return (
-    <AbsoluteFill style={{ fontFamily }}>
+    <AbsoluteFill style={{ fontFamily: plexFontFamily }}>
       {isInk ? <InkBackground /> : isDark ? <DarkBackground /> : <PaperBackground />}
 
       <AbsoluteFill style={{ zIndex: 10, padding: `120px ${PADDING_X}px` }}>
         <div style={{ opacity: titleP, transform: `translateY(${titleY}px)` }}>
           <div style={{ width: 64, height: 5, background: ac, borderRadius: 3, marginBottom: 24 }} />
           <div style={{
-            fontFamily: serifFontFamily, fontWeight: 900, fontSize: 66,
+            fontFamily: plexFontFamily, fontWeight: 700, fontSize: 66,
             lineHeight: 1.0, letterSpacing: -1.5, color: fg, maxWidth: 1300,
           }}>
             {title}
@@ -123,10 +123,10 @@ export const RankingList: React.FC<RankingListProps> = ({
             return (
               <div key={i} style={{ height: ROW_H, opacity: rp, transform: `translateY(${interpolate(rp,[0,1],[24,0])}px)` }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 22, marginBottom: 12 }}>
-                  <div style={{ fontFamily: serifFontFamily, fontWeight: 900, fontSize: 34, color: ac, width: 46, flexShrink: 0 }}>
+                  <div style={{ fontFamily: plexFontFamily, fontWeight: 700, fontSize: 34, color: ac, width: 46, flexShrink: 0 }}>
                     {i + 1}
                   </div>
-                  <div style={{ fontSize: 34, fontWeight: 800, color: rowFg, letterSpacing: -0.4 }}>
+                  <div style={{ fontSize: 34, fontWeight: 700, color: rowFg, letterSpacing: -0.4 }}>
                     {r.label}
                   </div>
                   {r.secondary ? (
@@ -134,7 +134,7 @@ export const RankingList: React.FC<RankingListProps> = ({
                       {r.secondary}
                     </div>
                   ) : null}
-                  <div style={{ marginLeft: "auto", fontSize: 34, fontWeight: 800, color: rowFg }}>
+                  <div style={{ marginLeft: "auto", fontSize: 34, fontWeight: 700, color: rowFg }}>
                     {fmtValue(r.value, r.unit)}
                   </div>
                 </div>

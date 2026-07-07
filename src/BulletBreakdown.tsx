@@ -20,7 +20,7 @@ import {
 import { z } from "zod";
 import {
   fontFamily,
-  serifFontFamily,
+  plexFontFamily,
   Grain,
   PaperBackground,
   DarkBackground,
@@ -52,7 +52,7 @@ export type BulletBreakdownProps = z.infer<typeof BulletBreakdownPropsSchema>;
 
 const PADDING_X = 200;
 const DEFAULT_ACCENT = "#d97a3e";
-const INK_ACCENT = "#FFD23F";
+const INK_ACCENT = "#FFDD00";
 
 export const BulletBreakdown: React.FC<BulletBreakdownProps> = ({
   title,
@@ -83,7 +83,7 @@ export const BulletBreakdown: React.FC<BulletBreakdownProps> = ({
   const startY  = Math.max(300, 540 - blockH / 2 + 60);
 
   return (
-    <AbsoluteFill style={{ fontFamily }}>
+    <AbsoluteFill style={{ fontFamily: plexFontFamily }}>
       {isInk ? <InkBackground /> : isDark ? <DarkBackground /> : <PaperBackground />}
 
       <AbsoluteFill style={{ zIndex: 10, padding: `120px ${PADDING_X}px` }}>
@@ -93,7 +93,7 @@ export const BulletBreakdown: React.FC<BulletBreakdownProps> = ({
             width: 64, height: 5, background: ac, borderRadius: 3, marginBottom: 26,
           }} />
           <div style={{
-            fontFamily: serifFontFamily, fontWeight: 900, fontSize: 72,
+            fontFamily: plexFontFamily, fontWeight: 700, fontSize: 72,
             lineHeight: 1.0, letterSpacing: -1.5, color: fg, maxWidth: 1300,
           }}>
             {title}
@@ -124,13 +124,13 @@ export const BulletBreakdown: React.FC<BulletBreakdownProps> = ({
                 }}
               >
                 <div style={{
-                  flexShrink: 0, fontFamily: serifFontFamily, fontWeight: 900,
+                  flexShrink: 0, fontFamily: plexFontFamily, fontWeight: 700,
                   fontSize: 46, lineHeight: 1, color: ac, width: 58,
                 }}>
                   {String(i + 1).padStart(2, "0")}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 40, fontWeight: 800, color: fg, letterSpacing: -0.5, lineHeight: 1.05 }}>
+                  <div style={{ fontSize: 40, fontWeight: 700, color: fg, letterSpacing: -0.5, lineHeight: 1.05 }}>
                     {p.heading}
                   </div>
                   {p.detail ? (

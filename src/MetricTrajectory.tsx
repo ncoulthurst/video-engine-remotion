@@ -23,7 +23,7 @@ import {
 import { z } from "zod";
 import {
   fontFamily,
-  serifFontFamily,
+  plexFontFamily,
   Grain,
   PaperBackground,
   DarkBackground,
@@ -62,7 +62,7 @@ const PLOT_R = 1690;
 const PLOT_T = 380;
 const PLOT_B = 880;
 const DEFAULT_ACCENT = "#3b82c4";
-const INK_ACCENT = "#FFD23F";
+const INK_ACCENT = "#FFDD00";
 
 const fmtVal = (n: number, unit: string): string => {
   const abs = Math.abs(n);
@@ -118,14 +118,14 @@ export const MetricTrajectory: React.FC<MetricTrajectoryProps> = ({
   const dotP = spring({ frame: frame - 46, fps, config: SPRINGS.bounce });
 
   return (
-    <AbsoluteFill style={{ fontFamily }}>
+    <AbsoluteFill style={{ fontFamily: plexFontFamily }}>
       {isInk ? <InkBackground /> : isDark ? <DarkBackground /> : <PaperBackground />}
 
       <AbsoluteFill style={{ zIndex: 10, padding: `120px 200px` }}>
         <div style={{ opacity: titleP, transform: `translateY(${titleY}px)` }}>
           <div style={{ width: 64, height: 5, background: ac, borderRadius: 3, marginBottom: 22 }} />
           <div style={{
-            fontFamily: serifFontFamily, fontWeight: 900, fontSize: 64,
+            fontFamily: plexFontFamily, fontWeight: 700, fontSize: 64,
             lineHeight: 1.0, letterSpacing: -1.5, color: fg, maxWidth: 1300,
           }}>
             {title}
@@ -164,7 +164,7 @@ export const MetricTrajectory: React.FC<MetricTrajectoryProps> = ({
           if (!show) return null;
           const lp = interpolate(drawP, [i / Math.max(1, n - 1) * 0.8, i / Math.max(1, n - 1) * 0.8 + 0.15], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
           return (
-            <text key={i} x={c.x} y={PLOT_B + 42} fill={muted} fontSize={22} fontFamily={fontFamily}
+            <text key={i} x={c.x} y={PLOT_B + 42} fill={muted} fontSize={22} fontFamily={plexFontFamily}
                   textAnchor={i === 0 ? "start" : i === n - 1 ? "end" : "middle"} opacity={lp}>
               {c.p.t}
             </text>
@@ -188,7 +188,7 @@ export const MetricTrajectory: React.FC<MetricTrajectoryProps> = ({
         width: 220,
         opacity: dotP,
       }}>
-        <div style={{ fontFamily: serifFontFamily, fontWeight: 900, fontSize: 58, color: ac, lineHeight: 1 }}>
+        <div style={{ fontFamily: plexFontFamily, fontWeight: 700, fontSize: 58, color: ac, lineHeight: 1 }}>
           {fmtVal(pts[n - 1].value, unit)}
         </div>
         {pts[n - 1].label ? (
