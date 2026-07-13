@@ -24,6 +24,7 @@ import { HeroTransferRecord } from "./HeroTransferRecord";
 import { HeroQuote } from "./HeroQuote";
 import { HeroChapterWord } from "./HeroChapterWord";
 import { HeroClipCompare } from "./HeroClipCompare";
+import { HeroClipSingle } from "./HeroClipSingle";
 import { HeroScatterPlot } from "./HeroScatterPlot";
 import { TrioFeature } from "./TrioFeature";
 import { PlayerTrio } from "./PlayerTrio";
@@ -69,10 +70,20 @@ import { TournamentBracket } from "./TournamentBracket";
 import { PortraitStatHero } from "./PortraitStatHero";
 import { PortraitWithBars } from "./PortraitWithBars";
 import { HeroOutro } from "./HeroOutro";
+// Domain-agnostic + finance variants — every composition the render chain can
+// emit for non-football domains must be in SCENE_REGISTRY or it exports as an
+// "Unknown scene" black panel (caught on the first fresh finance export).
+import { TimelineGeneric } from "./TimelineGeneric";
+import { StatComparison } from "./StatComparison";
+import { HeroIntroFinance } from "./HeroIntroFinance";
+import { HeroOutroFinance } from "./HeroOutroFinance";
+import { HeroQuoteFinance } from "./HeroQuoteFinance";
+import { BulletBreakdownFinance } from "./BulletBreakdownFinance";
 import { worldFor, type TemplateWorld } from "./lib/worldRegistry";
 
 // ── Generated components (motion_agent.py) ────────────────────────────────────
 import { GEN_REGISTRY } from "./gen/index";
+import { SceneSequence } from "./SceneSequence";
 
 // ── Transitions ────────────────────────────────────────────────────────────────
 import {
@@ -84,15 +95,17 @@ import {
   grainBurstTransition, grainBurstTiming,
   worldPanTransition, worldPanTiming,
   evolveTransition, evolveTiming,
+  zoomThroughTransition, zoomThroughTiming,
   TRANSITION_DURATIONS,
 } from "./ChapterTransition";
+import { FilmPlate } from "./lib/FilmPlate";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Scene registry — maps compositionId strings to React components
 // ─────────────────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
+export const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   HeroIntro,
   HeroOutro,
   HeroStatBars,
@@ -104,6 +117,7 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   HeroQuote,
   HeroChapterWord,
   HeroClipCompare,
+  HeroClipSingle,
   HeroScatterPlot,
   TrioFeature,
   PlayerTrio,
@@ -148,7 +162,15 @@ const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   // Track E hybrids
   PortraitStatHero,
   PortraitWithBars,
+  // Domain-agnostic + finance variants
+  TimelineGeneric,
+  StatComparison,
+  HeroIntroFinance,
+  HeroOutroFinance,
+  HeroQuoteFinance,
+  BulletBreakdownFinance,
   // Merge generated components last — they can override defaults during dev
+  SceneSequence,
   ...GEN_REGISTRY,
 };
 
@@ -190,6 +212,7 @@ export const TransitionTypeSchema = z.enum([
   "grain",
   "worldPan",
   "evolve",
+  "zoomThrough",
   "none",
 ]);
 
@@ -256,6 +279,7 @@ function getTransitionFrames(
     case "grain":     return grainBurstTiming().getDurationInFrames({ fps });
     case "worldPan":  return worldPanTiming().getDurationInFrames({ fps });
     case "evolve":    return evolveTiming().getDurationInFrames({ fps });
+    case "zoomThrough": return zoomThroughTiming().getDurationInFrames({ fps });
     default:          return 0;
   }
 }
@@ -313,6 +337,7 @@ function getPresentation(type: TransitionType, accentColor: string, direction?: 
     case "grain":     return grainBurstTransition();
     case "worldPan":  return worldPanTransition({ direction: pushDir });
     case "evolve":    return evolveTransition();
+    case "zoomThrough": return zoomThroughTransition();
     default:          return null;
   }
 }
@@ -347,6 +372,10 @@ function getTiming(type: TransitionType, durationOverride?: number) {
       return durationOverride
         ? linearTiming({ durationInFrames: durationOverride })
         : evolveTiming();
+    case "zoomThrough":
+      return durationOverride
+        ? linearTiming({ durationInFrames: durationOverride })
+        : zoomThroughTiming();
     default:
       return null;
   }
@@ -428,6 +457,10 @@ export const VideoSequence: React.FC<VideoSequenceProps> = ({
   return (
     <AbsoluteFill>
       <TransitionSeries>{elements}</TransitionSeries>
+      {/* H4 — the single full-timeline grade layer: one grain + vignette +
+          temperature treatment above every scene AND transition, so graphics
+          and archival footage read as one film stock. */}
+      <FilmPlate />
     </AbsoluteFill>
   );
 };

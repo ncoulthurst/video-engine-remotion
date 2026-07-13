@@ -8,12 +8,14 @@ import {
   interpolate,
   spring,
   staticFile,
+  Freeze,
   useCurrentFrame,
   useVideoConfig,
   Video,
 } from "remotion";
 import { z } from "zod";
 import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg } from "./shared";
+import { ArchivalFrame } from "./ArchivalFrame";
 
 export const HeroClipSinglePropsSchema = z.object({
   label:   z.string().optional().default(""),
@@ -24,11 +26,17 @@ export const HeroClipSinglePropsSchema = z.object({
   trimIn:  z.number().int().min(0).optional(),
   /** Frame offset in the source file to end at (for splice support) */
   trimOut: z.number().int().optional(),
+  /** Intrinsic source length in frames (probed at upload) — freeze-hold bound */
+  durationInFrames: z.number().int().optional(),
   /** Enable audio track on the clip — muted by default */
   soundOn: z.boolean().default(false),
   /** Track E — optional context portrait (resolver-filled, rendered via SmartImg) */
   playerImage: z.string().optional().default(""),
   skipIntro: z.boolean().optional().default(false),
+  /** H4 — archival treatment: letterbox + desat grade + /YEAR tag (ArchivalFrame) */
+  archivalTreatment: z.boolean().optional().default(false),
+  /** Archive year shown as the top-left `/YEAR` tag when archivalTreatment is on */
+  archivalYear: z.string().optional(),
 });
 export type HeroClipSingleProps = z.infer<typeof HeroClipSinglePropsSchema>;
 
@@ -88,10 +96,21 @@ const BorderGlow: React.FC<{
 };
 
 export const HeroClipSingle: React.FC<HeroClipSingleProps> = ({
-  label, clip, title, bgColor, trimIn, trimOut, soundOn = false,
+  label, clip = "", title, bgColor, trimIn, trimOut, durationInFrames, soundOn = false,
+  archivalTreatment = false, archivalYear,
 }) => {
   const frame   = useCurrentFrame();
   const { fps } = useVideoConfig();
+
+  // Freeze-hold: when the scene outlives the footage (narration-paced scenes
+  // regularly do), hold the last available frame instead of going black
+  // (F2 watched export: 15s of footage inside a 186s scene = ~170s of black).
+  const clipStartFrame = trimIn ?? 0;
+  const clipEndFrame   = trimOut ?? durationInFrames;
+  const availFrames    = clipEndFrame !== undefined
+    ? Math.max(1, clipEndFrame - clipStartFrame)
+    : undefined;
+  const pastFootage = availFrames !== undefined && frame >= availFrames;
 
   const titleIn  = spring({ frame, fps, config: { damping: 24, stiffness: 55 }, delay: 0 });
   const frameIn  = spring({ frame, fps, config: { damping: 22, stiffness: 50 }, delay: 8 });
@@ -147,31 +166,46 @@ export const HeroClipSingle: React.FC<HeroClipSingleProps> = ({
               "inset 0 1px 0 rgba(255,255,255,0.06)",
             ].join(", "),
           }}>
-            {isVideo && clip ? (
-              <Video
-                src={staticFile(clip)}
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                muted={!soundOn}
-                startFrom={trimIn ?? 0}
-                {...(trimOut !== undefined ? { endAt: trimOut } : {})}
-              />
-            ) : isImage && clip ? (
-              <SmartImg src={clip} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            ) : (
-              <div style={{
-                width: "100%", height: "100%",
-                background: "linear-gradient(160deg, #191919 0%, #0d0d0d 100%)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
+            {(() => {
+              // Only construct the <Video> when a clip path exists — JSX props
+              // evaluate eagerly, and staticFile(undefined/"") throws even when
+              // the placeholder branch below is the one that renders.
+              const clipVideo = isVideo && clip ? (
+                <Video
+                  src={staticFile(clip)}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  muted={!soundOn}
+                  startFrom={clipStartFrame}
+                  {...(trimOut !== undefined ? { endAt: trimOut } : {})}
+                />
+              ) : null;
+              const media = isVideo && clip ? (
+                pastFootage ? (
+                  <Freeze frame={availFrames - 1}>{clipVideo}</Freeze>
+                ) : (
+                  clipVideo
+                )
+              ) : isImage && clip ? (
+                <SmartImg src={clip} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
                 <div style={{
-                  fontFamily,
-                  fontSize: 13,
-                  letterSpacing: 4,
-                  textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.12)",
-                }}>clip</div>
-              </div>
-            )}
+                  width: "100%", height: "100%",
+                  background: "linear-gradient(160deg, #191919 0%, #0d0d0d 100%)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <div style={{
+                    fontFamily,
+                    fontSize: 13,
+                    letterSpacing: 4,
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.12)",
+                  }}>clip</div>
+                </div>
+              );
+              return archivalTreatment ? (
+                <ArchivalFrame year={archivalYear}>{media}</ArchivalFrame>
+              ) : media;
+            })()}
           </div>
 
           <BorderGlow w={CLIP_W} h={CLIP_H} frame={frame} fps={fps} delay={18} />
