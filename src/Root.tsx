@@ -16,6 +16,9 @@ import { HeroFormRun, HeroFormRunPropsSchema } from "./HeroFormRun";
 import { HeroTactical, HeroTacticalPropsSchema } from "./HeroTactical";
 import { HeroLeagueGraph, HeroLeagueGraphPropsSchema } from "./HeroLeagueGraph";
 import { HeroTransferRecord, HeroTransferRecordPropsSchema } from "./HeroTransferRecord";
+import { HeroTransferRecordVault, HeroTransferRecordVaultPropsSchema } from "./HeroTransferRecordVault";
+import { HeroValueChart, HeroValueChartPropsSchema, calculateMetadata as heroValueChartCalc } from "./HeroValueChart";
+import { HeroStatComparison, HeroStatComparisonPropsSchema, calculateMetadata as heroStatComparisonCalc } from "./HeroStatComparison";
 import { HeroChapterWord, HeroChapterWordPropsSchema } from "./HeroChapterWord";
 import { HeroClipCompare, HeroClipComparePropsSchema } from "./HeroClipCompare";
 import { HeroClipSingle, HeroClipSinglePropsSchema } from "./HeroClipSingle";
@@ -56,6 +59,49 @@ import { StatComparison, StatComparisonPropsSchema, calculateMetadata as statCom
 import { BulletBreakdown, BulletBreakdownPropsSchema } from "./BulletBreakdown";
 import { RankingList, RankingListPropsSchema } from "./RankingList";
 import { MetricTrajectory, MetricTrajectoryPropsSchema } from "./MetricTrajectory";
+import { SceneSequence, SceneSequencePropsSchema } from "./SceneSequence";
+// Finance (paperOrange) variants + CreditsRoll
+import { HeroIntroFinance, HeroIntroFinancePropsSchema } from "./HeroIntroFinance";
+import { HeroOutroFinance, HeroOutroFinancePropsSchema } from "./HeroOutroFinance";
+import { HeroQuoteFinance, HeroQuoteFinancePropsSchema } from "./HeroQuoteFinance";
+import { BulletBreakdownFinance, BulletBreakdownFinancePropsSchema } from "./BulletBreakdownFinance";
+import { CreditsRoll, CreditsRollPropsSchema, calculateMetadata as creditsRollCalc } from "./CreditsRoll";
+// ── Finance & Business documentary graphics package (finance/kit.tsx system) ──
+import { ChapterCard, ChapterCardPropsSchema } from "./finance/ChapterCard";
+import { DateStamp, DateStampPropsSchema } from "./finance/DateStamp";
+import { PersonIntro, PersonIntroPropsSchema } from "./finance/PersonIntro";
+import { LowerThirdCard, LowerThirdCardPropsSchema } from "./finance/LowerThirdCard";
+import { MoneyFlow, MoneyFlowPropsSchema } from "./finance/MoneyFlow";
+import { PortfolioGrid, PortfolioGridPropsSchema } from "./finance/PortfolioGrid";
+import { BalanceSheet, BalanceSheetPropsSchema } from "./finance/BalanceSheet";
+import { CourtVerdict, CourtVerdictPropsSchema } from "./finance/CourtVerdict";
+import { SocialPost, SocialPostPropsSchema } from "./finance/SocialPost";
+import { MultiplierCard, MultiplierCardPropsSchema } from "./finance/MultiplierCard";
+import { EntityCard, EntityCardPropsSchema } from "./finance/EntityCard";
+import { FundingRounds, FundingRoundsPropsSchema } from "./finance/FundingRounds";
+import { StakeCard, StakeCardPropsSchema } from "./finance/StakeCard";
+import { DrawdownChart, DrawdownChartPropsSchema } from "./finance/DrawdownChart";
+import { SystemDiagram, SystemDiagramPropsSchema } from "./finance/SystemDiagram";
+import { ComparisonTable, ComparisonTablePropsSchema } from "./finance/ComparisonTable";
+import { SentenceCard, SentenceCardPropsSchema } from "./finance/SentenceCard";
+import { ThesisCard, ThesisCardPropsSchema } from "./finance/ThesisCard";
+import { DocumentReveal, DocumentRevealPropsSchema } from "./finance/DocumentReveal";
+import { TokenWeb, TokenWebPropsSchema } from "./finance/TokenWeb";
+// Tier 3 + deferred Tier-2
+import { OrgChart, OrgChartPropsSchema } from "./finance/OrgChart";
+import { IndexCompare, IndexComparePropsSchema } from "./finance/IndexCompare";
+import { SankeyFlow, SankeyFlowPropsSchema } from "./finance/SankeyFlow";
+import { MarketPanel, MarketPanelPropsSchema } from "./finance/MarketPanel";
+import { AcquisitionTree, AcquisitionTreePropsSchema } from "./finance/AcquisitionTree";
+import { PercentBreakdown, PercentBreakdownPropsSchema } from "./finance/PercentBreakdown";
+import { DonutShare, DonutSharePropsSchema } from "./finance/DonutShare";
+import { MetricGrid, MetricGridPropsSchema } from "./finance/MetricGrid";
+import { ScaleCompare, ScaleComparePropsSchema } from "./finance/ScaleCompare";
+import { SplitScreen, SplitScreenPropsSchema } from "./finance/SplitScreen";
+import { GlobalReach, GlobalReachPropsSchema } from "./finance/GlobalReach";
+import { CastGrid, CastGridPropsSchema } from "./finance/CastGrid";
+import { EraBand, EraBandPropsSchema } from "./finance/EraBand";
+import { LegalTimeline, LegalTimelinePropsSchema } from "./finance/LegalTimeline";
 
 import type { CareerTimelineProps } from "./CareerTimeline";
 import type { HeroTransferRecordProps } from "./HeroTransferRecord";
@@ -82,19 +128,20 @@ const DEFAULT_TIMELINE: CareerTimelineProps = {
 };
 
 const DEFAULT_HERO_TRANSFER_RECORD: HeroTransferRecordProps = {
-  title: "world record transfer fees",
-  subtitle: "the escalation of the market over two decades",
-  sideImage: "neymar.png",
-  accentColor: "#C9A84C",
+  title: "Sam Bankman Fried's Investments",
+  titleSize: 74,
+  subtitle: "the escalation of the market over the years",
+  sideImage: "sbf.png",
+  // No bgColor / accentColor / per-row accentColor → colours come from the active
+  // PALETTE (shared.tsx). Add any of them back to override per-render.
   transfers: [
-    { year: "2001", player: "Zinedine Zidane",  fromClub: "Juventus",  toClub: "Real Madrid", fee: "£46.5m", feeValue: 46.5, highlight: false },
-    { year: "2009", player: "Cristiano Ronaldo",fromClub: "Man Utd",   toClub: "Real Madrid", fee: "£80m",   feeValue: 80,   highlight: false },
-    { year: "2013", player: "Gareth Bale",       fromClub: "Spurs",    toClub: "Real Madrid", fee: "£85m",   feeValue: 85,   highlight: false },
-    { year: "2016", player: "Paul Pogba",         fromClub: "Juventus", toClub: "Man Utd",     fee: "£89m",   feeValue: 89,   highlight: false },
-    { year: "2017", player: "Neymar",             fromClub: "Barcelona",toClub: "PSG",         fee: "£198m",  feeValue: 198,  highlight: true  },
-    { year: "2023", player: "Enzo Fernández",     fromClub: "Benfica",  toClub: "Chelsea",     fee: "£107m",  feeValue: 107,  highlight: false },
+    { year: "2017", player: "Solana",           fromClub: "", toClub: "", fee: "£46.5b", feeValue: 46.5, highlight: false },
+    { year: "2020", player: "Anthropic",         fromClub: "", toClub: "", fee: "£80b",   feeValue: 80,   highlight: false },
+    { year: "2013", player: "SpaceX",            fromClub: "", toClub: "", fee: "£85b",   feeValue: 85,   highlight: false },
+    { year: "2016", player: "OpenAI",            fromClub: "", toClub: "", fee: "£123b",  feeValue: 123,  highlight: false },
+    { year: "2017", player: "Alameda Research",  fromClub: "", toClub: "", fee: "£198b",  feeValue: 198,  highlight: true  },
+    { year: "2023", player: "Eskens",            fromClub: "", toClub: "", fee: "£107b",  feeValue: 107,  highlight: false },
   ],
-  bgColor: "#f0ece4",
   skipIntro: false,
 };
 
@@ -291,6 +338,205 @@ export const Root: React.FC = () => {
         defaultProps={DEFAULT_HERO_TRANSFER_RECORD}
       />
       <Composition
+        id="HeroTransferRecordVault"
+        component={HeroTransferRecordVault}
+        schema={HeroTransferRecordVaultPropsSchema}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={DEFAULT_HERO_TRANSFER_RECORD}
+      />
+      <Composition
+        id="HeroValueChart"
+        component={HeroValueChart}
+        schema={HeroValueChartPropsSchema}
+        calculateMetadata={heroValueChartCalc}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title: "The Solana Bet",
+          subtitle: "SOL price per coin",
+          source: "Source: CoinGecko · Alameda entry price per company filings",
+          unit: "$",
+          logScale: true,
+          points: [
+            { label: "2020",     value: 0.10 },
+            { label: "",         value: 0.9 },
+            { label: "2021",     value: 2.5 },
+            { label: "",         value: 35 },
+            { label: "Sep '21",  value: 190 },
+            { label: "Nov '21",  value: 260 },
+            { label: "2022",     value: 95 },
+            { label: "",         value: 38 },
+            { label: "Nov '22",  value: 13 },
+          ],
+          events: [
+            { index: 0, title: "Alameda enters", sub: "~$0.10 · early 2020" },
+            { index: 5, title: "Peak",           sub: "$260 · Nov 2021" },
+            { index: 8, title: "FTX collapse",   sub: "$13 · Nov 2022" },
+          ],
+        }}
+      />
+      {/* ── Finance (paperOrange) variants + CreditsRoll ─────────────── */}
+      <Composition
+        id="HeroIntroFinance"
+        component={HeroIntroFinance}
+        schema={HeroIntroFinancePropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          subtitle: "the science of football",
+          bgColor: "#0A4AA0",
+          sideImageX: 72,
+          sideImageY: 100,
+          sideImageScale: 1,
+          skipIntro: false,
+        }}
+      />
+      <Composition
+        id="HeroOutroFinance"
+        component={HeroOutroFinance}
+        schema={HeroOutroFinancePropsSchema}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          leadIn: "If this story stayed with you, there's more where it came from.",
+          subscribeAsk: "Subscribe for a new story every week.",
+          videoLeftTitle: "Watch next",
+          videoRightTitle: "Or this one",
+          videoLeftSrc: "",
+          videoRightSrc: "",
+          videoLeftImage: "",
+          videoRightImage: "",
+          bgColor: "#F7F4EE",
+          accentColor: "#E8623A",
+          skipIntro: false,
+        }}
+      />
+      <Composition
+        id="HeroQuoteFinance"
+        component={HeroQuoteFinance}
+        schema={HeroQuoteFinancePropsSchema}
+        durationInFrames={240}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          quote: "“It wasn't an investment strategy; it was a high-stakes heist.”",
+          attribution: "The Verdict",
+          context: "",
+          playerImage: "",
+          accentColor: "#E8623A",
+          bgColor: "#F7F4EE",
+          skipIntro: false,
+        }}
+      />
+      <Composition
+        id="BulletBreakdownFinance"
+        component={BulletBreakdownFinance}
+        schema={BulletBreakdownFinancePropsSchema}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title: "The case against",
+          subtitle: "",
+          points: [
+            { heading: "Unlimited risk appetite", detail: "A normal fund protects the downside. Alameda had billions it never had to answer for." },
+            { heading: "Survivorship bias", detail: "We remember Solana and Anthropic. We forget the dead tokens and bad bets." },
+            { heading: "Paper vs realised", detail: "A valuation is not a cheque. Most of it could never be cashed." },
+          ],
+          accent: "",
+          palette: "ink" as const,
+        }}
+      />
+      <Composition
+        id="CreditsRoll"
+        component={CreditsRoll}
+        schema={CreditsRollPropsSchema}
+        calculateMetadata={creditsRollCalc}
+        durationInFrames={300}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title: "Sources & Credits",
+          subtitle: "",
+          sections: [
+            { heading: "Footage", items: ["Getty Images — archival", "AP Archive — news footage", "Bloomberg Television — broadcast"] },
+            { heading: "Data", items: ["FBref", "CoinGecko", "Company filings — SEC EDGAR"] },
+            { heading: "Music", items: ["Epidemic Sound — licensed score", "Artlist — additional cues"] },
+          ],
+          footer: "Frequency — thanks for watching",
+          skipIntro: false,
+        }}
+      />
+      {/* ── Finance & Business documentary graphics package ──────────────
+          20 reusable templates composed from finance/kit.tsx (grounds,
+          typography, spacing, shadows, motion helpers, shared primitives).
+          All 1920×1080 @ 30fps; every prop is optional (Zod defaults). */}
+      <Composition id="ChapterCard" component={ChapterCard} schema={ChapterCardPropsSchema} durationInFrames={80} fps={30} width={1920} height={1080} defaultProps={ChapterCardPropsSchema.parse({})} />
+      <Composition id="DateStamp" component={DateStamp} schema={DateStampPropsSchema} durationInFrames={95} fps={30} width={1920} height={1080} defaultProps={DateStampPropsSchema.parse({})} />
+      <Composition id="PersonIntro" component={PersonIntro} schema={PersonIntroPropsSchema} durationInFrames={130} fps={30} width={1920} height={1080} defaultProps={PersonIntroPropsSchema.parse({})} />
+      <Composition id="LowerThirdCard" component={LowerThirdCard} schema={LowerThirdCardPropsSchema} durationInFrames={150} fps={30} width={1920} height={1080} defaultProps={LowerThirdCardPropsSchema.parse({})} />
+      <Composition id="MoneyFlow" component={MoneyFlow} schema={MoneyFlowPropsSchema} durationInFrames={210} fps={30} width={1920} height={1080} defaultProps={MoneyFlowPropsSchema.parse({})} />
+      <Composition id="PortfolioGrid" component={PortfolioGrid} schema={PortfolioGridPropsSchema} durationInFrames={210} fps={30} width={1920} height={1080} defaultProps={PortfolioGridPropsSchema.parse({})} />
+      <Composition id="BalanceSheet" component={BalanceSheet} schema={BalanceSheetPropsSchema} durationInFrames={235} fps={30} width={1920} height={1080} defaultProps={BalanceSheetPropsSchema.parse({})} />
+      <Composition id="CourtVerdict" component={CourtVerdict} schema={CourtVerdictPropsSchema} durationInFrames={225} fps={30} width={1920} height={1080} defaultProps={CourtVerdictPropsSchema.parse({})} />
+      <Composition id="SocialPost" component={SocialPost} schema={SocialPostPropsSchema} durationInFrames={155} fps={30} width={1920} height={1080} defaultProps={SocialPostPropsSchema.parse({})} />
+      <Composition id="MultiplierCard" component={MultiplierCard} schema={MultiplierCardPropsSchema} durationInFrames={155} fps={30} width={1920} height={1080} defaultProps={MultiplierCardPropsSchema.parse({})} />
+      <Composition id="EntityCard" component={EntityCard} schema={EntityCardPropsSchema} durationInFrames={150} fps={30} width={1920} height={1080} defaultProps={EntityCardPropsSchema.parse({})} />
+      <Composition id="FundingRounds" component={FundingRounds} schema={FundingRoundsPropsSchema} durationInFrames={170} fps={30} width={1920} height={1080} defaultProps={FundingRoundsPropsSchema.parse({})} />
+      <Composition id="StakeCard" component={StakeCard} schema={StakeCardPropsSchema} durationInFrames={155} fps={30} width={1920} height={1080} defaultProps={StakeCardPropsSchema.parse({})} />
+      <Composition id="DrawdownChart" component={DrawdownChart} schema={DrawdownChartPropsSchema} durationInFrames={195} fps={30} width={1920} height={1080} defaultProps={DrawdownChartPropsSchema.parse({})} />
+      <Composition id="SystemDiagram" component={SystemDiagram} schema={SystemDiagramPropsSchema} durationInFrames={220} fps={30} width={1920} height={1080} defaultProps={SystemDiagramPropsSchema.parse({})} />
+      <Composition id="ComparisonTable" component={ComparisonTable} schema={ComparisonTablePropsSchema} durationInFrames={170} fps={30} width={1920} height={1080} defaultProps={ComparisonTablePropsSchema.parse({})} />
+      <Composition id="SentenceCard" component={SentenceCard} schema={SentenceCardPropsSchema} durationInFrames={110} fps={30} width={1920} height={1080} defaultProps={SentenceCardPropsSchema.parse({})} />
+      <Composition id="ThesisCard" component={ThesisCard} schema={ThesisCardPropsSchema} durationInFrames={180} fps={30} width={1920} height={1080} defaultProps={ThesisCardPropsSchema.parse({})} />
+      <Composition id="DocumentReveal" component={DocumentReveal} schema={DocumentRevealPropsSchema} durationInFrames={175} fps={30} width={1920} height={1080} defaultProps={DocumentRevealPropsSchema.parse({})} />
+      <Composition id="TokenWeb" component={TokenWeb} schema={TokenWebPropsSchema} durationInFrames={170} fps={30} width={1920} height={1080} defaultProps={TokenWebPropsSchema.parse({})} />
+      {/* ── Tier 3 + deferred Tier-2 ─────────────────────────────────── */}
+      <Composition id="OrgChart" component={OrgChart} schema={OrgChartPropsSchema} durationInFrames={185} fps={30} width={1920} height={1080} defaultProps={OrgChartPropsSchema.parse({})} />
+      <Composition id="IndexCompare" component={IndexCompare} schema={IndexComparePropsSchema} durationInFrames={185} fps={30} width={1920} height={1080} defaultProps={IndexComparePropsSchema.parse({})} />
+      <Composition id="SankeyFlow" component={SankeyFlow} schema={SankeyFlowPropsSchema} durationInFrames={200} fps={30} width={1920} height={1080} defaultProps={SankeyFlowPropsSchema.parse({})} />
+      <Composition id="MarketPanel" component={MarketPanel} schema={MarketPanelPropsSchema} durationInFrames={175} fps={30} width={1920} height={1080} defaultProps={MarketPanelPropsSchema.parse({})} />
+      <Composition id="AcquisitionTree" component={AcquisitionTree} schema={AcquisitionTreePropsSchema} durationInFrames={185} fps={30} width={1920} height={1080} defaultProps={AcquisitionTreePropsSchema.parse({})} />
+      <Composition id="PercentBreakdown" component={PercentBreakdown} schema={PercentBreakdownPropsSchema} durationInFrames={180} fps={30} width={1920} height={1080} defaultProps={PercentBreakdownPropsSchema.parse({})} />
+      <Composition id="DonutShare" component={DonutShare} schema={DonutSharePropsSchema} durationInFrames={180} fps={30} width={1920} height={1080} defaultProps={DonutSharePropsSchema.parse({})} />
+      <Composition id="MetricGrid" component={MetricGrid} schema={MetricGridPropsSchema} durationInFrames={160} fps={30} width={1920} height={1080} defaultProps={MetricGridPropsSchema.parse({})} />
+      <Composition id="ScaleCompare" component={ScaleCompare} schema={ScaleComparePropsSchema} durationInFrames={195} fps={30} width={1920} height={1080} defaultProps={ScaleComparePropsSchema.parse({})} />
+      <Composition id="SplitScreen" component={SplitScreen} schema={SplitScreenPropsSchema} durationInFrames={165} fps={30} width={1920} height={1080} defaultProps={SplitScreenPropsSchema.parse({})} />
+      <Composition id="GlobalReach" component={GlobalReach} schema={GlobalReachPropsSchema} durationInFrames={175} fps={30} width={1920} height={1080} defaultProps={GlobalReachPropsSchema.parse({})} />
+      <Composition id="CastGrid" component={CastGrid} schema={CastGridPropsSchema} durationInFrames={165} fps={30} width={1920} height={1080} defaultProps={CastGridPropsSchema.parse({})} />
+      <Composition id="EraBand" component={EraBand} schema={EraBandPropsSchema} durationInFrames={165} fps={30} width={1920} height={1080} defaultProps={EraBandPropsSchema.parse({})} />
+      <Composition id="LegalTimeline" component={LegalTimeline} schema={LegalTimelinePropsSchema} durationInFrames={175} fps={30} width={1920} height={1080} defaultProps={LegalTimelinePropsSchema.parse({})} />
+
+      <Composition
+        id="HeroStatComparison"
+        component={HeroStatComparison}
+        schema={HeroStatComparisonPropsSchema}
+        calculateMetadata={heroStatComparisonCalc}
+        durationInFrames={170}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          title: "The Anthropic Bet",
+          subtitle: "FTX / Alameda investment vs. estate sale",
+          left:  { label: "Invested · 2022", value: 500_000_000,  prefix: "$", suffix: "", context: "FTX/Alameda into Anthropic, pre-AI boom" },
+          right: { label: "Estate sale · 2024", value: 1_300_000_000, prefix: "$", suffix: "", context: "Bankruptcy estate sold the stake" },
+          highlight: "right",
+        }}
+      />
+      <Composition
         id="HeroChapterWord"
         component={HeroChapterWord}
         schema={HeroChapterWordPropsSchema}
@@ -327,6 +573,7 @@ export const Root: React.FC = () => {
           clipRight:  "",
           title:      "",
           bgColor:    "#f0ece4",
+          domain:     "generic",
           skipIntro:  false,
         }}
       />
@@ -349,6 +596,8 @@ export const Root: React.FC = () => {
           soundOn: false,
           playerImage: "",
           skipIntro: false,
+          archivalTreatment: false,
+          boxed: false,
         }}
       />
       <Composition
@@ -1194,14 +1443,10 @@ export const Root: React.FC = () => {
         height={1080}
         defaultProps={{
           headlines: [
-            { source: "The Athletic",  headline: "Suárez handed 10-match ban following shocking bite on Chiellini", body: "Uruguay forward faces one of the longest suspensions in World Cup history after incident in Group D.", image: "suarez.png" },
-            { source: "BBC Sport",     headline: "Luis Suárez: reaction to ban from Uruguay forward's bite", body: "The BBC Sport team reacts to the 10-match suspension handed to Luis Suárez.", image: "suarez.png" },
-            { source: "The Guardian",  headline: "Suárez ban: how Twitter and the football world reacted", body: "Social media and the football community responded with shock and dark humour.", image: "suarez.png" },
+            { source: "Reuters",   headline: "FTX customers sue Bankman-Fried over alleged $11 billion fraud", body: "November 15, 2022" },
+            { source: "Bloomberg", headline: "Alameda Research lied to lenders about FTX's financial health", body: "November 14, 2022" },
+            { source: "The Wall Street Journal", headline: "Bankruptcy estate uncovers billions in venture stakes", body: "January 2023" },
           ],
-          bgColor:     "#111111",
-          accentColor: "#ffffff",
-          dotColor:    "#ffffff",
-          textColor:   "#f0f0f0",
           dwellFrames: 110,
           panFrames:   22,
         }}
@@ -1503,7 +1748,6 @@ export const Root: React.FC = () => {
         height={1080}
         defaultProps={{
           title:    "Solana (SOL) — price",
-          subtitle: "",
           unit:     "$",
           points: [
             { t: "2020",      value: 0.1, label: "" },
@@ -1512,8 +1756,67 @@ export const Root: React.FC = () => {
             { t: "Nov 2021",  value: 260, label: "peak" },
             { t: "Nov 2022",  value: 13,  label: "" },
           ],
-          accent:  "",
-          palette: "ink" as const,
+          accent: "#FFCC00",
+          bg:     "#0033CC",
+        }}
+      />
+      {/* H3 — sequence-as-composition: panels on one canvas + travelling camera */}
+      <Composition
+        id="SceneSequence"
+        component={SceneSequence}
+        schema={SceneSequencePropsSchema}
+        durationInFrames={360}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{
+          ground: "paper" as const,
+          bgColor: "#f0ece4",
+          accentColor: "#C8102E",
+          domain: "football" as const,
+          travelSec: 1.2,
+          skipIntro: false,
+          beats: [
+            {
+              id: "b1",
+              template: "HeroBigStat",
+              props: { stat: "31", unit: "goals", label: "in a single Premier League season." },
+              anchor: { x: 0, y: 0 },
+              atSec: 0,
+              scale: 1,
+            },
+            {
+              id: "b2",
+              template: "PlayerStats",
+              props: {
+                playerName: "Luis Suárez",
+                club: "Liverpool",
+                season: "2013-14",
+                competition: "Premier League",
+                clubColor: "#C8102E",
+                stats: [
+                  { label: "Goals", value: 31, sub: "in 33 appearances" },
+                  { label: "Assists", value: 12 },
+                  { label: "Apps", value: 33 },
+                  { label: "Mins / Goal", value: 76 },
+                ],
+              },
+              anchor: { x: 2200, y: 0 },
+              atSec: 6,
+              scale: 1,
+            },
+          ],
+          persistent: [
+            {
+              id: "stat.goals",
+              kind: "stat" as const,
+              data: { unit: "goals" },
+              states: [
+                { beatId: "b1", rect: { x: 1450, y: 70, w: 380, h: 120 }, value: 31, opacity: 1 },
+                { beatId: "b2", rect: { x: 3650, y: 70, w: 380, h: 120 }, value: 82, opacity: 1 },
+              ],
+            },
+          ],
         }}
       />
     </>

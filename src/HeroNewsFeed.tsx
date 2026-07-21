@@ -1,16 +1,21 @@
 ﻿import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { Grain, SmartImg, fontFamily, rgbaFromHex } from "./shared";
+import { FilmGrade, Grain, PALETTES, SmartImg, fontFamily, geistMonoFamily, rgbaFromHex } from "./shared";
 
-const SOURCE_FONT = '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace';
-const HIGHLIGHT_BG = "rgba(0,0,0,0.45)";
+// ── Colours: pinned to the light paper-orange palette (warm-white + burnt orange) ──
+const P = PALETTES.paperOrange;
 
-const DEFAULT_BG = "#111111";
-const DEFAULT_ACCENT = "#ffffff";
-const DEFAULT_DOT = "#ffffff";
-const DEFAULT_TEXT = "#f0f0f0";
-const DEFAULT_LINE = "rgba(255,255,255,0.34)";
+// Outlet names / body copy get the mono newswire register.
+const SOURCE_FONT = geistMonoFamily;
+// Headline highlights sit on a translucent accent wash (text stays ink).
+const HIGHLIGHT_BG = P.accentSoft;
+
+const DEFAULT_BG = P.bg;
+const DEFAULT_ACCENT = P.accent;
+const DEFAULT_DOT = P.accent;
+const DEFAULT_TEXT = P.ink;
+const DEFAULT_LINE = rgbaFromHex(P.ink, 0.2);
 
 const PORTRAIT_W = 680;
 const PORTRAIT_MASK = "linear-gradient(to right, transparent, black 350px, black 85%, transparent)";
@@ -225,6 +230,9 @@ export const HeroNewsFeedPropsSchema = z.object({
   dwellFrames: z.number().int().optional().default(120),
   panFrames: z.number().int().optional().default(20),
   skipIntro: z.boolean().optional().default(false),
+  // Cinematic grade — toggle in the studio props panel for instant before/after.
+  filmGrade: z.boolean().optional().default(true),
+  gradeIntensity: z.number().optional().default(1),
 });
 
 export type HeroNewsFeedProps = z.input<typeof HeroNewsFeedPropsSchema>;
@@ -272,16 +280,13 @@ function buildTimeline(headlines: HeadlineItem[], dwellFrames: number, panFrames
 
 const ReferenceBackdrop: React.FC<{ bgColor: string }> = ({ bgColor }) => (
   <>
-    <AbsoluteFill
-      style={{
-        background: `radial-gradient(circle at 40% 28%, rgba(255,255,255,0.04), transparent 30%), ${bgColor}`,
-      }}
-    />
+    <AbsoluteFill style={{ background: bgColor }} />
+    {/* Faint warm edge vignette for depth — never a heavy black vignette or white glow. */}
     <div
       style={{
         position: "absolute",
         inset: 0,
-        background: "radial-gradient(circle at center, transparent 58%, rgba(0,0,0,0.14) 100%)",
+        background: "radial-gradient(125% 125% at 50% 42%, transparent 62%, rgba(28,26,21,0.06) 100%)",
       }}
     />
   </>
@@ -420,7 +425,7 @@ const StoryBlock: React.FC<StoryBlockProps> = ({ entry, phase, progress, textCol
             top: 565,
             left: textLeft,
             width: textWidth,
-            color: textColor,
+            color: P.muted,
             opacity: active ? (entering ? interpolate(progress, [0, 1], [0.12, 1]) : 1) : 0,
             fontFamily: SOURCE_FONT,
             fontSize: 28,
@@ -546,6 +551,8 @@ export const HeroNewsFeed: React.FC<HeroNewsFeedProps> = ({
   dwellFrames = 120,
   panFrames = 20,
   skipIntro = false,
+  filmGrade = true,
+  gradeIntensity = 1,
 }) => {
   const frame = useCurrentFrame();
   const { fps, height } = useVideoConfig();
@@ -623,7 +630,7 @@ export const HeroNewsFeed: React.FC<HeroNewsFeedProps> = ({
     : [{ entry: current, phase: "active", progress: 1 }];
   const activeIndex = next ? next.index : current.index;
 
-  return (
+  const scene = (
     <AbsoluteFill style={{ overflow: "hidden" }}>
       <ReferenceBackdrop bgColor={safeBgColor} />
       <WorldLayer
@@ -643,8 +650,31 @@ export const HeroNewsFeed: React.FC<HeroNewsFeedProps> = ({
         height={height}
         typewriterMap={typewriterMap}
       />
-      <Grain />
+      {!filmGrade && (
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.35 }}>
+          <Grain />
+        </div>
+      )}
     </AbsoluteFill>
+  );
+
+  // Light newsprint register: near-neutral grade, fine low-opacity grain and a
+  // faint warm vignette — paper stock, not a dark broadcast wash.
+  return filmGrade ? (
+    <FilmGrade
+      intensity={gradeIntensity}
+      contrast={1.03}
+      saturation={1.02}
+      brightness={1}
+      tint={P.ink}
+      tintOpacity={0.04}
+      grain={0.08}
+      vignette={0.08}
+    >
+      {scene}
+    </FilmGrade>
+  ) : (
+    scene
   );
 };
 

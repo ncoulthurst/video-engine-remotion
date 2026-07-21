@@ -11,10 +11,9 @@ import {
   fontFamily,
   serifFontFamily,
   COLORS,
-  Grain,
-  PaperBackground,
   WorldStateSchema,
 } from "./shared";
+import { Ground } from "./lib/kit";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -648,8 +647,7 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
   const winnerProgress = interpolate(effectiveFrame, [F.WIN_CIRCLE, F.WIN_CIRCLE + 45], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
 
   return (
-    <AbsoluteFill style={{ fontFamily, overflow: "hidden" }}>
-      <PaperBackground color={bgColor} />
+    <Ground ground="paper" bgColor={bgColor} accentColor={accentColor} domain="football" texture skipIntro={skipIntro} pad={0} style={{ fontFamily, padding: 0 }}>
 
       {/* Camera world */}
       <div style={{
@@ -721,7 +719,6 @@ export const TournamentBracket: React.FC<TournamentBracketProps> = ({
         <div style={{ width: 3, height: 30, borderRadius: 2, background: accentColor, flexShrink: 0 }} />
       </div>
 
-      <Grain />
-    </AbsoluteFill>
+    </Ground>
   );
 };

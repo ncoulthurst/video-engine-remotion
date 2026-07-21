@@ -31,6 +31,7 @@ export const TRANSITION_DURATIONS = {
   grain:     12,   // ~0.40s
   worldPan:  42,   // ~1.40s — "same container" shared world pan
   evolve:    50,   // ~1.67s — same-world evolution: outgoing holds then drops, incoming emerges
+  zoomThrough: 26, // ~0.87s — camera flies INTO the outgoing graphic, settles on the next
 } as const;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -641,3 +642,63 @@ export function evolveTransition(): TransitionPresentation<Record<string, never>
 
 export const evolveTiming = () =>
   linearTiming({ durationInFrames: TRANSITION_DURATIONS.evolve });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 9. THE ZOOM THROUGH — camera flies into the next graphic (roadmap H2)
+//
+//    The classic "continuous move" cheat: the outgoing scene scales up as if
+//    the camera pushes into it (fading in the final 40%), while the incoming
+//    scene settles from a slight under-scale to rest. Strictly orthographic,
+//    no motion blur — reads as one camera travelling through the boards.
+//
+//    Best used at chapter boundaries where the narrative "enters" the next
+//    subject, and as the H3 sequence-boundary move.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const outCubic = (t: number): number => 1 - Math.pow(1 - t, 3);
+
+const ZoomThroughPresenter: React.FC<
+  TransitionPresentationComponentProps<Record<string, never>>
+> = ({ children, presentationProgress: p, presentationDirection }) => {
+  if (presentationDirection === "exiting") {
+    // Push INTO the outgoing scene: scale 1 → 1.18, hold opacity then drop
+    // over the final 40% of the transition.
+    const scale = 1 + outCubic(p) * 0.18;
+    const opacity = p < 0.6 ? 1 : 1 - easeInOut((p - 0.6) / 0.4);
+    return (
+      <AbsoluteFill
+        style={{
+          transform: `scale(${scale})`,
+          transformOrigin: "center center",
+          opacity,
+          willChange: "transform, opacity",
+        }}
+      >
+        {children}
+      </AbsoluteFill>
+    );
+  }
+  // Entering: settle 0.9 → 1 with a decelerating tail; fade in over the
+  // first half so the two scales cross mid-flight.
+  const scale = 0.9 + outCubic(p) * 0.1;
+  const opacity = Math.min(1, easeInOut(Math.min(1, p / 0.5)));
+  return (
+    <AbsoluteFill
+      style={{
+        transform: `scale(${scale})`,
+        transformOrigin: "center center",
+        opacity,
+        willChange: "transform, opacity",
+      }}
+    >
+      {children}
+    </AbsoluteFill>
+  );
+};
+
+export function zoomThroughTransition(): TransitionPresentation<Record<string, never>> {
+  return { component: ZoomThroughPresenter, props: {} };
+}
+
+export const zoomThroughTiming = () =>
+  linearTiming({ durationInFrames: TRANSITION_DURATIONS.zoomThrough });

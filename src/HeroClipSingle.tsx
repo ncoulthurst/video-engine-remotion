@@ -9,6 +9,7 @@ import {
   spring,
   staticFile,
   Freeze,
+  Sequence,
   useCurrentFrame,
   useVideoConfig,
   Video,
@@ -28,6 +29,18 @@ export const HeroClipSinglePropsSchema = z.object({
   trimOut: z.number().int().optional(),
   /** Intrinsic source length in frames (probed at upload) — freeze-hold bound */
   durationInFrames: z.number().int().optional(),
+  /**
+   * C3b multi-cut slot: 1–N source files played back-to-back as HARD CUTS
+   * inside the same frame (the reference's 2–5s archival rhythm). When set,
+   * takes precedence over the single `clip` path. Last cut freeze-holds if
+   * the scene outlives the footage.
+   */
+  sources: z.array(z.object({
+    clip:             z.string(),
+    trimIn:           z.number().int().min(0).optional(),
+    trimOut:          z.number().int().optional(),
+    durationInFrames: z.number().int().optional(),
+  })).optional(),
   /** Enable audio track on the clip — muted by default */
   soundOn: z.boolean().default(false),
   /** Track E — optional context portrait (resolver-filled, rendered via SmartImg) */
@@ -37,6 +50,10 @@ export const HeroClipSinglePropsSchema = z.object({
   archivalTreatment: z.boolean().optional().default(false),
   /** Archive year shown as the top-left `/YEAR` tag when archivalTreatment is on */
   archivalYear: z.string().optional(),
+  /** Legacy centred-window layout. Default is the H4 full-bleed treatment —
+   *  footage fills the frame inside the archival letterbox, label rendered as
+   *  a reference-style lower-third card. */
+  boxed: z.boolean().optional().default(false),
 });
 export type HeroClipSingleProps = z.infer<typeof HeroClipSinglePropsSchema>;
 
@@ -95,9 +112,14 @@ const BorderGlow: React.FC<{
   );
 };
 
+/** Resolved playback segment for the multi-cut path. */
+type CutSeg = { clip: string; start: number; dur: number; from: number };
+
+const FALLBACK_SEG_FRAMES = 150; // 5s @30 — used only when a cut was never probed
+
 export const HeroClipSingle: React.FC<HeroClipSingleProps> = ({
   label, clip = "", title, bgColor, trimIn, trimOut, durationInFrames, soundOn = false,
-  archivalTreatment = false, archivalYear,
+  archivalTreatment = false, archivalYear, sources, boxed = false,
 }) => {
   const frame   = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -112,6 +134,24 @@ export const HeroClipSingle: React.FC<HeroClipSingleProps> = ({
     : undefined;
   const pastFootage = availFrames !== undefined && frame >= availFrames;
 
+  // C3b — multi-cut slot: resolve segments (sequential hard cuts) and the
+  // total footage length; freeze-holds on the final frame past the total.
+  const cutSegs: CutSeg[] = [];
+  if (sources && sources.length > 0) {
+    let cursor = 0;
+    for (const s of sources) {
+      if (!s.clip || !/\.(mp4|webm|mov)$/i.test(s.clip)) continue;
+      const start = s.trimIn ?? 0;
+      const end   = s.trimOut ?? s.durationInFrames ?? (start + FALLBACK_SEG_FRAMES);
+      const dur   = Math.max(1, end - start);
+      cutSegs.push({ clip: s.clip, start, dur, from: cursor });
+      cursor += dur;
+    }
+  }
+  const multiCut    = cutSegs.length > 0;
+  const cutsTotal   = cutSegs.reduce((a, s) => a + s.dur, 0);
+  const pastCuts    = multiCut && frame >= cutsTotal;
+
   const titleIn  = spring({ frame, fps, config: { damping: 24, stiffness: 55 }, delay: 0 });
   const frameIn  = spring({ frame, fps, config: { damping: 22, stiffness: 50 }, delay: 8 });
   const labelIn  = spring({ frame, fps, config: { damping: 24, stiffness: 55 }, delay: 28 });
@@ -119,6 +159,131 @@ export const HeroClipSingle: React.FC<HeroClipSingleProps> = ({
   const isVideo = /\.(mp4|webm|mov)$/i.test(clip);
   const isImage = /\.(jpe?g|png|webp|gif)$/i.test(clip);
 
+  // C3b — multi-cut path: sequential HARD CUTS inside the frame (the
+  // reference's archival rhythm). layout="none" keeps the surrounding layout;
+  // only one segment is mounted at a time.
+  const cutStack = multiCut ? (
+    <>
+      {cutSegs.map((s, i) => (
+        <Sequence key={i} layout="none" from={s.from} durationInFrames={s.dur}>
+          <Video
+            src={staticFile(s.clip)}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            muted={!soundOn}
+            startFrom={s.start}
+            endAt={s.start + s.dur}
+          />
+        </Sequence>
+      ))}
+    </>
+  ) : null;
+  // Only construct the <Video> when a clip path exists — JSX props evaluate
+  // eagerly, and staticFile(undefined/"") throws even when the placeholder
+  // branch below is the one that renders.
+  const clipVideo = isVideo && clip ? (
+    <Video
+      src={staticFile(clip)}
+      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      muted={!soundOn}
+      startFrom={clipStartFrame}
+      {...(trimOut !== undefined ? { endAt: trimOut } : {})}
+    />
+  ) : null;
+  const media = multiCut ? (
+    pastCuts ? (
+      <Freeze frame={cutsTotal - 1}>{cutStack}</Freeze>
+    ) : (
+      cutStack
+    )
+  ) : isVideo && clip ? (
+    pastFootage ? (
+      <Freeze frame={availFrames - 1}>{clipVideo}</Freeze>
+    ) : (
+      clipVideo
+    )
+  ) : isImage && clip ? (
+    <SmartImg src={clip} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+  ) : (
+    <div style={{
+      width: "100%", height: "100%",
+      background: "linear-gradient(160deg, #191919 0%, #0d0d0d 100%)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }}>
+      <div style={{
+        fontFamily,
+        fontSize: 13,
+        letterSpacing: 4,
+        textTransform: "uppercase",
+        color: "rgba(255,255,255,0.12)",
+      }}>clip</div>
+    </div>
+  );
+
+  // ── H4 full-bleed treatment (default) ────────────────────────────────────
+  // Footage owns the whole frame inside the archival letterbox; the label is
+  // a reference-style lower-third card riding the bottom bar. No floating
+  // window, no plate, no border glow.
+  if (!boxed) {
+    // Hard cut in — the archival grammar. No entrance fade (it reads as a
+    // pulse when clip scenes chain); only the lower-third animates.
+    return (
+      <AbsoluteFill style={{ background: "#0b0b0b" }}>
+        <div style={{ position: "absolute", inset: 0 }}>
+          {/* letterbox off — footage uses the full frame; grade + /YEAR tag stay */}
+          <ArchivalFrame year={archivalYear} letterbox={false}>{media}</ArchivalFrame>
+        </div>
+
+        {/* Lower-third card — mono uppercase on a paper chip, above the bar */}
+        {label ? (
+          <div style={{
+            position: "absolute",
+            left: 90,
+            bottom: 84,
+            zIndex: 5,
+            opacity: labelIn,
+            transform: `translateY(${interpolate(labelIn, [0, 1], [16, 0])}px)`,
+            maxWidth: 760,
+          }}>
+            {title ? (
+              <div style={{
+                display: "inline-block",
+                background: "rgba(11,11,11,0.82)",
+                color: "rgba(236,231,219,0.75)",
+                fontFamily,
+                fontSize: 15,
+                fontWeight: 600,
+                letterSpacing: 3,
+                textTransform: "uppercase",
+                padding: "7px 14px 6px",
+                marginBottom: 2,
+              }}>
+                {title}
+              </div>
+            ) : null}
+            <div style={{
+              display: "inline-block",
+              background: "#EFEAE0",
+              color: "#161616",
+              fontFamily,
+              fontSize: 24,
+              fontWeight: 700,
+              letterSpacing: 2.4,
+              textTransform: "uppercase",
+              lineHeight: 1.35,
+              padding: "12px 18px 10px",
+              boxShadow: "0 10px 30px rgba(0,0,0,0.45)",
+            }}>
+              {label}
+            </div>
+          </div>
+        ) : null}
+
+        <Grain />
+      </AbsoluteFill>
+    );
+  }
+
+  // ── Legacy boxed layout (explicit opt-in via `boxed`) ────────────────────
   return (
     <AbsoluteFill>
       <PaperBackground color={bgColor} />
@@ -166,46 +331,9 @@ export const HeroClipSingle: React.FC<HeroClipSingleProps> = ({
               "inset 0 1px 0 rgba(255,255,255,0.06)",
             ].join(", "),
           }}>
-            {(() => {
-              // Only construct the <Video> when a clip path exists — JSX props
-              // evaluate eagerly, and staticFile(undefined/"") throws even when
-              // the placeholder branch below is the one that renders.
-              const clipVideo = isVideo && clip ? (
-                <Video
-                  src={staticFile(clip)}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                  muted={!soundOn}
-                  startFrom={clipStartFrame}
-                  {...(trimOut !== undefined ? { endAt: trimOut } : {})}
-                />
-              ) : null;
-              const media = isVideo && clip ? (
-                pastFootage ? (
-                  <Freeze frame={availFrames - 1}>{clipVideo}</Freeze>
-                ) : (
-                  clipVideo
-                )
-              ) : isImage && clip ? (
-                <SmartImg src={clip} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              ) : (
-                <div style={{
-                  width: "100%", height: "100%",
-                  background: "linear-gradient(160deg, #191919 0%, #0d0d0d 100%)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <div style={{
-                    fontFamily,
-                    fontSize: 13,
-                    letterSpacing: 4,
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.12)",
-                  }}>clip</div>
-                </div>
-              );
-              return archivalTreatment ? (
-                <ArchivalFrame year={archivalYear}>{media}</ArchivalFrame>
-              ) : media;
-            })()}
+            {archivalTreatment ? (
+              <ArchivalFrame year={archivalYear}>{media}</ArchivalFrame>
+            ) : media}
           </div>
 
           <BorderGlow w={CLIP_W} h={CLIP_H} frame={frame} fps={fps} delay={18} />

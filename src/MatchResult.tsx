@@ -1,7 +1,13 @@
+/**
+ * MatchResult — full-time scoreline with chronological goal reveals.
+ * F3: composed from the shared kit (Ground/TYPE/prog) — no per-comp springs,
+ * grain or bounce pops. The goal sequence starts on the "stat" beat (H1).
+ */
 import React from "react";
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, WorldStateSchema, ContextChip, BadgeTreatment } from "./shared";
+import { SmartImg, WorldStateSchema, BadgeTreatment } from "./shared";
+import { Ground, TYPE, EASE, prog, beatDelay, resolveTheme, Kicker } from "./lib/kit";
 
 const ScorerSchema = z.object({
   name:   z.string().optional().default(""),
@@ -27,6 +33,7 @@ export const MatchResultPropsSchema = z.object({
   playerImage:   z.string().optional().default(""),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
+  beats:     z.record(z.string(), z.number()).optional(),
 });
 
 export type MatchResultProps = z.infer<typeof MatchResultPropsSchema>;
@@ -35,30 +42,41 @@ const SCORE_START = 40;
 const GOAL_DELAY  = 20; // frames between each goal
 const BADGE_SIZE  = 160;
 
+/** Score punch — a fast settle from 1.3 → 1.0 (kit-eased, no underdamped wobble). */
+const punch = (frame: number, at: number) =>
+  at > -999 ? interpolate(prog(frame, at, 14, EASE.snap), [0, 1], [1.3, 1.0]) : 1.0;
+
 export const MatchResult: React.FC<MatchResultProps> = ({
   homeTeam, awayTeam, homeBadgeSlug, awayBadgeSlug,
   homeColor = "#C8102E", awayColor = "#034694",
   homeScore, awayScore, date, competition, venue, scorers = [], bgColor,
-  skipIntro = false,
+  skipIntro = false, beats,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const t = resolveTheme("paper", homeColor, bgColor);
 
   // ── Entrance animations ────────────────────────────────────────────────
-  const topProg    = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
-  const topOp      = interpolate(topProg, [0, 1], [0, 1],  { extrapolateRight: "clamp" });
+  const topProg    = skipIntro ? 1 : prog(frame, 0, 20, EASE.snap);
+  const topOp      = topProg;
   const topY       = interpolate(topProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const homeOp     = skipIntro ? 1 : interpolate(frame, [10, 32], [0, 1], { extrapolateRight: "clamp" });
-  const homeX      = skipIntro ? 0 : spring({ frame, fps, from: -80, to: 0, config: { damping: 24, stiffness: 60 }, delay: 10 });
+  const homeIn     = skipIntro ? 1 : prog(frame, 10, 22, EASE.snap);
+  const homeOp     = homeIn;
+  const homeX      = interpolate(homeIn, [0, 1], [-80, 0]);
 
-  const scoreOp    = skipIntro ? 1 : interpolate(frame, [20, 44], [0, 1], { extrapolateRight: "clamp" });
-  const scoreScale = skipIntro ? 1 : spring({ frame, fps, from: 0, to: 1, config: { damping: 20, stiffness: 70 }, delay: 20 });
+  const scoreIn    = skipIntro ? 1 : prog(frame, 20, 24, EASE.snap);
+  const scoreOp    = scoreIn;
+  const scoreScale = interpolate(scoreIn, [0, 1], [0.6, 1]);
 
-  const awayOp     = skipIntro ? 1 : interpolate(frame, [18, 40], [0, 1], { extrapolateRight: "clamp" });
-  const awayX      = skipIntro ? 0 : spring({ frame, fps, from: 80, to: 0, config: { damping: 24, stiffness: 60 }, delay: 18 });
+  const awayIn     = skipIntro ? 1 : prog(frame, 18, 22, EASE.snap);
+  const awayOp     = awayIn;
+  const awayX      = interpolate(awayIn, [0, 1], [80, 0]);
 
   // ── Goal sequence ──────────────────────────────────────────────────────
+  // H1: the first goal lands on the narration beat that names the score.
+  const scoreStart = beatDelay(beats, "stat", fps, SCORE_START);
+
   // Sort scorers by minute — this defines the chronological goal order
   const sortedScorers = [...scorers].sort((a, b) => {
     const mA = a.minute ? parseInt(a.minute) : 999;
@@ -84,7 +102,7 @@ export const MatchResult: React.FC<MatchResultProps> = ({
       })();
 
   // Current score based on how many goals have been revealed
-  const goalsRevealed = goalSeq.filter((_, i) => frame >= SCORE_START + i * GOAL_DELAY).length;
+  const goalsRevealed = goalSeq.filter((_, i) => frame >= scoreStart + i * GOAL_DELAY).length;
   const dispHome = goalSeq.slice(0, goalsRevealed).filter(g => g === "home").length;
   const dispAway = goalSeq.slice(0, goalsRevealed).filter(g => g === "away").length;
 
@@ -92,31 +110,24 @@ export const MatchResult: React.FC<MatchResultProps> = ({
   let lastHomeFrame = -999;
   let lastAwayFrame = -999;
   goalSeq.forEach((g, i) => {
-    const gf = SCORE_START + i * GOAL_DELAY;
+    const gf = scoreStart + i * GOAL_DELAY;
     if (gf <= frame) {
       if (g === "home") lastHomeFrame = gf;
       if (g === "away") lastAwayFrame = gf;
     }
   });
 
-  const homeNumScale = lastHomeFrame > -999
-    ? spring({ frame: frame - lastHomeFrame, fps, from: 1.3, to: 1.0, config: { damping: 9, stiffness: 200 } })
-    : 1.0;
-  const awayNumScale = lastAwayFrame > -999
-    ? spring({ frame: frame - lastAwayFrame, fps, from: 1.3, to: 1.0, config: { damping: 9, stiffness: 200 } })
-    : 1.0;
+  const homeNumScale = punch(frame, lastHomeFrame);
+  const awayNumScale = punch(frame, lastAwayFrame);
 
   const isHomeWin = homeScore > awayScore;
   const isAwayWin = awayScore > homeScore;
 
-  // Gold rule appears just before first goal
-  const ruleOp = interpolate(frame, [SCORE_START - 6, SCORE_START + 6], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  // Accent rule appears just before first goal
+  const ruleOp = interpolate(frame, [scoreStart - 6, scoreStart + 6], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
-
+    <Ground ground="paper" bgColor={bgColor} accentColor={homeColor} domain="football" texture skipIntro={skipIntro} pad={0}>
       <div style={{
         position:       "absolute",
         inset:          0,
@@ -136,12 +147,12 @@ export const MatchResult: React.FC<MatchResultProps> = ({
           alignItems:   "center",
           marginBottom: 52,
         }}>
-          <ContextChip label={competition} color={COLORS.muted} size={26} />
-          <div style={{ width: 7, height: 7, borderRadius: "50%", background: COLORS.muted }} />
-          <div style={{ fontFamily, fontSize: 26, fontWeight: 400, color: COLORS.muted }}>{date}</div>
+          <Kicker label={competition} theme={t} frame={frame} />
+          <div style={{ width: 7, height: 7, borderRadius: "50%", background: t.muted }} />
+          <div style={{ fontFamily: TYPE.mono, fontSize: 22, fontWeight: 400, color: t.muted, letterSpacing: 1 }}>{date}</div>
           {venue && <>
-            <div style={{ width: 7, height: 7, borderRadius: "50%", background: COLORS.muted }} />
-            <div style={{ fontFamily, fontSize: 26, fontWeight: 400, color: COLORS.muted }}>{venue}</div>
+            <div style={{ width: 7, height: 7, borderRadius: "50%", background: t.muted }} />
+            <div style={{ fontFamily: TYPE.mono, fontSize: 22, fontWeight: 400, color: t.muted, letterSpacing: 1 }}>{venue}</div>
           </>}
         </div>
 
@@ -167,10 +178,10 @@ export const MatchResult: React.FC<MatchResultProps> = ({
                   width: BADGE_SIZE, height: BADGE_SIZE, borderRadius: "50%",
                   background: `rgba(200,16,46,0.12)`, border: `3px solid rgba(200,16,46,0.35)`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: serifFontFamily, fontSize: 72, fontWeight: 900, color: homeColor,
+                  fontFamily: TYPE.serif, fontSize: 72, fontWeight: 900, color: homeColor,
                 }}>{homeTeam[0]}</div>
             }
-            <div style={{ fontFamily: serifFontFamily, fontSize: 52, fontWeight: 900, color: COLORS.primary, textAlign: "center" as const, letterSpacing: -1, lineHeight: 1.1 }}>
+            <div style={{ fontFamily: TYPE.serif, fontSize: 52, fontWeight: 900, color: t.ink, textAlign: "center" as const, letterSpacing: -1, lineHeight: 1.1 }}>
               {homeTeam}
             </div>
           </div>
@@ -181,19 +192,21 @@ export const MatchResult: React.FC<MatchResultProps> = ({
             display: "flex", alignItems: "center", flexShrink: 0,
           }}>
             <div style={{
-              fontFamily: serifFontFamily, fontSize: 200, fontWeight: 900,
-              color: isHomeWin ? homeColor : COLORS.primary,
+              fontFamily: TYPE.serif, fontSize: 200, fontWeight: 900,
+              color: isHomeWin ? homeColor : t.ink,
               letterSpacing: -8, lineHeight: 1, minWidth: 130, textAlign: "center" as const,
               transform: `scale(${homeNumScale})`, transformOrigin: "center center",
+              fontVariantNumeric: "tabular-nums",
             }}>
               {dispHome}
             </div>
-            <div style={{ fontFamily, fontSize: 100, fontWeight: 300, color: COLORS.muted, margin: "0 20px", lineHeight: 1 }}>–</div>
+            <div style={{ fontFamily: TYPE.sans, fontSize: 100, fontWeight: 300, color: t.muted, margin: "0 20px", lineHeight: 1 }}>–</div>
             <div style={{
-              fontFamily: serifFontFamily, fontSize: 200, fontWeight: 900,
-              color: isAwayWin ? awayColor : COLORS.primary,
+              fontFamily: TYPE.serif, fontSize: 200, fontWeight: 900,
+              color: isAwayWin ? awayColor : t.ink,
               letterSpacing: -8, lineHeight: 1, minWidth: 130, textAlign: "center" as const,
               transform: `scale(${awayNumScale})`, transformOrigin: "center center",
+              fontVariantNumeric: "tabular-nums",
             }}>
               {dispAway}
             </div>
@@ -211,23 +224,23 @@ export const MatchResult: React.FC<MatchResultProps> = ({
                   width: BADGE_SIZE, height: BADGE_SIZE, borderRadius: "50%",
                   background: `rgba(3,70,148,0.12)`, border: `3px solid rgba(3,70,148,0.35)`,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: serifFontFamily, fontSize: 72, fontWeight: 900, color: awayColor,
+                  fontFamily: TYPE.serif, fontSize: 72, fontWeight: 900, color: awayColor,
                 }}>{awayTeam[0]}</div>
             }
-            <div style={{ fontFamily: serifFontFamily, fontSize: 52, fontWeight: 900, color: COLORS.primary, textAlign: "center" as const, letterSpacing: -1, lineHeight: 1.1 }}>
+            <div style={{ fontFamily: TYPE.serif, fontSize: 52, fontWeight: 900, color: t.ink, textAlign: "center" as const, letterSpacing: -1, lineHeight: 1.1 }}>
               {awayTeam}
             </div>
           </div>
 
         </div>
 
-        {/* Gold rule — appears just before first goal */}
+        {/* Accent rule — appears just before first goal */}
         {scorers.length > 0 && (
           <div style={{
             opacity:      ruleOp,
             width:        "50%",
             height:       1,
-            background:   `linear-gradient(90deg, transparent, ${COLORS.gold}, transparent)`,
+            background:   `linear-gradient(90deg, transparent, ${t.accent}, transparent)`,
             marginBottom: 24,
           }} />
         )}
@@ -240,14 +253,11 @@ export const MatchResult: React.FC<MatchResultProps> = ({
               {sortedScorers.filter(s => s.team === "home").map((scorer, hi) => {
                 // Find this scorer's position in the full sorted list for timing
                 const globalIndex = sortedScorers.indexOf(scorer);
-                const goalFrame   = SCORE_START + globalIndex * GOAL_DELAY;
-                const scorerOp    = interpolate(frame, [goalFrame, goalFrame + 10], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-                const scorerY     = frame >= goalFrame
-                  ? spring({ frame: frame - goalFrame, fps, from: 12, to: 0, config: { damping: 22, stiffness: 90 } })
-                  : 12;
+                const goalFrame   = scoreStart + globalIndex * GOAL_DELAY;
+                const p           = prog(frame, goalFrame, 14, EASE.snap);
                 return (
-                  <div key={hi} style={{ opacity: scorerOp, transform: `translateY(${scorerY}px)` }}>
-                    <div style={{ fontFamily, fontSize: 28, fontWeight: 500, color: COLORS.secondary }}>
+                  <div key={hi} style={{ opacity: p, transform: `translateY(${(1 - p) * 12}px)` }}>
+                    <div style={{ fontFamily: TYPE.sans, fontSize: 28, fontWeight: 500, color: t.muted }}>
                       {scorer.name}{scorer.minute ? ` ${scorer.minute}'` : ""}
                     </div>
                   </div>
@@ -256,20 +266,17 @@ export const MatchResult: React.FC<MatchResultProps> = ({
             </div>
 
             {/* Divider */}
-            <div style={{ width: 1, background: "rgba(0,0,0,0.08)", opacity: ruleOp }} />
+            <div style={{ width: 1, background: t.line, opacity: ruleOp }} />
 
             {/* Away scorers */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-start", minWidth: 280 }}>
               {sortedScorers.filter(s => s.team === "away").map((scorer, ai) => {
                 const globalIndex = sortedScorers.indexOf(scorer);
-                const goalFrame   = SCORE_START + globalIndex * GOAL_DELAY;
-                const scorerOp    = interpolate(frame, [goalFrame, goalFrame + 10], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-                const scorerY     = frame >= goalFrame
-                  ? spring({ frame: frame - goalFrame, fps, from: 12, to: 0, config: { damping: 22, stiffness: 90 } })
-                  : 12;
+                const goalFrame   = scoreStart + globalIndex * GOAL_DELAY;
+                const p           = prog(frame, goalFrame, 14, EASE.snap);
                 return (
-                  <div key={ai} style={{ opacity: scorerOp, transform: `translateY(${scorerY}px)` }}>
-                    <div style={{ fontFamily, fontSize: 28, fontWeight: 500, color: COLORS.secondary }}>
+                  <div key={ai} style={{ opacity: p, transform: `translateY(${(1 - p) * 12}px)` }}>
+                    <div style={{ fontFamily: TYPE.sans, fontSize: 28, fontWeight: 500, color: t.muted }}>
                       {scorer.name}{scorer.minute ? ` ${scorer.minute}'` : ""}
                     </div>
                   </div>
@@ -280,6 +287,6 @@ export const MatchResult: React.FC<MatchResultProps> = ({
         )}
 
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

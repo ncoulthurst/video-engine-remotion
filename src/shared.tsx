@@ -2,18 +2,64 @@
  * shared.tsx — Design tokens and reusable components for all 90th templates.
  */
 import React from "react";
-import { AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, interpolate, spring, staticFile, continueRender, delayRender, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
 import { loadFont } from "@remotion/google-fonts/Inter";
 import { loadFont as loadPlayfair } from "@remotion/google-fonts/PlayfairDisplay";
 import { loadFont as loadPlexSans } from "@remotion/google-fonts/IBMPlexSans";
 import { loadFont as loadPlexMono } from "@remotion/google-fonts/IBMPlexMono";
+import { loadFont as loadGeist } from "@remotion/google-fonts/Geist";
+import { loadFont as loadGeistMono } from "@remotion/google-fonts/GeistMono";
 
-export const { fontFamily } = loadFont("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+// ── Geist — primary type family across all templates (sans + mono) ───────────
+// Geist + Geist Mono are a designed pair (Vercel); the neutral-grotesque + mono
+// combination is the finance / investigative / data-journalism register.
+export const { fontFamily: geistFontFamily } = loadGeist("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
+export const { fontFamily: geistMonoFamily } = loadGeistMono("normal", { weights: ["400", "500", "600", "700"] });
+// `fontFamily` is the default sans used everywhere → Geist.
+export const fontFamily = geistFontFamily;
+
 export const { fontFamily: serifFontFamily } = loadPlayfair("normal", { weights: ["400", "700", "900"] });
-// IBM Plex — display/body + mono for numbers/labels (generic finance primitives).
+// Legacy faces — still loaded so existing comps keep working; prefer Geist for new work.
+export const { fontFamily: interFontFamily } = loadFont("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
 export const { fontFamily: plexFontFamily } = loadPlexSans("normal", { weights: ["400", "500", "600", "700"] });
 export const { fontFamily: plexMonoFamily } = loadPlexMono("normal", { weights: ["400", "500", "600"] });
+
+// ── Archivo (variable) — the display TITLE face ──────────────────────────────
+// @remotion/google-fonts/Archivo only ships the weight axis, so the width (wdth)
+// axis is self-hosted here: the full variable woff2 (wght 100–900, wdth 62–125)
+// lives in public/fonts. Titles use it at wdth 125 (expanded) / wght 600 — see
+// `TITLE_FONT` in the finance kit. delayRender guards the render until it loads.
+export const archivoFontFamily = "ArchivoVar";
+if (typeof document !== "undefined") {
+  const handle = delayRender("archivo-variable");
+  const style = document.createElement("style");
+  style.textContent = `
+    @font-face {
+      font-family: 'ArchivoVar';
+      font-style: normal;
+      font-weight: 100 900;
+      font-stretch: 62% 125%;
+      src: url(${staticFile("fonts/Archivo-var-latin.woff2")}) format('woff2');
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'ArchivoVar';
+      font-style: normal;
+      font-weight: 100 900;
+      font-stretch: 62% 125%;
+      src: url(${staticFile("fonts/Archivo-var-latinext.woff2")}) format('woff2');
+      unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+    }
+  `;
+  document.head.appendChild(style);
+  Promise.all([
+    document.fonts.load('600 40px "ArchivoVar"'),
+    document.fonts.load('expanded 600 40px "ArchivoVar"'),
+  ])
+    .then(() => continueRender(handle))
+    .catch(() => continueRender(handle));
+}
 
 export const COLORS = {
   bgFrom:          "#f5f0e8",
@@ -45,6 +91,91 @@ export const SPRINGS = {
   brand:   { damping: 24, stiffness: 50,  mass: 1 },
   bounce:  { damping: 10, stiffness: 180, mass: 1 },
 } as const;
+
+// ── Project palette system ───────────────────────────────────────────────────
+// One video = ONE palette. The Search Party teardown (SEARCH_PARTY_STYLE_ANALYSIS.md)
+// showed the quality comes from repeating the SAME decisions across every graphic:
+// two backgrounds (a "data" ground + a "structure/geography" ground), ONE accent
+// used only to mark the subject, and a small set of neutrals. Thread `PALETTE`
+// through every composition instead of per-comp colour constants.
+export type Palette = {
+  bg: string;         // primary background — the "data / numbers" ground
+  bgGeo: string;      // secondary background — the "structure / geography / timeline" ground
+  surface: string;    // raised card / panel on the bg
+  accent: string;     // THE single signal colour — subject highlight, chart lines, key words
+  accentSoft: string; // translucent accent — row/area fills, highlights
+  ink: string;        // primary text
+  muted: string;      // secondary text / labels
+  line: string;       // hairline / divider
+};
+
+// "Signal" — dark investigative-finance (Bloomberg × Search Party). Deep money-green
+// primary + navy structural alt + one burnt-orange signal. Warm off-white text.
+const SIGNAL: Palette = {
+  bg:         "#0C1A14",
+  bgGeo:      "#0F1C2B",
+  surface:    "#12241C",
+  accent:     "#E8623A",
+  accentSoft: "rgba(232, 98, 58, 0.15)",
+  ink:        "#EEEAE1",
+  muted:      "#7E8C84",
+  line:       "rgba(238, 234, 225, 0.09)",
+};
+
+export const PALETTES: Record<string, Palette> = {
+  // ── Reference-derived (kept for comparison; signal/amber ≈ Search Party) ──
+  signal: SIGNAL,
+  amber: { ...SIGNAL, accent: "#E0A63C", accentSoft: "rgba(224, 166, 60, 0.16)" },
+  ledger: { ...SIGNAL, bg: "#0E1826", bgGeo: "#0B1420", surface: "#152234" },
+  editorial: {
+    bg: "#F4EEE3", bgGeo: "#EDE6D9", surface: "#EAE3D7",
+    accent: "#B4472A", accentSoft: "rgba(180, 71, 42, 0.12)",
+    ink: "#1C1A15", muted: "#8C857A", line: "rgba(28, 26, 21, 0.08)",
+  },
+  // PAPER-ORANGE — the editorial (light) system recoloured to soft warm-white +
+  // burnt orange. bg is a broadcast-safe near-white (NOT pure #FFF, which blooms
+  // full-bleed); orange is the single accent (bars / line / featured), text stays
+  // dark ink. Surface is clean white for raised pills/cards on the paper ground.
+  paperOrange: {
+    bg: "#F7F4EE", bgGeo: "#F1EDE4", surface: "#FFFFFF",
+    accent: "#E8623A", accentSoft: "rgba(232, 98, 58, 0.14)",
+    ink: "#1C1A15", muted: "#8C857A", line: "rgba(28, 26, 21, 0.08)",
+  },
+
+  // ── "Own it" directions — distinct from the reference's green + orange ──────
+  // VAULT — deep pine/emerald green (a green of your own, not the reference's
+  // olive) + a warm signal red. Red is complementary to green (max pop) and reads
+  // alert / loss / scandal — apt for investigative finance.
+  vault: {
+    bg: "#0A1613", bgGeo: "#0B1A22", surface: "#102019",
+    accent: "#C24438", accentSoft: "rgba(194, 68, 56, 0.16)",
+    ink: "#ECE7DB", muted: "#7B897F", line: "rgba(236, 231, 219, 0.09)",
+  },
+  // OXBLOOD — drops green entirely: warm near-black + oxblood red. FT / long-read
+  // investigative. Serious, literary, no relation to the reference.
+  oxblood: {
+    bg: "#15110F", bgGeo: "#120E0C", surface: "#211915",
+    accent: "#B23A32", accentSoft: "rgba(178, 58, 50, 0.16)",
+    ink: "#ECE3D7", muted: "#8B8174", line: "rgba(236, 227, 215, 0.08)",
+  },
+  // MIDNIGHT — deep indigo-navy + warm amber. Cold structural ground, warm
+  // signal. Reads "markets / terminal" without the green.
+  midnight: {
+    bg: "#0C1220", bgGeo: "#0A0F1A", surface: "#141C2E",
+    accent: "#E0A63C", accentSoft: "rgba(224, 166, 60, 0.16)",
+    ink: "#E9E9EF", muted: "#7C8398", line: "rgba(233, 233, 239, 0.08)",
+  },
+  // ROYAL — deep royal/sapphire blue + warm accent. Classic finance (trust,
+  // banking, wealth); reads clearly blue, not the reference's green.
+  royal: {
+    bg: "#122456", bgGeo: "#0D1A42", surface: "#1B2E68",
+    accent: "#E0A63C", accentSoft: "rgba(224, 166, 60, 0.16)",
+    ink: "#EAECF5", muted: "#8A93B5", line: "rgba(234, 236, 245, 0.09)",
+  },
+};
+
+// The active project palette. Swap this one line to reskin every comp at once.
+export const PALETTE: Palette = PALETTES.vault;
 
 export const DEFAULT_DURATION = 270;
 
@@ -130,6 +261,153 @@ export const Vignette: React.FC = () => (
     }}
   />
 );
+
+// ── FilmGrade ────────────────────────────────────────────────────────────────
+// A unified cinematic post-process wrapper. Wrap any composition's content in
+// <FilmGrade>…</FilmGrade> to fuse it into "one film": color grade + filmic
+// animated grain + elliptical vignette + subtle film-gate weave & exposure
+// flicker + optional letterbox / scanlines / edge fringe.
+//
+// HONESTY NOTE: pure DOM can't sample the rendered frame, so TRUE chromatic
+// aberration and highlight bloom (what apple.tsx gets from its WebGL/HtmlInCanvas
+// shader) are only *approximated* here (`aberration`, `bloom` — off by default).
+// Everything else (grade, grain, vignette, weave, flicker, letterbox) is real.
+//
+// One master knob: `intensity` (0 = off, 1 = default, >1 = heavier) scales the
+// grain, vignette, weave, flicker and fringe together. Individual props override.
+export const FilmGrade: React.FC<{
+  children: React.ReactNode;
+  intensity?: number;      // master 0..~1.5 — scales grain/vignette/weave/flicker/aberration
+  contrast?: number;       // filter contrast on content (1 = none)
+  saturation?: number;     // filter saturate on content (1 = none)
+  brightness?: number;     // filter brightness on content (1 = none)
+  grain?: number;          // grain opacity override (default 0.13 * intensity)
+  vignette?: number;       // vignette darkness override 0..1 (default 0.55 * intensity)
+  tint?: string;           // color-grade wash, soft-light blend (e.g. "#12324a")
+  tintOpacity?: number;    // 0..1 (default 0.12)
+  gateWeave?: boolean;     // subtle sub-pixel film-gate wobble + exposure flicker (default true)
+  letterbox?: number;      // black bar height top+bottom in px (0 = off)
+  scanlines?: boolean;     // CRT/tech scanline overlay (default false)
+  aberration?: number;     // APPROX edge R/C fringe px (0 = off, default off)
+  bloom?: number;          // APPROX soft-glow highlight lift 0..1 (0 = off, default off)
+}> = ({
+  children,
+  intensity = 1,
+  contrast = 1.06,
+  saturation = 1.04,
+  brightness = 1.0,
+  grain,
+  vignette,
+  tint,
+  tintOpacity = 0.12,
+  gateWeave = true,
+  letterbox = 0,
+  scanlines = false,
+  aberration = 0,
+  bloom = 0,
+}) => {
+  const frame = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+
+  const grainOpacity = (grain ?? 0.13) * intensity;
+  const vigDark = Math.min(0.9, (vignette ?? 0.55) * intensity);
+  const grainSeed = frame % 90;
+
+  // Film-gate weave: sub-pixel positional wobble (two detuned sines so it never
+  // repeats obviously) + a faint exposure flicker folded into brightness.
+  const weaveAmp = 0.7 * intensity;
+  const weaveX = gateWeave ? (Math.sin(frame * 0.31) * 0.6 + Math.sin(frame * 0.13) * 0.4) * weaveAmp : 0;
+  const weaveY = gateWeave ? (Math.sin(frame * 0.27 + 1.3) * 0.6 + Math.sin(frame * 0.09) * 0.4) * weaveAmp : 0;
+  const flicker = gateWeave ? 1 + Math.sin(frame * 0.9) * 0.006 * intensity + (frame % 97 === 0 ? -0.02 : 0) : 1;
+
+  return (
+    <AbsoluteFill style={{ isolation: "isolate", overflow: "hidden" }}>
+      {/* Graded content — slight over-scale hides edges revealed by weave/aberration */}
+      <AbsoluteFill
+        style={{
+          transform: `translate(${weaveX}px, ${weaveY}px) scale(1.012)`,
+          filter: `contrast(${contrast}) saturate(${saturation}) brightness(${brightness * flicker})`,
+        }}
+      >
+        {children}
+      </AbsoluteFill>
+
+      {/* APPROX edge chromatic-aberration fringe (masked to periphery) */}
+      {aberration > 0 && (
+        <>
+          <AbsoluteFill
+            style={{
+              pointerEvents: "none",
+              mixBlendMode: "screen",
+              background: `linear-gradient(90deg, rgba(255,40,40,${0.5 * intensity}) 0%, transparent ${aberration}%, transparent ${100 - aberration}%, rgba(40,120,255,${0.5 * intensity}) 100%)`,
+              WebkitMaskImage: "radial-gradient(120% 120% at 50% 50%, transparent 70%, #000 100%)",
+              maskImage: "radial-gradient(120% 120% at 50% 50%, transparent 70%, #000 100%)",
+            }}
+          />
+        </>
+      )}
+
+      {/* APPROX bloom — soft screen-blend light lift from centre */}
+      {bloom > 0 && (
+        <AbsoluteFill
+          style={{
+            pointerEvents: "none",
+            mixBlendMode: "screen",
+            background: `radial-gradient(ellipse 70% 55% at 50% 42%, rgba(255,248,235,${0.16 * bloom}), transparent 70%)`,
+          }}
+        />
+      )}
+
+      {/* Color-grade wash */}
+      {tint && (
+        <AbsoluteFill
+          style={{ pointerEvents: "none", mixBlendMode: "soft-light", background: tint, opacity: tintOpacity }}
+        />
+      )}
+
+      {/* Filmic animated grain — luminance noise, overlay blend */}
+      <AbsoluteFill style={{ pointerEvents: "none", mixBlendMode: "overlay", opacity: grainOpacity }}>
+        <svg width={width} height={height} style={{ position: "absolute", top: 0, left: 0 }}>
+          <defs>
+            <filter id={`fg-grain-${grainSeed}`} x="0" y="0" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={grainSeed} stitchTiles="stitch" />
+              <feColorMatrix type="matrix" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 0 1" />
+            </filter>
+          </defs>
+          <rect width={width} height={height} filter={`url(#fg-grain-${grainSeed})`} />
+        </svg>
+      </AbsoluteFill>
+
+      {/* Scanlines (tech register) */}
+      {scanlines && (
+        <AbsoluteFill
+          style={{
+            pointerEvents: "none",
+            mixBlendMode: "multiply",
+            opacity: 0.5,
+            backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.35) 2px, rgba(0,0,0,0.35) 3px)",
+          }}
+        />
+      )}
+
+      {/* Elliptical vignette — stronger than the light `Vignette` token */}
+      <AbsoluteFill
+        style={{
+          pointerEvents: "none",
+          background: `radial-gradient(ellipse 78% 78% at 50% 48%, transparent 46%, rgba(0,0,0,${vigDark}) 100%)`,
+        }}
+      />
+
+      {/* Letterbox bars */}
+      {letterbox > 0 && (
+        <>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: letterbox, background: "#000", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: letterbox, background: "#000", pointerEvents: "none" }} />
+        </>
+      )}
+    </AbsoluteFill>
+  );
+};
 
 export const Background: React.FC<{ scale?: number }> = ({ scale = 1 }) => (
   <AbsoluteFill

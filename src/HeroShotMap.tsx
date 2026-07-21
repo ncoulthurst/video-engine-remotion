@@ -12,7 +12,8 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema, ContextChip } from "./shared";
+import { fontFamily, serifFontFamily, COLORS, SmartImg, WorldStateSchema, ContextChip } from "./shared";
+import { Ground, EASE, prog } from "./lib/kit";
 
 const ShotSchema = z.object({
   x:      z.number(),
@@ -100,11 +101,11 @@ export const HeroShotMap: React.FC<HeroShotMapProps> = ({
   const COUNT_DUR    = 22; // frames to count up stats
 
   // ── Springs ───────────────────────────────────────────────────────────────
-  const pitchProg  = skipIntro ? 1 : spring({ frame: frame - PITCH_START, fps, config: { damping: 24, stiffness: 55 } });
-  const compProg   = skipIntro ? 1 : spring({ frame: frame - COMP_START,  fps, config: { damping: 22, stiffness: 60 } });
-  const ruleProg   = skipIntro ? 1 : spring({ frame: frame - RULE_START,  fps, config: { damping: 28, stiffness: 90 } });
-  const imageProg  = skipIntro ? 1 : spring({ frame: frame - INTRO_F,     fps, config: { damping: 22, stiffness: 50 } });
-  const outroProg  = spring({ frame: frame - OUTRO_F,     fps, config: { damping: 22, stiffness: 50 } });
+  const pitchProg  = skipIntro ? 1 : prog(frame, PITCH_START, 24, EASE.soft);
+  const compProg   = skipIntro ? 1 : prog(frame, COMP_START, 22, EASE.snap);
+  const ruleProg   = skipIntro ? 1 : prog(frame, RULE_START, 18, EASE.out);
+  const imageProg  = skipIntro ? 1 : prog(frame, INTRO_F, 26, EASE.soft);
+  const outroProg  = prog(frame, OUTRO_F, 26, EASE.soft);
 
   const LEGEND_ITEMS = [
     { colour: goalColor,   label: "Goal" },
@@ -112,22 +113,22 @@ export const HeroShotMap: React.FC<HeroShotMapProps> = ({
     { colour: noGoalColor, label: "Off target / blocked" },
   ];
   const legendSprings = LEGEND_ITEMS.map((_, i) =>
-    skipIntro ? 1 : spring({ frame: frame - (LEGEND_START + i * 6), fps, config: { damping: 22, stiffness: 80 } })
+    skipIntro ? 1 : prog(frame, LEGEND_START + i * 6, 18, EASE.snap)
   );
-  const xgNoteProg = skipIntro ? 1 : spring({ frame: frame - (LEGEND_START + 24), fps, config: { damping: 22, stiffness: 70 } });
+  const xgNoteProg = skipIntro ? 1 : prog(frame, LEGEND_START + 24, 20, EASE.snap);
 
   // ── Running xG ticker ─────────────────────────────────────────────────────
   const runningXg = shots.reduce((sum, sh, i) => {
     const rp = skipIntro ? 1 : Math.min(1, Math.max(0,
-      spring({ frame: frame - (SHOTS_START + i * stagger), fps, config: { damping: 18, stiffness: 200 } })
+      prog(frame, SHOTS_START + i * stagger, 14, EASE.snap)
     ));
     return sum + sh.xg * rp;
   }, 0);
   const revealedCount = shots.reduce((n, _, i) => {
-    const rp = spring({ frame: frame - (SHOTS_START + i * stagger), fps, config: { damping: 18, stiffness: 200 } });
+    const rp = prog(frame, SHOTS_START + i * stagger, 14, EASE.snap);
     return n + (rp > 0.05 ? 1 : 0);
   }, 0);
-  const tickerProg = spring({ frame: frame - SHOTS_START, fps, config: { damping: 22, stiffness: 55 } });
+  const tickerProg = prog(frame, SHOTS_START, 22, EASE.snap);
   // Ticker fades out as outro card fades in
   const tickerOpacity = interpolate(tickerProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" })
     * interpolate(outroProg, [0, 0.4], [1, 0], { extrapolateRight: "clamp" });
@@ -141,9 +142,7 @@ export const HeroShotMap: React.FC<HeroShotMapProps> = ({
     { extrapolateLeft: "clamp", extrapolateRight: "clamp" }));
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
+    <Ground ground="paper" bgColor={bgColor} domain="football" texture skipIntro={skipIntro} pad={0}>
       <AbsoluteFill style={{ zIndex: 10 }}>
 
         {/* ── Player image ────────────────────────────────────────────── */}
@@ -346,7 +345,7 @@ export const HeroShotMap: React.FC<HeroShotMapProps> = ({
           {/* Shots */}
           {shots.map((sh, i) => {
             const revealF   = SHOTS_START + i * stagger;
-            const prog      = spring({ frame: frame - revealF, fps, config: { damping: 18, stiffness: 200 } });
+            const shotP     = prog(frame, revealF, 14, EASE.snap);
             const cx        = toSVGX(sh.x);
             const cy        = toSVGY(sh.y);
             const r         = Math.max(12, Math.min(48, sh.xg * 52));
@@ -360,7 +359,7 @@ export const HeroShotMap: React.FC<HeroShotMapProps> = ({
             const pulseOp  = Math.max(0, 1 - pulseProg * 1.4);
 
             // Minute label fades in after shot settles
-            const labelProg = spring({ frame: frame - (revealF + 12), fps, config: { damping: 22, stiffness: 80 } });
+            const labelProg = prog(frame, revealF + 12, 18, EASE.snap);
 
             return (
               <g key={i}>
@@ -372,20 +371,20 @@ export const HeroShotMap: React.FC<HeroShotMapProps> = ({
                 {/* Shot circle */}
                 <circle
                   cx={cx} cy={cy}
-                  r={r * prog}
+                  r={r * shotP}
                   fill={colour}
                   fillOpacity={sh.goal ? 0.85 : 0.45}
                   stroke={colour}
                   strokeWidth={sh.goal ? 2.5 : 1.5}
-                  strokeOpacity={prog}
+                  strokeOpacity={shotP}
                 />
                 {/* Goal tick */}
                 {sh.goal && (
                   <text x={cx} y={cy + 6} textAnchor="middle"
-                    fontSize={18} fontWeight={700} fill="#fff" opacity={prog}>✓</text>
+                    fontSize={18} fontWeight={700} fill="#fff" opacity={shotP}>✓</text>
                 )}
                 {/* Minute label */}
-                {sh.minute > 0 && prog > 0.5 && (
+                {sh.minute > 0 && shotP > 0.5 && (
                   <text
                     x={cx} y={cy - r - 8}
                     textAnchor="middle" fontSize={11} fontWeight={700}
@@ -398,6 +397,6 @@ export const HeroShotMap: React.FC<HeroShotMapProps> = ({
         </svg>
 
       </AbsoluteFill>
-    </AbsoluteFill>
+    </Ground>
   );
 };

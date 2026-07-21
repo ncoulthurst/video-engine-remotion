@@ -34,13 +34,12 @@ import { z } from "zod";
 import {
   fontFamily,
   serifFontFamily,
-  PaperBackground,
-  Grain,
   COLORS,
   SmartImg,
   WorldStateSchema,
   ContextChip,
 } from "./shared";
+import { Ground, EASE, prog } from "./lib/kit";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -164,8 +163,8 @@ export const HeroAwardsList: React.FC<HeroAwardsListProps> = ({
   const inactiveOp = 0.32;
 
   // ── Spring helper ──────────────────────────────────────────────────────────
-  const springAt = (f: number, cfg: { damping: number; stiffness: number }) =>
-    skipIntro ? 1 : clamp01(spring({ fps, frame: frame - f, config: cfg }));
+  const springAt = (f: number, _cfg?: { damping: number; stiffness: number }) =>
+    skipIntro ? 1 : prog(frame, f, 24, EASE.soft);
 
   // ── Portrait entrance (panel spring, slides in from left) ──────────────────
   const portraitProg = springAt(PORTRAIT_F, { damping: 28, stiffness: 55 });
@@ -261,9 +260,7 @@ export const HeroAwardsList: React.FC<HeroAwardsListProps> = ({
   void durationInFrames;
 
   return (
-    <AbsoluteFill style={{ fontFamily, overflow: "hidden" }}>
-      {/* Z-0 — paper background */}
-      <PaperBackground color={bgColor} />
+    <Ground ground="paper" bgColor={bgColor} accentColor={accentColor} domain="football" texture skipIntro={skipIntro} pad={0} style={{ fontFamily, padding: 0 }}>
 
       {/* Z-1 — masked portrait (canonical §5) */}
       {hasPortrait && (
@@ -598,8 +595,7 @@ export const HeroAwardsList: React.FC<HeroAwardsListProps> = ({
       </div>
 
       {/* Z-2 — Grain LAST in JSX per §2, pointerEvents:none */}
-      <Grain />
-    </AbsoluteFill>
+    </Ground>
   );
 };
 

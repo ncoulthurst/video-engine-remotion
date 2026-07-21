@@ -7,9 +7,10 @@
  * through the composition via mix-blend-mode "multiply" on paper.
  */
 import React from "react";
-import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { interpolate, useCurrentFrame } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema, ContextChip } from "./shared";
+import { SmartImg, WorldStateSchema } from "./shared";
+import { Ground, TYPE, EASE, prog, resolveTheme, Kicker } from "./lib/kit";
 
 export const HeroChapterWordPropsSchema = z.object({
   word:         z.string().optional().default("aesthetics."),
@@ -31,20 +32,16 @@ export const HeroChapterWord: React.FC<HeroChapterWordProps> = ({
   word, chapterLabel, player1Image, player2Image, blob1Color, blob2Color, bgColor, skipIntro,
 }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
+  const t = resolveTheme("paper", undefined, bgColor || undefined);
 
-  const sf = (delay: number, cfg = { damping: 22, stiffness: 52 }) =>
-    skipIntro ? 1 : spring({ frame: frame - delay, fps, config: cfg });
+  const sf = (delay: number) => (skipIntro ? 1 : prog(frame, delay, 26, EASE.soft));
 
-  const blob1In = sf(0,  { damping: 24, stiffness: 50 });
-  const blob2In = sf(6,  { damping: 24, stiffness: 50 });
+  const blob1In = sf(0);
+  const blob2In = sf(6);
   const p1In    = sf(12);
   const p2In    = sf(16);
-  const wordIn  = skipIntro ? 1 : interpolate(frame, [22, 60], [0, 1], {
-    extrapolateLeft: "clamp", extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
-  const labelIn = skipIntro ? 1 : interpolate(frame, [10, 28], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const wordIn  = skipIntro ? 1 : prog(frame, 22, 38, EASE.soft);
+  const labelIn = skipIntro ? 1 : prog(frame, 10, 18, EASE.quad);
 
   // Slow Ken Burns — both images drift inward at slightly different rates
   const kenBurns = (delay: number, dir: 1 | -1) => {
@@ -60,9 +57,7 @@ export const HeroChapterWord: React.FC<HeroChapterWordProps> = ({
   const BLOB_SIZE = 720;
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor || undefined} />
-
+    <Ground ground="paper" bgColor={bgColor || undefined} domain="football" texture skipIntro={skipIntro} pad={0}>
       {/* Chapter label — small caps top-left, sets editorial frame */}
       <div style={{
         position:      "absolute",
@@ -71,7 +66,7 @@ export const HeroChapterWord: React.FC<HeroChapterWordProps> = ({
         opacity:       labelIn,
         transform:     `translateY(${interpolate(labelIn, [0, 1], [8, 0])}px)`,
       }}>
-        <ContextChip label={chapterLabel} color="rgba(17,17,17,0.45)" size={13} />
+        <Kicker label={chapterLabel} theme={t} frame={frame} />
       </div>
 
       {/* Blob 1 — bottom-left */}
@@ -187,11 +182,11 @@ export const HeroChapterWord: React.FC<HeroChapterWordProps> = ({
         pointerEvents:  "none",
       }}>
         <div style={{
-          fontFamily:    serifFontFamily,
+          fontFamily:    TYPE.serif,
           fontStyle:     "italic",
           fontSize:      210,
           fontWeight:    900,
-          color:         "#111",
+          color:         t.ink,
           letterSpacing: -6,
           lineHeight:    1,
           opacity:       wordIn,
@@ -207,12 +202,10 @@ export const HeroChapterWord: React.FC<HeroChapterWordProps> = ({
         bottom:          "16%",
         width:           interpolate(wordIn, [0, 1], [0, 220]),
         height:          3,
-        background:      "#111",
+        background:      t.ink,
         transform:       "translateX(-50%)",
         opacity:         wordIn * 0.85,
       }} />
-
-      <Grain />
-    </AbsoluteFill>
+    </Ground>
   );
 };

@@ -10,7 +10,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AbsoluteFill, getRemotionEnvironment, useCurrentFrame } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema} from "./shared";
+import { SmartImg, WorldStateSchema } from "./shared";
+import { Ground, TYPE, resolveTheme } from "./lib/kit";
 
 const CHANNEL_NAME = "Frequency";
 const H = 720;
@@ -200,11 +201,11 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
   const cx = live?.cx ?? sideImageX;
   const cy = live?.cy ?? sideImageY;
 
+  const t = resolveTheme("paper", undefined, bgColor);
+
   return (
-    <AbsoluteFill>
+    <Ground ground="paper" bgColor={bgColor} domain="football" texture skipIntro={skipIntro} pad={0}>
       <div ref={frameRef} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} />
-      <PaperBackground color={bgColor} />
-      <Grain />
 
       {sideImage && (
         <div
@@ -220,17 +221,17 @@ export const HeroIntro: React.FC<HeroIntroProps> = ({
       )}
 
       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, pointerEvents: "none" }}>
-        <div style={{ fontFamily: serifFontFamily, fontSize: 108, fontWeight: 900, color: "#0a0a0a", letterSpacing: -3, lineHeight: 1, minHeight: "1.1em" }}>
+        <div style={{ fontFamily: TYPE.serif, fontSize: 108, fontWeight: 900, color: t.ink, letterSpacing: -3, lineHeight: 1, minHeight: "1.1em" }}>
           {visibleTitle}
-          {titleCursorOn && <span style={{ display: "inline-block", width: "0.06em", backgroundColor: "#0a0a0a", marginLeft: "0.04em", verticalAlign: "middle", height: "0.88em", position: "relative", top: "-0.04em" }} />}
+          {titleCursorOn && <span style={{ display: "inline-block", width: "0.06em", backgroundColor: t.ink, marginLeft: "0.04em", verticalAlign: "middle", height: "0.88em", position: "relative", top: "-0.04em" }} />}
         </div>
         {titleDone && (
-          <div style={{ fontFamily, fontSize: 20, fontWeight: 400, color: "#666", letterSpacing: 0.3, minHeight: "1.5em" }}>
+          <div style={{ fontFamily: TYPE.sans, fontSize: 20, fontWeight: 400, color: t.muted, letterSpacing: 0.3, minHeight: "1.5em" }}>
             {visibleSubtitle}
-            {subCursorOn && <span style={{ display: "inline-block", width: "1px", backgroundColor: "#666", marginLeft: 2, verticalAlign: "middle", height: "1.1em", position: "relative", top: "-0.05em" }} />}
+            {subCursorOn && <span style={{ display: "inline-block", width: "1px", backgroundColor: t.muted, marginLeft: 2, verticalAlign: "middle", height: "1.1em", position: "relative", top: "-0.05em" }} />}
           </div>
         )}
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

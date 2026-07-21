@@ -1,7 +1,8 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, TrophyIcon, WorldStateSchema} from "./shared";
+import { fontFamily, serifFontFamily, COLORS, SmartImg, TrophyIcon, WorldStateSchema } from "./shared";
+import { Ground, EASE, prog, beatDelay, stagger, resolveTheme } from "./lib/kit";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -24,6 +25,7 @@ export const TablePropsSchema = z.object({
   bgColor: z.string().optional().default("#f0ece4"),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
+  beats:     z.record(z.string(), z.number()).optional(),
 });
 
 export type TableProps = z.infer<typeof TablePropsSchema>;
@@ -37,25 +39,24 @@ const BADGE_SIZE = 72;
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const PremierLeagueTable: React.FC<TableProps> = ({ season, teams, bgColor, skipIntro = false }) => {
+export const PremierLeagueTable: React.FC<TableProps> = ({ season, teams, bgColor, skipIntro = false, beats }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const t = resolveTheme("paper", COLORS.gold, bgColor);
 
-  const ROW_START   = 20;
   const ROW_STAGGER = 10;
+  const ROW_START   = beatDelay(beats, "entity", fps, 20);
 
-  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
-  const headerOp   = interpolate(headerProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
+  const headerProg = skipIntro ? 1 : prog(frame, 0, 20, EASE.snap);
+  const headerOp   = headerProg;
   const headerY    = interpolate(headerProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const colsProg = skipIntro ? 1 : spring({ frame: frame - 10, fps, config: { damping: 20, stiffness: 80 } });
-  const colsOp   = interpolate(colsProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
-  const ruleW    = interpolate(colsProg, [0, 1], [0, 100], { extrapolateRight: "clamp" });
+  const colsProg = skipIntro ? 1 : prog(frame, 10, 20, EASE.out);
+  const colsOp   = colsProg;
+  const ruleW    = colsProg * 100;
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
+    <Ground ground="paper" bgColor={bgColor} accentColor={COLORS.gold} domain="football" texture skipIntro={skipIntro} pad={0}>
 
       <div style={{
         position:       "absolute",
@@ -110,10 +111,10 @@ export const PremierLeagueTable: React.FC<TableProps> = ({ season, teams, bgColo
         {/* Team rows */}
         <div>
           {teams.map((team, i) => {
-            const delay   = ROW_START + i * ROW_STAGGER;
-            const prog    = skipIntro ? 1 : spring({ frame: frame - delay, fps, config: { damping: 24, stiffness: 60 } });
-            const rowOp   = interpolate(prog, [0, 0.4], [0, 1], { extrapolateRight: "clamp" });
-            const rowX    = interpolate(prog, [0, 1], [-36, 0], { extrapolateRight: "clamp" });
+            const delay   = ROW_START + stagger(i, ROW_STAGGER);
+            const p       = skipIntro ? 1 : prog(frame, delay, 20, EASE.snap);
+            const rowOp   = interpolate(p, [0, 0.4], [0, 1], { extrapolateRight: "clamp" });
+            const rowX    = interpolate(p, [0, 1], [-36, 0], { extrapolateRight: "clamp" });
             const isChamp = team.pos === 1;
 
             return (
@@ -132,7 +133,6 @@ export const PremierLeagueTable: React.FC<TableProps> = ({ season, teams, bgColo
                     position: "absolute", left: -20, top: 16, bottom: 16,
                     width: 3, borderRadius: 3,
                     backgroundColor: COLORS.gold,
-                    boxShadow: "0 0 12px rgba(201,168,76,0.55)",
                   }} />
                 )}
 
@@ -200,6 +200,6 @@ export const PremierLeagueTable: React.FC<TableProps> = ({ season, teams, bgColo
           })}
         </div>
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

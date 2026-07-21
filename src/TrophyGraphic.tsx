@@ -1,11 +1,14 @@
+/**
+ * TrophyGraphic — single trophy moment card.
+ * F3: composed from the shared kit (Ground/TYPE/prog) — no per-comp springs,
+ * grain or blurred glow (the Ground's Atmosphere key light provides depth).
+ * The trophy lands on the "entity" beat, the year line on "year" (H1).
+ */
 import React from "react";
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
-import {
-  Grain, PaperBackground,
-  COLORS, SPRINGS, fontFamily, serifFontFamily,
-  SmartImg, hexToRgb, rgbaFromHex, WorldStateSchema
-} from "./shared";
+import { COLORS, SmartImg, WorldStateSchema } from "./shared";
+import { Ground, TYPE, EASE, prog, beatDelay, resolveTheme } from "./lib/kit";
 
 export const TrophyPropsSchema = z.object({
   trophyName:  z.string().optional().default("Premier League"),
@@ -18,6 +21,7 @@ export const TrophyPropsSchema = z.object({
   bgColor:     z.string().optional().default("#f0ece4"),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
+  beats:     z.record(z.string(), z.number()).optional(),
 });
 
 export const TrophyGraphicPropsSchema = TrophyPropsSchema;
@@ -52,44 +56,30 @@ const TrophySVG: React.FC<{ size: number }> = ({ size }) => (
 
 export const TrophyGraphic: React.FC<TrophyGraphicProps> = ({
   trophyName, trophyYear, clubName, badgeSlug, clubColor, subtext, trophyCount, bgColor = "#f0ece4",
+  skipIntro = false, beats,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const t = resolveTheme("paper", clubColor || COLORS.gold, bgColor);
 
-  const trophyScale = spring({ frame, fps, from: 0, to: 1, config: { damping: 18, stiffness: 55, mass: 1 }, delay: 8 });
-  const titleY = spring({ frame, fps, from: 60, to: 0, config: SPRINGS.header, delay: 18 });
-  const titleOp = interpolate(frame, [18, 38], [0, 1], { extrapolateRight: "clamp" });
-  const badgeScale = spring({ frame, fps, from: 0, to: 1, config: SPRINGS.bounce, delay: 30 });
-  const subtextOp = interpolate(frame, [45, 65], [0, 1], { extrapolateRight: "clamp" });
-  const subtextY = spring({ frame, fps, from: 20, to: 0, config: SPRINGS.row, delay: 45 });
-  const pillsOp = interpolate(frame, [60, 80], [0, 1], { extrapolateRight: "clamp" });
+  const trophyAt = beatDelay(beats, "entity", fps, 8);
+  const yearAt   = beatDelay(beats, "year", fps, 45);
 
-  const [r, g, b] = hexToRgb(clubColor);
+  const trophyScale = skipIntro ? 1 : interpolate(prog(frame, trophyAt, 24, EASE.snap), [0, 1], [0.4, 1]);
+  const trophyOp    = skipIntro ? 1 : prog(frame, trophyAt, 14, EASE.quad);
+  const titleIn     = skipIntro ? 1 : prog(frame, trophyAt + 10, 22, EASE.snap);
+  const badgeIn     = skipIntro ? 1 : prog(frame, trophyAt + 22, 18, EASE.snap);
+  const subtextIn   = skipIntro ? 1 : prog(frame, yearAt, 20, EASE.snap);
+  const pillsOp     = skipIntro ? 1 : prog(frame, yearAt + 15, 20, EASE.quad);
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
-
-      {/* Glow behind trophy */}
-      <div style={{
-        position: "absolute",
-        left: "50%",
-        top: "42%",
-        transform: "translate(-50%, -50%)",
-        width: 360,
-        height: 360,
-        borderRadius: "50%",
-        background: `radial-gradient(circle, rgba(${r},${g},${b},0.18) 0%, rgba(201,168,76,0.12) 40%, transparent 70%)`,
-        filter: "blur(40px)",
-      }} />
-
+    <Ground ground="paper" bgColor={bgColor} accentColor={clubColor || COLORS.gold} domain="football" texture skipIntro={skipIntro} pad={0} focus={{ x: 0.5, y: 0.4 }}>
       {/* Club color accent bar at top */}
       <div style={{
         position: "absolute",
         top: 0, left: 0, right: 0,
         height: 6,
-        background: `linear-gradient(90deg, transparent, ${clubColor}, transparent)`,
+        background: `linear-gradient(90deg, transparent, ${clubColor || t.accent}, transparent)`,
         opacity: 0.8,
       }} />
 
@@ -100,21 +90,23 @@ export const TrophyGraphic: React.FC<TrophyGraphicProps> = ({
         top: "38%",
         transform: `translate(-50%, -50%) scale(${trophyScale})`,
         transformOrigin: "center center",
+        opacity: trophyOp,
       }}>
         <TrophySVG size={210} />
       </div>
 
-      {/* Badge (top-left of trophy area) */}
+      {/* Badge (below trophy) */}
       <div style={{
         position: "absolute",
         left: "50%",
         top: "56%",
-        transform: `translate(-50%, 0) scale(${badgeScale})`,
+        transform: `translate(-50%, 0) scale(${badgeIn})`,
         width: 72,
         height: 72,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        opacity: badgeIn,
       }}>
         <SmartImg
           src={badgeSlug}
@@ -138,7 +130,6 @@ export const TrophyGraphic: React.FC<TrophyGraphicProps> = ({
             height: 12,
             borderRadius: "50%",
             background: COLORS.gold,
-            boxShadow: `0 0 8px 2px rgba(201,168,76,0.5)`,
           }} />
         ))}
       </div>
@@ -148,16 +139,16 @@ export const TrophyGraphic: React.FC<TrophyGraphicProps> = ({
         position: "absolute",
         left: "50%",
         top: "76%",
-        transform: `translate(-50%, ${titleY}px)`,
-        opacity: titleOp,
+        transform: `translate(-50%, ${(1 - titleIn) * 60}px)`,
+        opacity: titleIn,
         textAlign: "center",
         whiteSpace: "nowrap",
       }}>
         <div style={{
-          fontFamily: serifFontFamily,
+          fontFamily: TYPE.serif,
           fontSize: 48,
           fontWeight: 900,
-          color: COLORS.primary,
+          color: t.ink,
           letterSpacing: -1,
         }}>
           {clubName}
@@ -169,26 +160,26 @@ export const TrophyGraphic: React.FC<TrophyGraphicProps> = ({
         position: "absolute",
         left: "50%",
         top: "84%",
-        transform: `translate(-50%, ${subtextY}px)`,
-        opacity: subtextOp,
+        transform: `translate(-50%, ${(1 - subtextIn) * 20}px)`,
+        opacity: subtextIn,
         textAlign: "center",
         whiteSpace: "nowrap",
       }}>
         <div style={{
-          fontFamily,
+          fontFamily: TYPE.mono,
           fontSize: 22,
           fontWeight: 700,
           color: COLORS.gold,
-          letterSpacing: 2,
+          letterSpacing: TYPE.track,
           textTransform: "uppercase",
         }}>
           {trophyName} · {trophyYear}
         </div>
         <div style={{
-          fontFamily,
+          fontFamily: TYPE.sans,
           fontSize: 16,
           fontWeight: 400,
-          color: COLORS.muted,
+          color: t.muted,
           marginTop: 4,
           letterSpacing: 1,
         }}>
@@ -203,15 +194,15 @@ export const TrophyGraphic: React.FC<TrophyGraphicProps> = ({
         top: "14%",
         transform: "translateX(-50%)",
         width: 320,
-        opacity: subtextOp * 0.4,
+        opacity: subtextIn * 0.4,
         display: "flex",
         alignItems: "center",
         gap: 12,
       }}>
         <div style={{ flex: 1, height: 1, background: COLORS.gold, opacity: 0.6 }} />
-        <div style={{ fontFamily, fontSize: 11, fontWeight: 700, letterSpacing: 3, color: COLORS.gold, textTransform: "uppercase" }}>Frequency</div>
+        <div style={{ fontFamily: TYPE.mono, fontSize: 11, fontWeight: 700, letterSpacing: 3, color: COLORS.gold, textTransform: "uppercase" }}>Frequency</div>
         <div style={{ flex: 1, height: 1, background: COLORS.gold, opacity: 0.6 }} />
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

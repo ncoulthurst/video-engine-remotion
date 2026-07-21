@@ -26,7 +26,6 @@ import {
   AbsoluteFill,
   Easing,
   interpolate,
-  spring,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
@@ -34,14 +33,11 @@ import { z } from "zod";
 import {
   fontFamily,
   serifFontFamily,
-  Grain,
-  PaperBackground,
-  DarkBackground,
   SmartImg,
   WorldStateSchema,
-  ContextChip,
   BadgeTreatment,
 } from "./shared";
+import { Ground, EASE, prog, beatDelay, resolveTheme, Kicker } from "./lib/kit";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -60,6 +56,7 @@ export const CareerTimelinePropsSchema = z.object({
   activeIndex:  z.number().default(-1),
   startFrame:   z.number().default(40),
   skipIntro:    z.boolean().optional().default(false),
+  beats:        z.record(z.string(), z.number()).optional(),
 
   // Optional editorial enrichment (engine may set; rendering does not require)
   accentColor:  z.string().optional().default("#C8102E"),
@@ -137,9 +134,12 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
   subjectImage = "",
   source       = "",
   dateline     = "",
+  beats,
 }) => {
   const frame = useCurrentFrame();
   const { fps, width: W, height: H } = useVideoConfig();
+  const groundBg = darkMode && (!bgColor || bgColor === "#f0ece4") ? "#111111" : bgColor;
+  const t = resolveTheme(darkMode ? "ink" : "paper", accentColor, groundBg);
 
   const N        = Math.max(0, events.length);
   const focusIdx = activeIndex ?? -1;
@@ -153,13 +153,13 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
   const hasPortrait = Boolean(subjectImage);
 
   // ── Entry springs ─────────────────────────────────────────────────────────
-  const springAt = (f: number, cfg: { damping: number; stiffness: number; mass?: number }) =>
-    skipIntro ? 1 : spring({ fps, frame: Math.max(0, frame - f), config: cfg });
+  const springAt = (f: number) =>
+    skipIntro ? 1 : prog(frame, f, 24, EASE.soft);
 
-  const folioProg    = springAt(FOLIO_F,    { damping: 22, stiffness: 52 });
-  const ruleProg     = springAt(RULE_F,     { damping: 26, stiffness: 60 });
-  const sourceProg   = springAt(SOURCE_F,   { damping: 22, stiffness: 52 });
-  const portraitProg = springAt(PORTRAIT_F, { damping: 28, stiffness: 55 });
+  const folioProg    = springAt(FOLIO_F);
+  const ruleProg     = springAt(RULE_F);
+  const sourceProg   = springAt(SOURCE_F);
+  const portraitProg = springAt(PORTRAIT_F);
 
   // Rail draw-on — eased, not a spring (per §6 draw-on pattern).
   const railProg = skipIntro
@@ -171,16 +171,14 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
       });
 
   // ── Per-node entry & active-state ─────────────────────────────────────────
-  const nodeRevealF = (i: number) => NODES_F + i * NODE_GAP;
+  // H1: the first node lands on the "year" beat when the narrator names the era.
+  const nodesStart = beatDelay(beats, "year", fps, NODES_F);
+  const nodeRevealF = (i: number) => nodesStart + i * NODE_GAP;
 
   /** Node entry: opacity 0→1 + translateY 14→0 driven by medium spring. */
   const nodeEntry = (i: number): { op: number; ty: number } => {
     if (skipIntro) return { op: 1, ty: 0 };
-    const p = spring({
-      fps,
-      frame: Math.max(0, frame - nodeRevealF(i)),
-      config: { damping: 22, stiffness: 52 },
-    });
+    const p = prog(frame, nodeRevealF(i), 22, EASE.soft);
     return {
       op: interpolate(p, [0, 1], [0, 1], { extrapolateRight: "clamp" }),
       ty: interpolate(p, [0, 1], [14, 0], { extrapolateRight: "clamp" }),
@@ -199,7 +197,7 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
    */
   const focusAccum = skipIntro
     ? 1
-    : spring({ fps, frame: Math.max(0, frame - sf), config: { damping: 22, stiffness: 52 } });
+    : prog(frame, sf, 24, EASE.soft);
 
   const activeState = (i: number): number => {
     if (focusIdx < 0) return 0;
@@ -241,9 +239,7 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
   const folioTop  = 110;
 
   return (
-    <AbsoluteFill style={{ fontFamily, overflow: "hidden" }}>
-      {/* Z-0  background */}
-      {darkMode ? <DarkBackground color={bgColor} /> : <PaperBackground color={bgColor} />}
+    <Ground ground={darkMode ? "ink" : "paper"} bgColor={groundBg} domain="football" texture skipIntro={skipIntro} pad={0} style={{ fontFamily, padding: 0 }}>
 
       {/* Z-1  optional masked portrait (canonical §5) */}
       {hasPortrait && (
@@ -325,7 +321,7 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
             marginBottom: 14,
           }} />
           {/* Small-caps dateline */}
-          <ContextChip label={datelineText} color={mutedColor} size={12} />
+          <Kicker label={datelineText} theme={t} frame={frame} />
         </div>
 
         {/* ── Timeline rail (the ONE decorative device) ────────────────────
@@ -551,15 +547,11 @@ export const CareerTimeline: React.FC<CareerTimelineProps> = ({
             opacity:       interpolate(sourceProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" }),
             zIndex:        30,
           }}>
-            <ContextChip label={source} color={mutedColor} size={12} />
+            <Kicker label={source} theme={t} frame={frame} />
           </div>
         )}
       </div>
 
-      {/* Z-2  Grain — LAST in JSX per §2 */}
-      <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
-        <Grain />
-      </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

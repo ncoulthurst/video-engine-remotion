@@ -14,9 +14,9 @@ import {
   COLORS,
   PaperBackground,
   RuleLine,
-  SmartImg,
   WorldStateSchema,
 } from "./shared";
+import { EditorialPortrait } from "./lib/EditorialPortrait";
 
 export const PortraitStatHeroPropsSchema = z.object({
   playerName: z.string().optional().default(""),
@@ -63,7 +63,12 @@ export const PortraitStatHero: React.FC<PortraitStatHeroProps> = ({
         WebkitMaskImage: "linear-gradient(to right, black 70%, transparent)",
         maskImage:       "linear-gradient(to right, black 70%, transparent)",
       }}>
-        <SmartImg src={playerImage} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        {/* H-2: never a raw photo — grade + offset silhouette via EditorialPortrait */}
+        <EditorialPortrait
+          src={playerImage}
+          accent={accentColor}
+          style={{ width: "100%", height: "100%" }}
+        />
       </div>
 
       {/* Stat block — right half */}

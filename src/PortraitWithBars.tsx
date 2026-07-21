@@ -14,9 +14,9 @@ import {
   COLORS,
   PaperBackground,
   RuleLine,
-  SmartImg,
   WorldStateSchema,
 } from "./shared";
+import { EditorialPortrait } from "./lib/EditorialPortrait";
 
 const BarSchema = z.object({
   label: z.string(),
@@ -70,7 +70,15 @@ export const PortraitWithBars: React.FC<PortraitWithBarsProps> = ({
           WebkitMaskImage: "radial-gradient(ellipse 70% 95% at 50% 30%, black 55%, transparent)",
           maskImage:       "radial-gradient(ellipse 70% 95% at 50% 30%, black 55%, transparent)",
         }}>
-          <SmartImg src={playerImage} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          {/* H-2: never a raw photo — grade via EditorialPortrait (the ellipse
+              mask above vignettes the crop; offset stroke off — the mask would
+              clip an offset silhouette awkwardly) */}
+          <EditorialPortrait
+            src={playerImage}
+            accent={accentColor}
+            offsetStroke={false}
+            style={{ width: "100%", height: "100%" }}
+          />
         </div>
         {playerName && (
           <div style={{

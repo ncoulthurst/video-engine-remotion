@@ -15,16 +15,14 @@
  */
 import React from "react";
 import {
-  AbsoluteFill,
   interpolate,
-  spring,
-  Easing,
   useCurrentFrame,
   useVideoConfig,
   Video,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema } from "./shared";
+import { fontFamily, serifFontFamily, SmartImg, WorldStateSchema } from "./shared";
+import { Ground, TYPE, EASE, prog, resolveTheme } from "./lib/kit";
 
 const CHANNEL_NAME = "Frequency";
 
@@ -63,47 +61,6 @@ const FRAME_A_IN   = 28;
 const FRAME_B_IN   = FRAME_A_IN + 12; // stagger
 const COPY_IN      = 64;
 
-// ── Border glow (ambient, slow rotation — SaaS hero pattern) ────────────────
-const GLOW_LOOP = 360;
-
-const BorderGlow: React.FC<{
-  w: number; h: number; frame: number; fps: number; filterId: string; delay: number;
-}> = ({ w, h, frame, fps, filterId, delay }) => {
-  const PAD       = 4;
-  const STROKE_W  = 2;
-  const RADIUS    = 8;
-  const perim     = 2 * (w + h);
-  const glowLen   = Math.round(perim * 0.40);
-  const fadeIn    = spring({ frame, fps, config: { damping: 22, stiffness: 30 }, delay: delay + 6 });
-  const loopF     = (frame - delay) < 0 ? 0 : (frame - delay) % GLOW_LOOP;
-  const offset    = -interpolate(loopF, [0, GLOW_LOOP], [0, perim]);
-
-  return (
-    <svg
-      style={{ position: "absolute", top: -PAD, left: -PAD, pointerEvents: "none" }}
-      width={w + PAD * 2}
-      height={h + PAD * 2}
-    >
-      <defs>
-        <filter id={filterId} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="6" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-      <rect
-        x={PAD} y={PAD} width={w} height={h} rx={RADIUS} ry={RADIUS}
-        fill="none"
-        stroke="rgba(10,10,10,0.45)"
-        strokeWidth={STROKE_W}
-        strokeDasharray={`${glowLen} ${perim - glowLen}`}
-        strokeDashoffset={offset}
-        filter={`url(#${filterId})`}
-        opacity={fadeIn * 0.9}
-      />
-    </svg>
-  );
-};
-
 // ── Clip frame — glassmorphic SaaS card ─────────────────────────────────────
 const ClipFrame: React.FC<{
   src: string; image: string; title: string;
@@ -111,11 +68,7 @@ const ClipFrame: React.FC<{
   accentColor: string;
 }> = ({ src, image, title, delay, frame, fps, skipIntro, filterId, accentColor }) => {
   // SaaS-style entry: drop down + scale up + opacity rise. Pure deceleration, no spring.
-  const entryProg = skipIntro ? 1 : interpolate(frame, [delay, delay + 30], [0, 1], {
-    extrapolateLeft:  "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
+  const entryProg = skipIntro ? 1 : prog(frame, delay, 30, EASE.soft);
   const ty       = interpolate(entryProg, [0, 1], [-44, 0]);
   const scale    = interpolate(entryProg, [0, 1], [0.94, 1]);
   const op       = interpolate(entryProg, [0, 0.55], [0, 1], { extrapolateRight: "clamp" });
@@ -169,7 +122,6 @@ const ClipFrame: React.FC<{
             }}>▶</div>
           </div>
         )}
-        <BorderGlow w={FRAME_W} h={FRAME_H} frame={frame} fps={fps} filterId={filterId} delay={delay} />
       </div>
       {/* Title strip */}
       <div style={{
@@ -205,32 +157,19 @@ export const HeroOutro: React.FC<HeroOutroProps> = ({
   const { fps } = useVideoConfig();
 
   // Wordmark entry — soft fade-and-rise
-  const wordmarkProg = skipIntro ? 1 : interpolate(frame, [WORDMARK_IN, WORDMARK_IN + 22], [0, 1], {
-    extrapolateLeft:  "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
+  const wordmarkProg = skipIntro ? 1 : prog(frame, WORDMARK_IN, 22, EASE.soft);
   const wordmarkTy = interpolate(wordmarkProg, [0, 1], [-12, 0]);
 
   // Lead-in copy entry
-  const leadInProg = skipIntro ? 1 : interpolate(frame, [COPY_IN, COPY_IN + 24], [0, 1], {
-    extrapolateLeft:  "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.cubic),
-  });
+  const leadInProg = skipIntro ? 1 : prog(frame, COPY_IN, 24, EASE.out);
   const leadInTy = interpolate(leadInProg, [0, 1], [12, 0]);
 
   // Subscribe ask entry — appears slightly after lead-in
-  const askProg = skipIntro ? 1 : interpolate(frame, [COPY_IN + 18, COPY_IN + 42], [0, 1], {
-    extrapolateLeft:  "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.cubic),
-  });
+  const askProg = skipIntro ? 1 : prog(frame, COPY_IN + 18, 24, EASE.out);
   const askTy = interpolate(askProg, [0, 1], [12, 0]);
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
+    <Ground ground="paper" bgColor={bgColor} domain="football" texture skipIntro={skipIntro} pad={0}>
 
       {/* Wordmark — top */}
       <div style={{
@@ -339,7 +278,6 @@ export const HeroOutro: React.FC<HeroOutroProps> = ({
         </div>
       </div>
 
-      <Grain />
-    </AbsoluteFill>
+    </Ground>
   );
 };

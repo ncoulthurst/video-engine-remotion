@@ -1,7 +1,8 @@
 import React from "react";
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, WorldStateSchema} from "./shared";
+import { fontFamily, serifFontFamily, COLORS, SmartImg, WorldStateSchema } from "./shared";
+import { Ground, EASE, prog, beatDelay, stagger } from "./lib/kit";
 
 const PlayerSchema = z.object({
   pos:       z.number(),
@@ -23,6 +24,7 @@ export const TopScorersPropsSchema = z.object({
   bgColor:     z.string().optional().default("#f0ece4"),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
+  beats:     z.record(z.string(), z.number()).optional(),
 });
 
 export type TopScorersProps = z.infer<typeof TopScorersPropsSchema>;
@@ -35,23 +37,23 @@ const ROW_H       = 100;
 const BADGE_SIZE  = 72;
 
 export const TopScorersTable: React.FC<TopScorersProps> = ({
-  season, competition, statLabel = "Goals", players, bgColor, skipIntro = false,
+  season, competition, statLabel = "Goals", players, bgColor, skipIntro = false, beats,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
-  const headerOp   = interpolate(headerProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
+  const rowStart = beatDelay(beats, "entity", fps, ROW_START);
+
+  const headerProg = skipIntro ? 1 : prog(frame, 0, 20, EASE.snap);
+  const headerOp   = headerProg;
   const headerY    = interpolate(headerProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const colsProg = skipIntro ? 1 : spring({ frame: frame - 10, fps, config: { damping: 20, stiffness: 80 } });
-  const colsOp   = interpolate(colsProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
-  const ruleW    = interpolate(colsProg, [0, 1], [0, 100], { extrapolateRight: "clamp" });
+  const colsProg = skipIntro ? 1 : prog(frame, 10, 20, EASE.out);
+  const colsOp   = colsProg;
+  const ruleW    = colsProg * 100;
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
+    <Ground ground="paper" bgColor={bgColor} accentColor={COLORS.gold} domain="football" texture skipIntro={skipIntro} pad={0}>
 
       <div style={{
         position:      "absolute",
@@ -98,10 +100,10 @@ export const TopScorersTable: React.FC<TopScorersProps> = ({
         {/* Player rows */}
         <div>
           {players.map((p, i) => {
-            const delay = ROW_START + i * ROW_STAGGER;
-            const prog  = skipIntro ? 1 : spring({ frame: frame - delay, fps, config: { damping: 24, stiffness: 60 } });
-            const rowOp = interpolate(prog, [0, 0.4], [0, 1], { extrapolateRight: "clamp" });
-            const rowX  = interpolate(prog, [0, 1], [-36, 0], { extrapolateRight: "clamp" });
+            const delay = rowStart + stagger(i, ROW_STAGGER);
+            const pr    = skipIntro ? 1 : prog(frame, delay, 20, EASE.snap);
+            const rowOp = interpolate(pr, [0, 0.4], [0, 1], { extrapolateRight: "clamp" });
+            const rowX  = interpolate(pr, [0, 1], [-36, 0], { extrapolateRight: "clamp" });
             const isTop = p.pos === 1;
 
             return (
@@ -117,7 +119,6 @@ export const TopScorersTable: React.FC<TopScorersProps> = ({
                     position: "absolute", left: -20, top: 16, bottom: 16,
                     width: 3, borderRadius: 3,
                     backgroundColor: COLORS.gold,
-                    boxShadow: "0 0 12px rgba(201,168,76,0.55)",
                   }} />
                 )}
 
@@ -176,6 +177,6 @@ export const TopScorersTable: React.FC<TopScorersProps> = ({
           })}
         </div>
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

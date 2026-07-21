@@ -15,18 +15,16 @@
 import React from "react";
 import {
   AbsoluteFill,
-  Easing,
   interpolate,
-  spring,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
 import {
-  Grain, PaperBackground,
   COLORS, fontFamily, serifFontFamily, SmartImg, WorldStateSchema,
-  ContextChip, BadgeTreatment,
+  BadgeTreatment,
 } from "./shared";
+import { Ground, EASE, prog, beatDelay, resolveTheme, Kicker } from "./lib/kit";
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
 
@@ -48,6 +46,7 @@ export const PlayerStatsPropsSchema = z.object({
   bgColor:         z.string().optional().default("#f0ece4"),
   worldState:      WorldStateSchema.optional(),
   skipIntro:       z.boolean().optional().default(false),
+  beats:           z.record(z.string(), z.number()).optional(),
 });
 
 export type PlayerStatsProps = z.infer<typeof PlayerStatsPropsSchema>;
@@ -88,6 +87,7 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
   stats,
   bgColor = "#f0ece4",
   skipIntro = false,
+  beats,
 }) => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
@@ -100,21 +100,13 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
   const effectiveClubColor = clubColor || COLORS.gold;
 
   // ── Portrait entrance (slides in from left, spring) ─────────────────────────
-  const portraitProg = skipIntro ? 1 : clamp01(spring({
-    fps,
-    frame: frame - HEADER_IN_F,
-    config: { damping: 28, stiffness: 55 },
-  }));
+  const portraitProg = skipIntro ? 1 : prog(frame, HEADER_IN_F, 24, EASE.soft);
   const portraitX  = interpolate(portraitProg, [0, 1], [-PORTRAIT_W * 0.55, 0]);
   const portraitOp = interpolate(portraitProg, [0, 0.25], [0, 1], { extrapolateRight: "clamp" });
 
   // ── Camera: slow zoom on the portrait+content plane (§6 "slow zoom") ────────
   // 0.97 → 1.0 across the whole composition, settled with clamped interpolate.
-  const cameraProg = skipIntro ? 1 : clamp01(spring({
-    fps,
-    frame,
-    config: { damping: 26, stiffness: 38 },
-  }));
+  const cameraProg = skipIntro ? 1 : prog(frame, 0, 40, EASE.soft);
   // Drive the long, continuous zoom off a linear time-based progress so the
   // movement doesn't fully settle at frame ~30 like a pure spring would.
   const timeProg = clamp01(frame / Math.max(1, durationInFrames - 1));
@@ -128,31 +120,25 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
       ) * interpolate(cameraProg, [0, 1], [1.0, 1.0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   // ── Header fade-in ──────────────────────────────────────────────────────────
-  const headerProg = skipIntro ? 1 : clamp01(spring({
-    fps,
-    frame: frame - HEADER_IN_F,
-    config: { damping: 22, stiffness: 60 },
-  }));
+  const headerProg = skipIntro ? 1 : prog(frame, HEADER_IN_F, 22, EASE.snap);
   const headerOp = headerProg;
   const headerY  = interpolate(headerProg, [0, 1], [18, 0]);
 
   // ── Accent divider driven by spring (not decorative) ────────────────────────
-  const dividerProg = skipIntro ? 1 : clamp01(spring({
-    fps,
-    frame: frame - DIVIDER_IN_F,
-    config: { damping: 22, stiffness: 52 },
-  }));
+  const dividerProg = skipIntro ? 1 : prog(frame, DIVIDER_IN_F, 22, EASE.out);
 
   // ── Active-state helper: item i is active from its reveal to next reveal ────
-  const revealFrame = (i: number) => HERO_IN_F + i * STAGGER;
+  // H1: the hero stat lands on the "stat" narration beat.
+  const heroStart = beatDelay(beats, "stat", fps, HERO_IN_F);
+  const revealFrame = (i: number) => heroStart + i * STAGGER;
   const activeState = (i: number): number => {
     if (skipIntro) {
       // In skipIntro mode everything sits revealed; treat last stat as active.
       return i === safeStats.length - 1 ? 1 : 0.35;
     }
-    const onProg  = clamp01(spring({ fps, frame: frame - revealFrame(i),     config: ON_CFG }));
+    const onProg  = prog(frame, revealFrame(i), 22, EASE.soft);
     const offProg = i < safeStats.length - 1
-      ? clamp01(spring({ fps, frame: frame - revealFrame(i + 1), config: OFF_CFG }))
+      ? prog(frame, revealFrame(i + 1), 22, EASE.soft)
       : 0;
     const pureActive = Math.max(0, onProg - offProg);
     // Keep a floor of 0.28–0.35 once revealed so items remain legible when
@@ -175,7 +161,7 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
     : interpolate(frame, [HERO_IN_F, HERO_IN_F + heroDur], [0, 1], {
         extrapolateLeft:  "clamp",
         extrapolateRight: "clamp",
-        easing: Easing.out(Easing.cubic),
+        easing: EASE.out,
       });
 
   const heroDisplay = heroStat
@@ -207,9 +193,7 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
                     :                    168;
 
   return (
-    <AbsoluteFill style={{ fontFamily, overflow: "hidden" }}>
-      {/* z:0  paper */}
-      <PaperBackground color={bgColor} />
+    <Ground ground="paper" bgColor={bgColor} accentColor={effectiveClubColor} domain="football" texture skipIntro={skipIntro} pad={0} style={{ fontFamily, padding: 0 }}>
 
       {/* z:1–10  camera layer (portrait + content scale together for slow zoom) */}
       <AbsoluteFill style={{
@@ -289,7 +273,7 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
                 {badgeSlug && (
                   <BadgeTreatment src={`badges/${badgeSlug}`} size={26} opacity={0.85} />
                 )}
-                <ContextChip label={[competition, season].filter(Boolean).join(" · ")} color="rgba(0,0,0,0.45)" size={13} />
+                <Kicker label={[competition, season].filter(Boolean).join(" · ")} frame={frame} />
               </div>
             )}
 
@@ -402,7 +386,7 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
                   : interpolate(frame, [supStart, supStart + supDur], [0, 1], {
                       extrapolateLeft:  "clamp",
                       extrapolateRight: "clamp",
-                      easing: Easing.out(Easing.cubic),
+                      easing: EASE.out,
                     });
                 const display   = formatStatValue(stat.value, supProg);
 
@@ -415,7 +399,7 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
                 const translateY = skipIntro
                   ? 0
                   : interpolate(
-                      clamp01(spring({ fps, frame: frame - supStart, config: { damping: 22, stiffness: 60 } })),
+                      prog(frame, supStart, 22, EASE.snap),
                       [0, 1],
                       [14, 0],
                     );
@@ -481,9 +465,7 @@ export const PlayerStats: React.FC<PlayerStatsProps> = ({
         </div>
       </AbsoluteFill>
 
-      {/* z:2  Grain — always last, pointerEvents:none per §2 */}
-      <Grain />
-    </AbsoluteFill>
+    </Ground>
   );
 };
 

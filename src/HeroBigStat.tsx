@@ -1,45 +1,20 @@
 /**
- * HeroBigStat — Editorial hero-stat reveal.
+ * HeroBigStat — single hero-number reveal (paper-orange palette, Search-Party register).
  *
- * Broadcast/newsprint aesthetic: folio dateline top-left, massive serif hero
- * number left-anchored with inline italic unit, a single accent rule as the
- * one decorative device, serif italic narrative caption, optional typographic
- * comparator line (NOT a widget), and a source dateline bottom-right. A thin
- * vertical accent rule anchors the left margin.
- *
- * Cold-open camera: starts hyper-zoomed on the hero digit (scale 2.4, origin
- * at the number's left edge) and pulls back to 1.0 with ease-out-cubic. The
- * count-up runs during the zoom-out; surrounding text fades in as the camera
- * settles.
- *
- * Stack: Bg (0) → Portrait (1) → Content (10) → Grain (2, LAST in JSX).
+ * A huge count-up figure with an inline unit, one accent rule, a narrative label,
+ * and a mono source dateline. Supports a DUAL layout (before → after) when a
+ * second stat is provided. Schema is unchanged so the pipeline parser still maps.
  */
-
 import React from "react";
-import {
-  AbsoluteFill,
-  Easing,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, Easing, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import {
-  fontFamily,
-  serifFontFamily,
-  Grain,
-  PaperBackground,
-  DarkBackground,
-  COLORS,
-  SmartImg,
-  WorldStateSchema,
-  ContextChip,
-  BadgeTreatment,
-} from "./shared";
+import { fontFamily, geistMonoFamily, PALETTES, rgbaFromHex, WorldStateSchema } from "./shared";
+import { EASE, prog as kprog, beatDelay, Ground } from "./lib/kit";
 
-// ── Schema ────────────────────────────────────────────────────────────────────
+// ── Colours: pinned to the light paper-orange palette (warm-white + burnt orange) ──
+const P = PALETTES.paperOrange;
 
+// ── Schema (unchanged shape — pipeline-compatible) ───────────────────────────
 const ComparatorSchema = z.object({
   label: z.string(),
   value: z.number().optional(),
@@ -56,504 +31,107 @@ export const HeroBigStatPropsSchema = z.object({
   stat2:       z.string().optional().default(""),
   unit2:       z.string().optional().default(""),
   label2:      z.string().optional().default(""),
-  /** Folio dateline — split on " · " into stacked lines, newspaper-style.
-   *  Convention: "{Subject} · {Club} · {Season}". If `badgeSlug` is provided,
-   *  the middle (club) line is replaced by the badge SVG to break the text stack. */
-  context:     z.string().optional().default("Luis Suárez · Liverpool · 2013/14"),
-  /** Optional club/team badge slug — renders above the subject name in the folio. */
+  context:     z.string().optional().default(""),
   badgeSlug:   z.string().optional().default(""),
-  /** Optional small attribution line, bottom-right (e.g. "STATS · FBREF"). */
-  source:      z.string().optional().default("stats · fbref"),
+  source:      z.string().optional().default(""),
   playerImage: z.string().optional().default(""),
   accentColor: z.string().optional().default("#C8102E"),
   darkMode:    z.boolean().default(false),
   bgColor:     z.string().optional().default("#f0ece4"),
   skipIntro:   z.boolean().optional().default(false),
+  beats:       z.record(z.string(), z.number()).optional(),
   comparator:  ComparatorSchema.optional(),
-  worldState:  WorldStateSchema,
+  worldState:  WorldStateSchema.optional(),
 });
 export type HeroBigStatProps = z.infer<typeof HeroBigStatPropsSchema>;
 
-// ── Constants ─────────────────────────────────────────────────────────────────
-
-const PORTRAIT_W    = 680;
-const PORTRAIT_MASK = "linear-gradient(to right, transparent, black 350px, black 85%, transparent)";
-
-// Entry frames — camera leads, text follows as it settles
-const HERO_F       = 6;    // count-up starts
-const DATELINE_F   = 26;   // folio fades in as camera drops below 1.4x
-const RULE_F       = 50;
-const CAPTION_F    = 64;
-const COMPARE_F    = 82;
-const SOURCE_F     = 96;
-const PORTRAIT_F   = 2;
-
-// Camera
-const CAM_START_F   = 0;
-const CAM_DUR       = 38;
-const CAM_FROM      = 2.4;
-const CAM_TO        = 1.0;
-
-// Count-up
-const COUNT_DUR     = 44;
-
-// Hero typography
-const HERO_SIZE     = 220;   // editorial-dominant; above guide's 180 ceiling deliberately
-const HERO_SIZE_DUAL = 172;  // when a second stat is also shown
-const UNIT_SIZE_FACTOR = 0.32;  // italic unit ≈ 1/3 of hero height, inline
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
+// ── Helpers ──────────────────────────────────────────────────────────────────
 function parseStat(s: string): { prefix: string; num: number | null; suffix: string; decimals: number } {
   const m = s.match(/^(\D*)(-?\d+(?:\.\d+)?)(.*)$/);
   if (!m) return { prefix: "", num: null, suffix: s, decimals: 0 };
-  const prefix = m[1] ?? "";
-  const raw    = m[2] ?? "0";
-  const suffix = m[3] ?? "";
-  const dec    = raw.includes(".") ? (raw.split(".")[1]?.length ?? 0) : 0;
-  return { prefix, num: parseFloat(raw), suffix, decimals: dec };
+  const raw = m[2] ?? "0";
+  const dec = raw.includes(".") ? (raw.split(".")[1]?.length ?? 0) : 0;
+  return { prefix: m[1] ?? "", num: parseFloat(raw), suffix: m[3] ?? "", decimals: dec };
+}
+function countUp(frame: number, target: number, start: number, dur: number, decimals: number, skip: boolean): string {
+  if (skip) return decimals > 0 ? target.toFixed(decimals) : String(Math.round(target));
+  const v = interpolate(frame, [start, start + dur], [0, target], { extrapolateLeft: "clamp", extrapolateRight: "clamp", easing: Easing.out(Easing.cubic) });
+  return decimals > 0 ? v.toFixed(decimals) : String(Math.round(v));
 }
 
-function countUp(frame: number, target: number, start: number, dur: number, decimals: number): string {
-  const v = interpolate(frame, [start, start + dur], [0, target], {
-    extrapolateLeft:  "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.out(Easing.cubic),
-  });
-  if (decimals > 0) return v.toFixed(decimals);
-  return String(Math.round(v));
-}
-
-/** Split a " · "-delimited context string into stacked folio lines. */
-function parseFolio(ctx: string): string[] {
-  if (!ctx) return [];
-  return ctx
-    .split(/\s*[·•|]\s*/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
-// ── Component ─────────────────────────────────────────────────────────────────
-
-export const HeroBigStat: React.FC<HeroBigStatProps> = ({
-  stat,
-  unit,
-  label,
-  stat2,
-  unit2,
-  label2,
-  context,
-  badgeSlug,
-  source,
-  playerImage,
-  accentColor,
-  darkMode,
-  bgColor,
-  skipIntro = false,
-  comparator,
-}) => {
+// One rendered figure (prefix+number counting up, inline unit)
+const Figure: React.FC<{ stat: string; unit: string; size: number; color: string; delay: number; skip: boolean }> = ({ stat, unit, size, color, delay, skip }) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-
-  const hasPortrait = Boolean(playerImage);
-  const hasSecond   = Boolean(stat2);
-  const textColor   = darkMode ? "#f5f0e8" : "#111111";
-  const mutedColor  = darkMode ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.42)";
-
-  // ── Entry springs ─────────────────────────────────────────────────────────
-  const springAt = (f: number, cfg: { damping: number; stiffness: number }) =>
-    skipIntro ? 1 : spring({ fps, frame: Math.max(0, frame - f), config: cfg });
-
-  const datelineProg = springAt(DATELINE_F, { damping: 22, stiffness: 52 });
-  const ruleProg     = springAt(RULE_F,     { damping: 26, stiffness: 60 });
-  const captionProg  = springAt(CAPTION_F,  { damping: 22, stiffness: 52 });
-  const compareProg  = springAt(COMPARE_F,  { damping: 22, stiffness: 52 });
-  const sourceProg   = springAt(SOURCE_F,   { damping: 22, stiffness: 52 });
-  const portraitProg = springAt(PORTRAIT_F, { damping: 28, stiffness: 55 });
-
-  // ── Camera: hyper-zoom cold open ──────────────────────────────────────────
-  const cameraScale = skipIntro
-    ? 1
-    : interpolate(frame, [CAM_START_F, CAM_START_F + CAM_DUR], [CAM_FROM, CAM_TO], {
-        extrapolateLeft: "clamp",
-        extrapolateRight: "clamp",
-        easing: Easing.out(Easing.cubic),
-      });
-
-  // ── Parse stats + count-up strings ────────────────────────────────────────
-  const p1 = parseStat(stat);
-  const p2 = parseStat(stat2);
-
-  const heroNumStr = skipIntro || p1.num === null
-    ? (p1.num !== null ? (p1.decimals > 0 ? p1.num.toFixed(p1.decimals) : String(Math.round(p1.num))) : stat)
-    : countUp(frame, p1.num, HERO_F, COUNT_DUR, p1.decimals);
-  const heroStr = `${p1.prefix}${heroNumStr}${p1.suffix}`;
-
-  const secondNumStr = skipIntro || p2.num === null
-    ? (p2.num !== null ? (p2.decimals > 0 ? p2.num.toFixed(p2.decimals) : String(Math.round(p2.num))) : stat2)
-    : countUp(frame, p2.num ?? 0, HERO_F + 8, COUNT_DUR, p2.decimals);
-  const secondStr = hasSecond ? `${p2.prefix}${secondNumStr}${p2.suffix}` : "";
-
-  // ── Layout ────────────────────────────────────────────────────────────────
-  const contentLeft  = hasPortrait ? 748 : 140;
-  const contentRight = 140;
-
-  // Hero sizing — shrink for longer strings so it doesn't overflow the column
-  const heroStrLen = heroStr.replace(/[,.\s]/g, "").length;
-  const baseHeroSize = hasSecond ? HERO_SIZE_DUAL : HERO_SIZE;
-  const heroSize = heroStrLen >= 6 ? Math.round(baseHeroSize * 0.68)
-                  : heroStrLen >= 5 ? Math.round(baseHeroSize * 0.78)
-                  : heroStrLen >= 4 ? Math.round(baseHeroSize * 0.88)
-                  :                   baseHeroSize;
-  const unitSize = Math.round(heroSize * UNIT_SIZE_FACTOR);
-
-  const folioLines = parseFolio(context);
-
-  // Camera transform origin — pin to the hero number's left edge so the
-  // cold-open zoom reads as "pulling back from the digit" rather than a
-  // center squeeze.
-  const originX = contentLeft + 10;
-  const originY = 540;  // vertical center of the hero row (approx)
-
+  const { prefix, num, suffix, decimals } = parseStat(stat);
+  const shown = num === null ? stat : prefix + countUp(frame, num, delay, 40, decimals, skip) + suffix;
   return (
-    <AbsoluteFill style={{ fontFamily, overflow: "hidden" }}>
-      {/* Z-0  background */}
-      {darkMode ? <DarkBackground color={bgColor} /> : <PaperBackground color={bgColor} />}
-
-      {/* Z-1  masked portrait (canonical §5) */}
-      {hasPortrait && (
-        <div
-          style={{
-            position:        "absolute",
-            left:            skipIntro
-              ? 0
-              : interpolate(portraitProg, [0, 1], [-PORTRAIT_W * 0.55, 0], {
-                  extrapolateLeft: "clamp", extrapolateRight: "clamp",
-                }),
-            top:             0,
-            width:           PORTRAIT_W,
-            height:          "100%",
-            overflow:        "hidden",
-            opacity:         portraitProg * 0.88,
-            WebkitMaskImage: PORTRAIT_MASK,
-            maskImage:       PORTRAIT_MASK,
-            zIndex:          1,
-          }}
-        >
-          <SmartImg
-            src={playerImage}
-            style={{
-              width:          "100%",
-              height:         "110%",
-              objectFit:      "cover",
-              objectPosition: "top center",
-              display:        "block",
-            }}
-          />
-          <div style={{
-            position:"absolute", bottom:0, left:0, right:0, height:380,
-            background:`linear-gradient(to top, ${bgColor} 0%, ${bgColor} 16%, transparent 100%)`,
-            pointerEvents:"none",
-          }} />
-          <div style={{
-            position:"absolute", top:0, left:0, right:0, height:70,
-            background:`linear-gradient(to bottom, ${bgColor} 0%, transparent 100%)`,
-            pointerEvents:"none",
-          }} />
-        </div>
-      )}
-
-      {/* Z-10  camera-scaled content plane */}
-      <div style={{
-        position:        "absolute",
-        inset:           0,
-        zIndex:          10,
-        transform:       `scale(${cameraScale})`,
-        transformOrigin: `${originX}px ${originY}px`,
-      }}>
-        {/* Folio dateline — top-left, byline-style:
-              subject in large serif italic (the editorial anchor)
-              ↓ tiny accent tab marker
-              dateline in small sans caps (club · season)
-            Aligned to badge top so they share a header baseline. */}
-        {folioLines.length > 0 && (() => {
-          const subject = folioLines[0];
-          const dateParts = folioLines.slice(1);
-          const dateline  = dateParts.join("  ·  ");
-          return (
-            <div style={{
-              position:  "absolute",
-              left:      contentLeft,
-              top:       200,
-              opacity:   interpolate(datelineProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" }),
-              transform: `translateY(${interpolate(datelineProg, [0, 1], [8, 0], { extrapolateRight: "clamp" })}px)`,
-            }}>
-              {/* Subject — serif italic, the dominant byline */}
-              <div style={{
-                fontFamily:    serifFontFamily,
-                fontStyle:     "italic",
-                fontWeight:    500,
-                fontSize:      44,
-                letterSpacing: -1,
-                lineHeight:    1,
-                color:         textColor,
-              }}>
-                {subject}
-              </div>
-              {/* Tiny accent tab marker — anchors subject to dateline */}
-              <div style={{
-                width:      36,
-                height:     3,
-                background: accentColor,
-                marginTop:  18,
-                marginBottom: 14,
-              }} />
-              {/* Dateline — small caps, supporting */}
-              {dateline && (
-                <ContextChip label={dateline} color={mutedColor} size={12} />
-              )}
-            </div>
-          );
-        })()}
-
-        {/* Club badge — top-right credential, broadcast-scale (140px) */}
-        {badgeSlug && (
-          <div style={{
-            position:  "absolute",
-            right:     contentRight,
-            top:       180,
-            opacity:   interpolate(datelineProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" }),
-            transform: `translateY(${interpolate(datelineProg, [0, 1], [8, 0], { extrapolateRight: "clamp" })}px)`,
-          }}>
-            <BadgeTreatment src={`badges/${badgeSlug}`} size={140} />
-          </div>
-        )}
-
-        {/* Hero row — serif number + inline italic unit, baseline-aligned */}
-        <div style={{
-          position:   "absolute",
-          left:       contentLeft,
-          top:        380,
-          display:    "flex",
-          alignItems: "baseline",
-          gap:        hasSecond ? 48 : 24,
-        }}>
-          {/* Primary stat */}
-          <div style={{ display: "flex", alignItems: "baseline", gap: 22 }}>
-            <div style={{
-              fontFamily:    serifFontFamily,
-              fontSize:      heroSize,
-              fontWeight:    900,
-              color:         textColor,
-              letterSpacing: -7,
-              lineHeight:    1,
-              fontFeatureSettings: '"lnum" 1, "tnum" 1',
-            }}>
-              {heroStr}
-            </div>
-            {unit && (
-              <div style={{
-                fontFamily:    serifFontFamily,
-                fontSize:      unitSize,
-                fontWeight:    400,
-                fontStyle:     "italic",
-                color:         textColor,
-                opacity:       0.78,
-                letterSpacing: -1,
-                lineHeight:    1,
-              }}>
-                {unit}
-              </div>
-            )}
-          </div>
-
-          {/* Optional second stat — vs/ layout, same baseline, smaller */}
-          {hasSecond && (
-            <>
-              <div style={{
-                fontFamily,
-                fontSize:      20,
-                fontWeight:    700,
-                letterSpacing: 3,
-                textTransform: "uppercase" as const,
-                color:         mutedColor,
-                alignSelf:     "center",
-                marginBottom:  Math.round(heroSize * 0.3),
-              }}>
-                vs.
-              </div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
-                <div style={{
-                  fontFamily:    serifFontFamily,
-                  fontSize:      Math.round(heroSize * 0.7),
-                  fontWeight:    900,
-                  color:         textColor,
-                  letterSpacing: -5,
-                  lineHeight:    1,
-                  opacity:       0.7,
-                  fontFeatureSettings: '"lnum" 1, "tnum" 1',
-                }}>
-                  {secondStr}
-                </div>
-                {unit2 && (
-                  <div style={{
-                    fontFamily:    serifFontFamily,
-                    fontSize:      Math.round(heroSize * 0.7 * UNIT_SIZE_FACTOR),
-                    fontStyle:     "italic",
-                    fontWeight:    400,
-                    color:         textColor,
-                    opacity:       0.55,
-                    letterSpacing: -0.5,
-                  }}>
-                    {unit2}
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* Accent rule — the ONE decorative device */}
-        <div style={{
-          position:   "absolute",
-          left:       contentLeft,
-          top:        380 + heroSize + 40,
-          width:      interpolate(ruleProg, [0, 1], [0, 200], { extrapolateRight: "clamp" }),
-          height:     3,
-          background: accentColor,
-        }} />
-
-        {/* Caption — serif italic narrative clause */}
-        {(label || label2) && (
-          <div style={{
-            position:      "absolute",
-            left:          contentLeft,
-            top:           380 + heroSize + 80,
-            maxWidth:      hasPortrait ? 900 : 1100,
-            fontFamily:    serifFontFamily,
-            fontStyle:     "italic",
-            fontWeight:    400,
-            fontSize:      32,
-            lineHeight:    1.28,
-            letterSpacing: -0.3,
-            color:         textColor,
-            opacity:       interpolate(captionProg, [0, 0.6], [0, 0.9], { extrapolateRight: "clamp" }),
-            transform:     `translateY(${interpolate(captionProg, [0, 1], [10, 0], { extrapolateRight: "clamp" })}px)`,
-          }}>
-            {label}
-            {hasSecond && label2 ? (
-              <span style={{ color: mutedColor, fontFamily, fontStyle: "normal", fontSize: 20 }}>
-                {"   ·   "}
-              </span>
-            ) : null}
-            {hasSecond && label2 ? label2 : null}
-          </div>
-        )}
-
-        {/* Comparator — typographic pull-line, not a widget */}
-        {comparator && (
-          <ComparatorLine
-            data={comparator}
-            top={380 + heroSize + 80 + 92}
-            left={contentLeft}
-            accentColor={accentColor}
-            textColor={textColor}
-            mutedColor={mutedColor}
-            prog={compareProg}
-          />
-        )}
-
-        {/* Source attribution — bottom-right dateline */}
-        {source && (
-          <div style={{
-            position:      "absolute",
-            right:         contentRight,
-            bottom:        80,
-            opacity:       interpolate(sourceProg, [0, 0.6], [0, 1], { extrapolateRight: "clamp" }),
-          }}>
-            <ContextChip label={source} color={mutedColor} size={12} />
-          </div>
-        )}
-      </div>
-
-      {/* Z-2  Grain — LAST in JSX per §2 */}
-      <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none" }}>
-        <Grain />
-      </div>
-    </AbsoluteFill>
+    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 18, whiteSpace: "nowrap" }}>
+      <span style={{ fontFamily, fontSize: size, fontWeight: 800, letterSpacing: -size * 0.03, color, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{shown}</span>
+      {unit && <span style={{ fontFamily, fontSize: size * 0.24, fontWeight: 500, color: P.muted, letterSpacing: 0.5 }}>{unit}</span>}
+    </div>
   );
 };
 
-// ── ComparatorLine — editorial typographic callout ────────────────────────────
-// Not a bar, not a dot-scale. Just a line of serif italic prose with an
-// accent-coloured number embedded, prefixed by an em-dash, sitting on a
-// thin horizontal tick anchored to the left margin.
+export const HeroBigStat: React.FC<HeroBigStatProps> = ({
+  stat = "31", unit = "goals", label = "", stat2 = "", unit2 = "", label2 = "",
+  context = "", source = "", accentColor, bgColor, skipIntro = false, beats,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  // Old football defaults map to the palette; explicit overrides still win.
+  const accent = accentColor && accentColor !== "#C8102E" ? accentColor : P.accent;
+  const bg = bgColor && bgColor !== "#f0ece4" ? bgColor : P.bg;
 
-const ComparatorLine: React.FC<{
-  data: z.infer<typeof ComparatorSchema>;
-  top: number;
-  left: number;
-  accentColor: string;
-  textColor: string;
-  mutedColor: string;
-  prog: number;
-}> = ({ data, top, left, accentColor, mutedColor, prog }) => {
-  const op    = interpolate(prog, [0, 0.6], [0, 1], { extrapolateRight: "clamp" });
-  const shift = interpolate(prog, [0, 1],   [8, 0], { extrapolateRight: "clamp" });
-  const tickW = interpolate(prog, [0, 0.7], [0, 36], { extrapolateRight: "clamp" });
-
-  // Rank mode: "— #1 of 98 strikers in Europe's top five leagues"
-  // Line mode (default): "— {label}: {value}"
-  const isRank = data.kind === "rank" && data.total !== undefined && data.rank !== undefined;
+  const dual = Boolean(stat2);
+  // H1: the hero figure's count-up starts on the "stat" narration beat.
+  const statAt = beatDelay(beats, "stat", fps, 6);
+  const headerProg = skipIntro ? 1 : kprog(frame, Math.max(0, statAt - 6), 22, EASE.snap);
+  const ruleProg = skipIntro ? 1 : kprog(frame, statAt + 20, 20, EASE.out);
+  const labelProg = skipIntro ? 1 : kprog(frame, statAt + 26, 22, EASE.snap);
+  const srcProg = skipIntro ? 1 : kprog(frame, statAt + 44, 16, EASE.quad);
 
   return (
-    <div style={{
-      position:  "absolute",
-      left,
-      top,
-      opacity:   op,
-      transform: `translateY(${shift}px)`,
-      display:   "flex",
-      alignItems:"baseline",
-      gap:       14,
-      maxWidth:  900,
-    }}>
-      {/* Tick — thin horizontal line, not an arrow or bar */}
-      <div style={{
-        width:      tickW,
-        height:     2,
-        background: accentColor,
-        alignSelf:  "center",
-        marginRight: 4,
-      }} />
+    // Kit Ground: owns bg/vignette/grain standalone, collapses to a transparent
+    // theme shell inside a SceneSequence so the shared canvas survives (H3).
+    <Ground ground="paper" bgColor={bg} accentColor={accent} skipIntro={skipIntro} pad={0}>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 160px", zIndex: 5 }}>
+        {/* optional dateline overline */}
+        {context && (
+          <div style={{ fontFamily: geistMonoFamily, fontSize: 18, fontWeight: 600, letterSpacing: 3, textTransform: "uppercase", color: accent, marginBottom: 40, opacity: headerProg, transform: `translateY(${interpolate(headerProg, [0, 1], [-12, 0])}px)` }}>{context}</div>
+        )}
 
-      <div style={{
-        fontFamily:    serifFontFamily,
-        fontStyle:     "italic",
-        fontWeight:    400,
-        fontSize:      22,
-        lineHeight:    1.4,
-        letterSpacing: -0.2,
-        color:         mutedColor,
-      }}>
-        {isRank ? (
-          <>
-            <span style={{ color: accentColor, fontWeight: 800, fontStyle: "normal" }}>#{data.rank}</span>
-            {` of ${data.total} · `}
-            <span>{data.label}</span>
-          </>
+        {dual ? (
+          // ── DUAL: before → after ──
+          <div style={{ display: "flex", alignItems: "center", gap: 70 }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, opacity: headerProg }}>
+              <Figure stat={stat} unit={unit} size={132} color={P.ink} delay={statAt} skip={skipIntro} />
+              {label && <div style={{ fontFamily: geistMonoFamily, fontSize: 18, fontWeight: 500, color: P.muted, letterSpacing: 0.4, maxWidth: 420, textAlign: "center" }}>{label}</div>}
+            </div>
+            <div style={{ fontFamily, fontSize: 60, fontWeight: 400, color: rgbaFromHex(P.ink, 0.4), transform: `scale(${interpolate(labelProg, [0, 1], [0.6, 1])})`, opacity: labelProg }}>→</div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 20, opacity: labelProg }}>
+              <Figure stat={stat2} unit={unit2} size={132} color={accent} delay={statAt + 24} skip={skipIntro} />
+              {label2 && <div style={{ fontFamily: geistMonoFamily, fontSize: 18, fontWeight: 500, color: P.muted, letterSpacing: 0.4, maxWidth: 420, textAlign: "center" }}>{label2}</div>}
+            </div>
+          </div>
         ) : (
+          // ── SINGLE: one dominant figure ──
           <>
-            <span>{data.label}</span>
-            {data.value !== undefined ? (
-              <>
-                <span style={{ color: mutedColor, margin: "0 10px" }}>—</span>
-                <span style={{ color: accentColor, fontWeight: 800, fontStyle: "normal" }}>{data.value}</span>
-              </>
-            ) : null}
+            <div style={{ opacity: headerProg, transform: `translateY(${interpolate(headerProg, [0, 1], [18, 0])}px)` }}>
+              <Figure stat={stat} unit={unit} size={230} color={accent} delay={statAt} skip={skipIntro} />
+            </div>
+            {/* single accent rule */}
+            <div style={{ width: interpolate(ruleProg, [0, 1], [0, 120]), height: 4, background: accent, borderRadius: 2, marginTop: 40 }} />
+            {label && (
+              <div style={{ fontFamily, fontSize: 34, fontWeight: 500, color: P.ink, letterSpacing: -0.4, lineHeight: 1.28, maxWidth: 1100, textAlign: "center", marginTop: 40, opacity: labelProg, transform: `translateY(${interpolate(labelProg, [0, 1], [14, 0])}px)` }}>{label}</div>
+            )}
           </>
         )}
+
+        {/* source dateline */}
+        {source && (
+          <div style={{ fontFamily: geistMonoFamily, fontSize: 16, fontWeight: 500, color: P.muted, letterSpacing: 1, marginTop: 56, opacity: srcProg, textTransform: "uppercase" }}>{source}</div>
+        )}
       </div>
-    </div>
+    </Ground>
   );
 };

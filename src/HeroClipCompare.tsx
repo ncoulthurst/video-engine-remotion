@@ -7,19 +7,22 @@
  *
  * Formerly named HeroConceptCard (renamed 2026-04-24 — the old name caused
  * the storyboard LLM to misroute single-concept topics here).
+ *
+ * F3: composed from the shared kit — the old travelling white BorderGlow is
+ * replaced by the reference's static 1px edge-light border (no glow, ever).
+ * Clip frames land on the "entity" beat (H1).
  */
 import React from "react";
 import {
-  AbsoluteFill,
   interpolate,
-  spring,
   staticFile,
   useCurrentFrame,
   useVideoConfig,
   Video,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, SmartImg, WorldStateSchema} from "./shared";
+import { fontFamily, SmartImg, WorldStateSchema } from "./shared";
+import { Ground, TYPE, EASE, prog, beatDelay, resolveTheme } from "./lib/kit";
 
 export const HeroClipComparePropsSchema = z.object({
   labelLeft:  z.string().optional().default("First Touch"),
@@ -28,81 +31,29 @@ export const HeroClipComparePropsSchema = z.object({
   clipRight:  z.string().optional().default(""),
   title:      z.string().optional().default(""),
   bgColor:    z.string().optional().default("#f0ece4"),
+  /** Ground texture domain — "football" adds pitch markings; keep "generic"
+   *  elsewhere (was hardcoded football, which leaked pitch lines into
+   *  finance docs). */
+  domain:     z.string().optional().default("generic"),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
+  beats:     z.record(z.string(), z.number()).optional(),
 });
 export type HeroClipCompareProps = z.infer<typeof HeroClipComparePropsSchema>;
 
 const CLIP_W = 876;
 const CLIP_H = 493; // 16:9
-const GLOW_LOOP_FRAMES = 330; // one full revolution every 11 seconds — barely perceptible
-
-const BorderGlow: React.FC<{
-  w:        number;
-  h:        number;
-  frame:    number;
-  fps:      number;
-  filterId: string;
-  delay?:   number;
-}> = ({ w, h, frame, fps, filterId, delay = 0 }) => {
-  const PAD          = 4;
-  const STROKE_W     = 2;
-  const borderRadius = 6;
-  const perimeter    = 2 * (w + h);
-  const GLOW_LENGTH  = Math.round(perimeter * 0.42); // ~40% — ambient wash, not a spot
-
-  const fadeIn = spring({ frame, fps, config: { damping: 22, stiffness: 30 }, delay });
-
-  const loopFrame  = (frame - delay) < 0 ? 0 : (frame - delay) % GLOW_LOOP_FRAMES;
-  const dashOffset = -interpolate(loopFrame, [0, GLOW_LOOP_FRAMES], [0, perimeter]);
-
-  return (
-    <svg
-      style={{ position: "absolute", top: -PAD, left: -PAD, pointerEvents: "none" }}
-      width={w + PAD * 2}
-      height={h + PAD * 2}
-    >
-      <defs>
-        <filter id={filterId} x="-40%" y="-40%" width="180%" height="180%">
-          <feGaussianBlur stdDeviation="10" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
-      </defs>
-
-      {/* Ambient light wash — 40% of perimeter, very dim, barely moves */}
-      <rect
-        x={PAD} y={PAD}
-        width={w} height={h}
-        rx={borderRadius} ry={borderRadius}
-        fill="none"
-        stroke="rgba(255,255,255,0.10)"
-        strokeWidth={STROKE_W}
-        strokeDasharray={`${GLOW_LENGTH} ${perimeter - GLOW_LENGTH}`}
-        strokeDashoffset={dashOffset}
-        filter={`url(#${filterId})`}
-        opacity={fadeIn}
-      />
-    </svg>
-  );
-};
 
 const ClipFrame: React.FC<{
   clipSrc:       string;
   label:         string;
   frameProgress: number;
   translateX:    number;
-  frame:         number;
-  fps:           number;
-  glowDelay:     number;
-  filterId:      string;
-}> = ({ clipSrc, label, frameProgress, translateX, frame, fps, glowDelay, filterId }) => {
+  labelIn:       number;
+  ink:           string;
+}> = ({ clipSrc, label, frameProgress, translateX, labelIn, ink }) => {
   const isVideo = /\.(mp4|webm|mov)$/i.test(clipSrc);
   const isImage = /\.(jpe?g|png|webp|gif)$/i.test(clipSrc);
-
-  const labelIn = spring({ frame, fps, config: { damping: 24, stiffness: 55 }, delay: glowDelay + 8 });
 
   return (
     <div style={{
@@ -113,7 +64,7 @@ const ClipFrame: React.FC<{
       opacity:       frameProgress,
       transform:     `translateX(${translateX}px)`,
     }}>
-      {/* Clip frame + glow border */}
+      {/* Clip frame — hard geometric crop + 1px edge light (§1.4), no glow */}
       <div style={{ position: "relative" }}>
         <div style={{
           width:        CLIP_W,
@@ -121,10 +72,10 @@ const ClipFrame: React.FC<{
           borderRadius: 6,
           overflow:     "hidden",
           background:   "#0d0d0d",
+          border:       "1px solid rgba(255,255,255,0.14)",
           boxShadow:    [
             "0 24px 80px rgba(0,0,0,0.45)",
             "0 8px 24px rgba(0,0,0,0.3)",
-            "inset 0 1px 0 rgba(255,255,255,0.05)",
           ].join(", "),
         }}>
           {isVideo && clipSrc ? (
@@ -151,24 +102,17 @@ const ClipFrame: React.FC<{
             </div>
           )}
         </div>
-
-        <BorderGlow
-          w={CLIP_W} h={CLIP_H}
-          frame={frame} fps={fps}
-          filterId={filterId}
-          delay={glowDelay}
-        />
       </div>
 
       {label ? (
         <div style={{
-          fontFamily:    serifFontFamily,
+          fontFamily:    TYPE.serif,
           fontSize:      20,
           fontWeight:    400,
           fontStyle:     "italic",
-          color:         "#555",
+          color:         ink,
           letterSpacing: 0.3,
-          opacity:       labelIn,
+          opacity:       labelIn * 0.75,
         }}>
           {label}
         </div>
@@ -179,19 +123,21 @@ const ClipFrame: React.FC<{
 
 export const HeroClipCompare: React.FC<HeroClipCompareProps> = ({
   labelLeft, labelRight, clipLeft, clipRight, title, bgColor,
+  domain = "generic", skipIntro = false, beats,
 }) => {
   const frame      = useCurrentFrame();
   const { fps }    = useVideoConfig();
+  const t = resolveTheme("paper", undefined, bgColor);
 
-  const titleIn  = spring({ frame, fps, config: { damping: 24, stiffness: 55 }, delay: 0 });
-  const leftIn   = spring({ frame, fps, config: { damping: 22, stiffness: 55 }, delay: 8 });
-  const rightIn  = spring({ frame, fps, config: { damping: 22, stiffness: 55 }, delay: 16 });
+  const clipsAt  = beatDelay(beats, "entity", fps, 8);
+  const titleIn  = skipIntro ? 1 : prog(frame, 0, 20, EASE.snap);
+  const leftIn   = skipIntro ? 1 : prog(frame, clipsAt, 22, EASE.soft);
+  const rightIn  = skipIntro ? 1 : prog(frame, clipsAt + 8, 22, EASE.soft);
+  const labelInL = skipIntro ? 1 : prog(frame, clipsAt + 20, 18, EASE.quad);
+  const labelInR = skipIntro ? 1 : prog(frame, clipsAt + 28, 18, EASE.quad);
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
-
+    <Ground ground="paper" bgColor={bgColor} domain={domain as any} texture skipIntro={skipIntro} pad={0}>
       <div style={{
         position:       "absolute",
         inset:          0,
@@ -204,11 +150,11 @@ export const HeroClipCompare: React.FC<HeroClipCompareProps> = ({
       }}>
         {title ? (
           <div style={{
-            fontFamily:    serifFontFamily,
+            fontFamily:    TYPE.serif,
             fontSize:      28,
             fontWeight:    700,
             fontStyle:     "italic",
-            color:         "#222",
+            color:         t.ink,
             letterSpacing: -0.5,
             opacity:       titleIn,
             transform:     `translateY(${interpolate(titleIn, [0, 1], [12, 0])}px)`,
@@ -223,23 +169,19 @@ export const HeroClipCompare: React.FC<HeroClipCompareProps> = ({
             label={labelLeft}
             frameProgress={leftIn}
             translateX={interpolate(leftIn, [0, 1], [-24, 0])}
-            frame={frame}
-            fps={fps}
-            glowDelay={20}
-            filterId="glow-left"
+            labelIn={labelInL}
+            ink={t.ink}
           />
           <ClipFrame
             clipSrc={clipRight}
             label={labelRight}
             frameProgress={rightIn}
             translateX={interpolate(rightIn, [0, 1], [24, 0])}
-            frame={frame}
-            fps={fps}
-            glowDelay={28}
-            filterId="glow-right"
+            labelIn={labelInR}
+            ink={t.ink}
           />
         </div>
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

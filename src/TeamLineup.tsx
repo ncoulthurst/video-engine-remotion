@@ -1,10 +1,11 @@
 import React from "react";
-import { AbsoluteFill, Easing, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { AbsoluteFill, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
 import {
-  Grain, PaperBackground, serifFontFamily,
+  serifFontFamily,
   COLORS, fontFamily, SmartImg, hexToRgb, WorldStateSchema
 } from "./shared";
+import { Ground, EASE, prog } from "./lib/kit";
 
 // ── Schema ─────────────────────────────────────────────────────────────────────
 
@@ -106,7 +107,7 @@ const GrassStripes: React.FC<{ w: number; h: number; count?: number }> = ({ w, h
 
 export const TeamLineup: React.FC<TeamLineupProps> = ({
   teamName, formation, badgeSlug, teamColor = "#C8102E",
-  opposition, date, players,
+  opposition, date, players = [],
   managerName, managerTitle = "Manager", managerNationality, managerImageSlug,
   infoAppearFrame = 0,
   bgColor = "#f0ece4",
@@ -119,7 +120,7 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
 
   // ── Info panel animation ──────────────────────────────────────────────────
   const infoOp = skipIntro ? 1 : interpolate(frame, [infoAppearFrame, infoAppearFrame + 22], [0, 1], { extrapolateRight: "clamp" });
-  const infoX  = skipIntro ? 0 : spring({ frame: frame - infoAppearFrame, fps, from: -50, to: 0, config: { damping: 22, stiffness: 70 } });
+  const infoX  = skipIntro ? 0 : interpolate(prog(frame, infoAppearFrame, 22, EASE.snap), [0, 1], [-50, 0]);
 
   // ── Pitch SaaS Float-In entry ────────────────────────────────────────────
   // Same cinematic plane drop used in HeroTactical: drops down + comes
@@ -128,11 +129,7 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
   // earns the hero entry.
   const ENTRY_DUR    = 52;
   const RESTING_TILT = 6;
-  const entryProg = skipIntro ? 1 : interpolate(frame, [0, ENTRY_DUR], [0, 1], {
-    extrapolateLeft:  "clamp",
-    extrapolateRight: "clamp",
-    easing: Easing.bezier(0.16, 1, 0.3, 1),
-  });
+  const entryProg = skipIntro ? 1 : prog(frame, 0, ENTRY_DUR, EASE.soft);
   const pitchOp        = skipIntro ? 1 : interpolate(entryProg, [0, 0.55], [0, 1], { extrapolateRight: "clamp" });
   const entryTranslateY = interpolate(entryProg, [0, 1], [-140, 0]);
   const entryTranslateZ = interpolate(entryProg, [0, 1], [-220, 0]);
@@ -146,9 +143,7 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
   const sortedPlayers = [...players].sort((a, b) => a.appearFrame - b.appearFrame);
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
+    <Ground ground="paper" bgColor={bgColor} accentColor={teamColor} domain="football" texture skipIntro={skipIntro} pad={0}>
 
       {/* ── Left info panel ─────────────────────────────────────────────── */}
       <div style={{
@@ -245,7 +240,7 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
           {sortedPlayers.map((p, i) => {
             const delay = typeof p.appearFrame === 'number' ? p.appearFrame : i * 8;
             const rowOp = skipIntro ? 1 : interpolate(frame, [delay, delay + 14], [0, 1], { extrapolateRight: "clamp" });
-            const rowX  = skipIntro ? 0 : spring({ frame: frame - delay, fps, from: -28, to: 0, config: { damping: 17, stiffness: 145 } });
+            const rowX  = skipIntro ? 0 : interpolate(prog(frame, delay, 16, EASE.snap), [0, 1], [-28, 0]);
 
             return (
               <div
@@ -420,7 +415,7 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
           {players.map((p, i) => {
             const baseDelay = typeof p.appearFrame === 'number' ? p.appearFrame : i * 8;
             const delay     = skipIntro ? baseDelay : Math.max(baseDelay, PLAYER_GATE + i * 3);
-            const sc    = skipIntro ? 1 : spring({ frame: frame - delay, fps, from: 0, to: 1, config: { damping: 18, stiffness: 140 } });
+            const sc    = skipIntro ? 1 : prog(frame, delay, 16, EASE.snap);
             const pOp   = skipIntro ? 1 : interpolate(frame, [delay, delay + 16], [0, 1], { extrapolateRight: "clamp" });
 
             // Counter-rotate the current plane tilt so labels billboard the
@@ -546,6 +541,6 @@ export const TeamLineup: React.FC<TeamLineupProps> = ({
           })}
         </div>
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

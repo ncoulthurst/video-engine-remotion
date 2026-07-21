@@ -1,10 +1,13 @@
+/**
+ * QuoteCard — centered editorial pull-quote.
+ * F3: composed from the shared kit (Ground/TYPE/prog) — no per-comp springs or
+ * grain. The quote lands on the "subject" beat, attribution on "entity" (H1).
+ */
 import React from "react";
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import {
-  Grain, PaperBackground,
-  COLORS, SPRINGS, fontFamily, serifFontFamily, WorldStateSchema
-} from "./shared";
+import { WorldStateSchema } from "./shared";
+import { Ground, TYPE, EASE, prog, wipe, beatDelay, resolveTheme } from "./lib/kit";
 
 export const QuoteCardPropsSchema = z.object({
   quote:       z.string().optional().default('"Quote text here."'),
@@ -16,32 +19,28 @@ export const QuoteCardPropsSchema = z.object({
   playerImage: z.string().optional().default(""),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
+  beats:     z.record(z.string(), z.number()).optional(),
 });
 
 export type QuoteCardProps = z.infer<typeof QuoteCardPropsSchema>;
 
 export const QuoteCard: React.FC<QuoteCardProps> = ({
-  quote, attribution, context, accentColor = COLORS.gold, bgColor = "#f0ece4",
+  quote, attribution, context, accentColor, bgColor = "#f0ece4", skipIntro = false, beats,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const t = resolveTheme("paper", accentColor || undefined, bgColor);
 
-  const markScale = spring({ frame, fps, from: 0, to: 1, config: SPRINGS.brand, delay: 0 });
-  const markOp    = interpolate(frame, [0, 25], [0, 1], { extrapolateRight: "clamp" });
+  const quoteDelay = beatDelay(beats, "subject", fps, 18);
+  const attrDelay  = beatDelay(beats, "entity", fps, Math.max(44, quoteDelay + 26));
 
-  const quoteOp   = interpolate(frame, [18, 48], [0, 1], { extrapolateRight: "clamp" });
-  const quoteY    = spring({ frame, fps, from: 40, to: 0, config: SPRINGS.header, delay: 18 });
-
-  const lineW     = spring({ frame, fps, from: 0, to: 1, config: SPRINGS.cols, delay: 38 });
-
-  const attrOp    = interpolate(frame, [44, 64], [0, 1], { extrapolateRight: "clamp" });
-  const attrY     = spring({ frame, fps, from: 20, to: 0, config: SPRINGS.row, delay: 44 });
+  const markIn  = skipIntro ? 1 : prog(frame, 0, 22, EASE.snap);
+  const quoteIn = skipIntro ? 1 : prog(frame, quoteDelay, 24, EASE.snap);
+  const lineW   = skipIntro ? 1 : wipe(frame, { delay: quoteDelay + 20, dur: 20 });
+  const attrIn  = skipIntro ? 1 : prog(frame, attrDelay, 20, EASE.snap);
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
-
+    <Ground ground="paper" bgColor={bgColor} accentColor={accentColor || undefined} domain="football" texture skipIntro={skipIntro} pad={0}>
       <div style={{
         position: "absolute",
         inset: 0,
@@ -53,13 +52,13 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
       }}>
         {/* Large decorative open-quote */}
         <div style={{
-          transform: `scale(${markScale})`,
+          transform: `scale(${markIn})`,
           transformOrigin: "center bottom",
-          opacity: markOp,
-          fontFamily: serifFontFamily,
+          opacity: markIn,
+          fontFamily: TYPE.serif,
           fontSize: 160,
           fontWeight: 900,
-          color: accentColor,
+          color: t.accent,
           lineHeight: 0.8,
           marginBottom: 20,
           alignSelf: "flex-start",
@@ -69,13 +68,13 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
 
         {/* Quote text */}
         <div style={{
-          opacity: quoteOp,
-          transform: `translateY(${quoteY}px)`,
-          fontFamily: serifFontFamily,
+          opacity: quoteIn,
+          transform: `translateY(${(1 - quoteIn) * 40}px)`,
+          fontFamily: TYPE.serif,
           fontSize: 56,
           fontWeight: 700,
           fontStyle: "italic",
-          color: COLORS.primary,
+          color: t.ink,
           lineHeight: 1.25,
           letterSpacing: -0.5,
           textAlign: "center",
@@ -88,7 +87,7 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
         <div style={{
           width: `${lineW * 80}px`,
           height: 2,
-          background: accentColor,
+          background: t.accent,
           borderRadius: 2,
           margin: "32px auto 24px",
           opacity: 0.8,
@@ -96,27 +95,28 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
 
         {/* Attribution */}
         <div style={{
-          opacity: attrOp,
-          transform: `translateY(${attrY}px)`,
+          opacity: attrIn,
+          transform: `translateY(${(1 - attrIn) * 20}px)`,
           textAlign: "center",
         }}>
           <div style={{
-            fontFamily,
+            fontFamily: TYPE.sans,
             fontSize: 22,
             fontWeight: 700,
-            color: COLORS.primary,
+            color: t.ink,
             letterSpacing: 0.5,
           }}>
             {attribution}
           </div>
           {context ? (
             <div style={{
-              fontFamily,
+              fontFamily: TYPE.mono,
               fontSize: 15,
               fontWeight: 400,
-              color: COLORS.muted,
+              color: t.muted,
               marginTop: 6,
-              letterSpacing: 0.3,
+              letterSpacing: TYPE.track,
+              textTransform: "uppercase",
             }}>
               {context}
             </div>
@@ -128,11 +128,11 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
           position: "absolute",
           right: 80,
           bottom: 40,
-          fontFamily: serifFontFamily,
+          fontFamily: TYPE.serif,
           fontSize: 160,
           fontWeight: 900,
-          color: accentColor,
-          opacity: markOp * 0.35,
+          color: t.accent,
+          opacity: markIn * 0.35,
           lineHeight: 0.8,
           pointerEvents: "none",
           userSelect: "none",
@@ -140,6 +140,6 @@ export const QuoteCard: React.FC<QuoteCardProps> = ({
           &rdquo;
         </div>
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

@@ -8,9 +8,10 @@
  * Use for: peak season comparisons, GOAT debates, positional peer battles.
  */
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema, ContextChip } from "./shared";
+import { fontFamily, serifFontFamily, COLORS, SmartImg, WorldStateSchema, ContextChip } from "./shared";
+import { Ground, EASE, prog } from "./lib/kit";
 
 const MetricSchema = z.object({
   label:        z.string(),
@@ -62,20 +63,20 @@ export const HeroComparisonRadar: React.FC<HeroComparisonRadarProps> = ({
   const cy = 560;
 
   // Title + grid springs
-  const titleIn = spring({ frame, fps, config: { damping: 22, stiffness: 60 } });
-  const gridIn  = spring({ frame: frame - 10, fps, config: { damping: 28, stiffness: 50 } });
+  const titleIn = prog(frame, 0, 22, EASE.snap);
+  const gridIn  = prog(frame, 10, 26, EASE.soft);
 
   // Per-metric springs (both players reveal together)
   const metricSprings = metrics.map((_, i) =>
-    spring({ frame: frame - (introFrames + i * stagger), fps, config: { damping: 16, stiffness: 52 } })
+    prog(frame, introFrames + i * stagger, 26, EASE.soft)
   );
   const labelSprings = metrics.map((_, i) =>
-    spring({ frame: frame - (introFrames + i * stagger + 8), fps, config: { damping: 22, stiffness: 80 } })
+    prog(frame, introFrames + i * stagger + 8, 18, EASE.snap)
   );
 
   // Outro — table slides in after all metrics are revealed
   const OUTRO_F = introFrames + N * stagger + 30;
-  const tableIn = spring({ frame: frame - OUTRO_F, fps, config: { damping: 22, stiffness: 55 } });
+  const tableIn = prog(frame, OUTRO_F, 22, EASE.snap);
 
   // Geometry
   const angleOf = (i: number) => -Math.PI / 2 + (2 * Math.PI * i) / N;
@@ -100,9 +101,7 @@ export const HeroComparisonRadar: React.FC<HeroComparisonRadarProps> = ({
   const TABLE_W = 820;
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
+    <Ground ground="paper" bgColor={bgColor} domain="football" texture pad={0}>
 
       {/* Player A image — left edge, masked */}
       {imageA && (
@@ -371,6 +370,6 @@ export const HeroComparisonRadar: React.FC<HeroComparisonRadarProps> = ({
         </div>
 
       </AbsoluteFill>
-    </AbsoluteFill>
+    </Ground>
   );
 };

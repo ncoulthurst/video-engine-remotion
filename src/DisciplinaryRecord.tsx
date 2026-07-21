@@ -1,10 +1,8 @@
 import React from "react";
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
-import {
-  Grain, PaperBackground,
-  COLORS, SPRINGS, fontFamily, serifFontFamily, SmartImg, WorldStateSchema
-} from "./shared";
+import { COLORS, fontFamily, serifFontFamily, SmartImg, WorldStateSchema } from "./shared";
+import { Ground, EASE, prog, beatDelay, stagger, wipe } from "./lib/kit";
 
 const IncidentSchema = z.object({
   date:      z.string().optional().default(""),
@@ -25,6 +23,7 @@ export const DisciplinaryRecordPropsSchema = z.object({
   playerImage: z.string().optional().default(""),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
+  beats:     z.record(z.string(), z.number()).optional(),
 });
 
 export const DisciplinaryPropsSchema = DisciplinaryRecordPropsSchema;
@@ -46,23 +45,22 @@ const CardIcon: React.FC<{ severity: "serious" | "warning" | "minor" }> = ({ sev
 };
 
 export const DisciplinaryRecord: React.FC<DisciplinaryRecordProps> = ({
-  playerName, badgeSlug, incidents: incidentsProp, bgColor = "#f0ece4", skipIntro = false,
+  playerName, badgeSlug, incidents: incidentsProp, bgColor = "#f0ece4", skipIntro = false, beats,
 }) => {
   const incidents = incidentsProp ?? [];
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const headerScale = skipIntro ? 1 : spring({ frame, fps, from: 0.88, to: 1, config: SPRINGS.header });
-  const headerOp    = skipIntro ? 1 : interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
-  const dividerW    = skipIntro ? 1 : spring({ frame, fps, from: 0, to: 1, config: SPRINGS.cols, delay: 12 });
+  const headerP     = skipIntro ? 1 : prog(frame, 0, 20, EASE.snap);
+  const headerScale = interpolate(headerP, [0, 1], [0.88, 1]);
+  const headerOp    = headerP;
+  const dividerW    = skipIntro ? 1 : wipe(frame, { delay: 12, dur: 20 });
 
   const STAGGER = 14;
-  const LIST_START = 28;
+  const LIST_START = beatDelay(beats, "entity", fps, 28);
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
+    <Ground ground="paper" bgColor={bgColor} accentColor="#c81e1e" domain="football" texture skipIntro={skipIntro} pad={0}>
 
       {/* Content area */}
       <div style={{
@@ -121,9 +119,10 @@ export const DisciplinaryRecord: React.FC<DisciplinaryRecordProps> = ({
         {/* Incidents list */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12, overflow: "hidden" }}>
           {incidents.map((inc, i) => {
-            const delay = LIST_START + i * STAGGER;
-            const rowX  = skipIntro ? 0 : spring({ frame, fps, from: -40, to: 0, config: SPRINGS.row, delay });
-            const rowOp = skipIntro ? 1 : interpolate(frame, [delay, delay + 16], [0, 1], { extrapolateRight: "clamp" });
+            const delay = LIST_START + stagger(i, STAGGER);
+            const rowP  = skipIntro ? 1 : prog(frame, delay, 20, EASE.snap);
+            const rowX  = interpolate(rowP, [0, 1], [-40, 0]);
+            const rowOp = rowP;
             const sev = SEVERITY_COLORS[inc.severity ?? "warning"];
 
             return (
@@ -221,6 +220,6 @@ export const DisciplinaryRecord: React.FC<DisciplinaryRecordProps> = ({
           })}
         </div>
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

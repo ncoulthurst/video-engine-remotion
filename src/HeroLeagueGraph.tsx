@@ -8,7 +8,8 @@
 import React from "react";
 import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, SmartImg, COLORS, WorldStateSchema, ContextChip, BadgeTreatment } from "./shared";
+import { fontFamily, serifFontFamily, SmartImg, COLORS, WorldStateSchema, ContextChip, BadgeTreatment } from "./shared";
+import { Ground } from "./lib/kit";
 
 const DataPointSchema = z.object({ matchday: z.number(), position: z.number() });
 
@@ -115,8 +116,7 @@ export const HeroLeagueGraph: React.FC<HeroLeagueGraphProps> = ({
   const dateline = [competition, season].filter(Boolean).join("  ·  ").toUpperCase();
 
   return (
-    <AbsoluteFill style={{ perspective: "2400px" }}>
-      <PaperBackground color={bgColor || undefined} />
+    <Ground ground="paper" bgColor={bgColor || undefined} accentColor={accentColor} domain="football" texture skipIntro={skipIntro} pad={0} style={{ perspective: "2400px", padding: 0 }}>
 
       {/* Plane that holds the chart — settles via cinematic cold-open zoom */}
       <AbsoluteFill style={{
@@ -320,8 +320,7 @@ export const HeroLeagueGraph: React.FC<HeroLeagueGraphProps> = ({
         </div>
       )}
 
-      <Grain />
-    </AbsoluteFill>
+    </Ground>
   );
 };
 

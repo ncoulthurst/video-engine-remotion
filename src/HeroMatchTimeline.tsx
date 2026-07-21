@@ -6,9 +6,10 @@
  * 90th-minute winner (or injury-time goal) gets a special enlarged treatment.
  */
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, PaperBackground, Grain, COLORS, SmartImg, WorldStateSchema, ContextChip } from "./shared";
+import { fontFamily, serifFontFamily, COLORS, SmartImg, WorldStateSchema } from "./shared";
+import { Ground, EASE, prog, beatDelay, resolveTheme, Kicker } from "./lib/kit";
 
 const EventSchema = z.object({
   minute:  z.number(),
@@ -37,6 +38,7 @@ export const HeroMatchTimelinePropsSchema = z.object({
   events: z.array(EventSchema).optional(),
   worldState: WorldStateSchema.optional(),
   skipIntro: z.boolean().optional().default(false),
+  beats:     z.record(z.string(), z.number()).optional(),
 });
 export type HeroMatchTimelineProps = z.infer<typeof HeroMatchTimelinePropsSchema>;
 
@@ -64,24 +66,24 @@ const EVENT_COLORS: Record<string, string> = {
 
 export const HeroMatchTimeline: React.FC<HeroMatchTimelineProps> = ({
   homeTeam, awayTeam, homeScore, awayScore, competition, date,
-  homeImage, awayImage, accentColor, bgColor, stagger, events, skipIntro = false,
+  homeImage, awayImage, accentColor, bgColor, stagger, events, skipIntro = false, beats,
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
+  const t = resolveTheme("paper", accentColor, bgColor);
 
   const INTRO_F  = 20;
   const TITLE_F  = INTRO_F;
 
-  const titleProg = skipIntro ? 1 : spring({ frame: frame - TITLE_F, fps, config: { damping: 24, stiffness: 55 } });
+  const titleProg = skipIntro ? 1 : prog(frame, TITLE_F, 22, EASE.snap);
 
   // Sort events by minute
   const sorted = [...(events ?? [])].sort((a, b) => a.minute - b.minute);
   const lastMinute = Math.max(90, ...sorted.map(e => e.minute));
 
-  // Timeline line progress — draws over the full OUTRO duration
-  const EVENTS_START = INTRO_F + 30;
-  const EVENTS_END   = EVENTS_START + sorted.length * stagger + 40;
-  const lineProg = skipIntro ? 1 : spring({ frame: frame - EVENTS_START, fps, config: { damping: 28, stiffness: 40 } });
+  // Timeline line-draw — starts on the "stat" beat when the narrator names the score (H1)
+  const EVENTS_START = beatDelay(beats, "stat", fps, INTRO_F + 30);
+  const lineProg = skipIntro ? 1 : prog(frame, EVENTS_START, 40, EASE.out);
 
   // Layout
   const TIMELINE_LEFT  = 120;
@@ -93,9 +95,7 @@ export const HeroMatchTimeline: React.FC<HeroMatchTimelineProps> = ({
   const minuteToX = (min: number) => TIMELINE_LEFT + (min / lastMinute) * TIMELINE_W * lineProg;
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
+    <Ground ground="paper" bgColor={bgColor} accentColor={accentColor} domain="football" texture skipIntro={skipIntro} pad={0}>
 
       {/* Home player image — left, masked */}
       {homeImage && (
@@ -152,7 +152,7 @@ export const HeroMatchTimeline: React.FC<HeroMatchTimelineProps> = ({
           transform: `translateY(${interpolate(titleProg, [0, 1], [14, 0])}px)`,
         }}>
           <div style={{ marginBottom: 10 }}>
-            <ContextChip label={`${competition} · ${date}`} color={COLORS.muted} size={14} />
+            <Kicker label={`${competition} · ${date}`} theme={t} frame={frame} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
             <div style={{ fontFamily: serifFontFamily, fontSize: 72, fontWeight: 900,
@@ -198,7 +198,7 @@ export const HeroMatchTimeline: React.FC<HeroMatchTimelineProps> = ({
           {/* Events */}
           {sorted.map((ev, i) => {
             const revealF = EVENTS_START + i * stagger;
-            const prog    = skipIntro ? 1 : spring({ frame: frame - revealF, fps, config: { damping: 14, stiffness: 220 } });
+            const evP     = skipIntro ? 1 : prog(frame, revealF, 14, EASE.snap);
             const cx      = minuteToX(ev.minute);
             const isHome  = (ev.team || "home") !== "away";
             const col     = EVENT_COLORS[ev.type] || "#888";
@@ -208,38 +208,38 @@ export const HeroMatchTimeline: React.FC<HeroMatchTimelineProps> = ({
             const labelY  = isHome ? TIMELINE_Y - 60 : TIMELINE_Y + 72;
 
             return (
-              <g key={i} opacity={prog}>
+              <g key={i} opacity={evP}>
                 {/* Stem */}
                 <line
                   x1={cx} y1={TIMELINE_Y}
                   x2={cx} y2={isHome ? TIMELINE_Y - 28 : TIMELINE_Y + 28}
                   stroke={col} strokeWidth={1.5} strokeOpacity={0.6} />
                 {/* Node */}
-                <circle cx={cx} cy={TIMELINE_Y} r={nodeR * prog}
+                <circle cx={cx} cy={TIMELINE_Y} r={nodeR * evP}
                   fill={isGoal ? col : "none"}
                   stroke={col} strokeWidth={2}
-                  opacity={prog} />
+                  opacity={evP} />
                 {/* Icon */}
                 <text x={cx} y={TIMELINE_Y + 6}
                   textAnchor="middle" fontSize={isGoal ? 16 : 12}
-                  opacity={prog}>{EVENT_ICONS[ev.type] || "•"}</text>
+                  opacity={evP}>{EVENT_ICONS[ev.type] || "•"}</text>
                 {/* Player name */}
                 <text x={cx} y={textY}
                   textAnchor="middle" fontSize={15}
                   fontWeight={700} fontFamily={fontFamily}
                   fill={isGoal ? col : COLORS.muted}
-                  opacity={prog}>{ev.player}</text>
+                  opacity={evP}>{ev.player}</text>
                 {/* Minute label */}
                 <text x={cx} y={labelY}
                   textAnchor="middle" fontSize={12}
                   fontFamily={fontFamily}
                   fill={COLORS.muted}
-                  opacity={prog * 0.7}>{ev.minute}'{ev.detail ? ` ${ev.detail}` : ""}</text>
+                  opacity={evP * 0.7}>{ev.minute}'{ev.detail ? ` ${ev.detail}` : ""}</text>
               </g>
             );
           })}
         </svg>
       </AbsoluteFill>
-    </AbsoluteFill>
+    </Ground>
   );
 };

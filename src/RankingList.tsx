@@ -44,8 +44,8 @@ export const RankingListPropsSchema = z.object({
   subtitle:   z.string().optional().default(""),
   rows:       z.array(RowSchema).min(1).optional().default([
     { label: "Anthropic", value: 1.3, unit: "$B", secondary: "AI",         highlight: true },
-    { label: "Solana",    value: 1.1, unit: "$B", secondary: "crypto" },
-    { label: "SpaceX",    value: 0.5, unit: "$B", secondary: "aerospace" },
+    { label: "Solana",    value: 1.1, unit: "$B", secondary: "crypto",    highlight: false },
+    { label: "SpaceX",    value: 0.5, unit: "$B", secondary: "aerospace", highlight: false },
   ]),
   accent:     z.string().optional().default(""),
   palette:    z.enum(["ink", "dark", "paper"]).optional().default("ink"),

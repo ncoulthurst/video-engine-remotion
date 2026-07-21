@@ -4,9 +4,10 @@
  * into the parchment, serif name, club, and optional stat.
  */
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { z } from "zod";
-import { fontFamily, serifFontFamily, Grain, PaperBackground, COLORS, SmartImg, TRIO_PORTRAIT_MASK, WorldStateSchema, ContextChip } from "./shared";
+import { COLORS, SmartImg, TRIO_PORTRAIT_MASK, WorldStateSchema } from "./shared";
+import { Ground, TYPE, EASE, prog, beatDelay, stagger, resolveTheme, Kicker } from "./lib/kit";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -26,6 +27,7 @@ export const PlayerTrioPropsSchema = z.object({
   players:  z.array(PlayerSlotSchema).length(3),
   bgColor:    z.string().optional().default("#f0ece4"),
   skipIntro:  z.boolean().optional().default(false),
+  beats:      z.record(z.string(), z.number()).optional(),
   worldState: WorldStateSchema.optional(),
 });
 
@@ -46,23 +48,25 @@ const NAME_OFFSET  = 16;
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players, bgColor, skipIntro = false, worldState }) => {
+export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players, bgColor, skipIntro = false, beats, worldState }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const wsAccent = (worldState as { accentColor?: string } | undefined)?.accentColor;
+  const t = resolveTheme("paper", wsAccent || COLORS.gold, bgColor);
 
-  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
-  const headerOp   = interpolate(headerProg, [0, 1], [0, 1],   { extrapolateRight: "clamp" });
+  const headerProg = skipIntro ? 1 : prog(frame, 0, 20, EASE.snap);
+  const headerOp   = headerProg;
   const headerY    = interpolate(headerProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const ruleProg = skipIntro ? 1 : spring({ frame: frame - 10, fps, config: { damping: 20, stiffness: 80 } });
-  const ruleW    = interpolate(ruleProg, [0, 1], [0, 100], { extrapolateRight: "clamp" });
-  const ruleOp   = interpolate(ruleProg, [0, 1], [0, 1],   { extrapolateRight: "clamp" });
+  const ruleProg = skipIntro ? 1 : prog(frame, 10, 20, EASE.out);
+  const ruleW    = ruleProg * 100;
+  const ruleOp   = ruleProg;
+
+  // H1: the first column lands on the "entity" beat when the narrator names the trio.
+  const colStart = beatDelay(beats, "entity", fps, COL_DELAYS[0]);
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
-      <Grain />
+    <Ground ground="paper" bgColor={bgColor} accentColor={wsAccent || COLORS.gold} domain="football" texture skipIntro={skipIntro} pad={0}>
 
       {/* ── Title strip ───────────────────────────────────────────────── */}
       <div style={{
@@ -74,10 +78,10 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
       }}>
         <div style={{ opacity: headerOp, transform: `translateY(${headerY}px)`, marginBottom: 18 }}>
           <div style={{
-            fontFamily: serifFontFamily,
+            fontFamily: TYPE.serif,
             fontSize: 68,
             fontWeight: 900,
-            color: COLORS.primary,
+            color: t.ink,
             letterSpacing: -3,
             lineHeight: 1,
           }}>
@@ -85,10 +89,10 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
           </div>
           {subtitle && (
             <div style={{
-              fontFamily,
+              fontFamily: TYPE.sans,
               fontSize: 20,
               fontWeight: 500,
-              color: COLORS.muted,
+              color: t.muted,
               letterSpacing: 0.5,
               marginTop: 10,
             }}>
@@ -101,7 +105,7 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
         <div style={{
           height: 2,
           width: `${ruleW}%`,
-          background: `linear-gradient(90deg, ${wsAccent || COLORS.gold}, transparent)`,
+          background: `linear-gradient(90deg, ${t.accent}, transparent)`,
           borderRadius: 2,
           opacity: ruleOp,
         }} />
@@ -110,12 +114,12 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
       {/* ── Three player columns ──────────────────────────────────────── */}
       <div style={{ position: "absolute", inset: 0, display: "flex" }}>
         {(players as Array<z.infer<typeof PlayerSlotSchema>>).map((player, i) => {
-          const delay    = COL_DELAYS[i];
-          const colProg  = skipIntro ? 1 : spring({ frame: frame - delay, fps, config: { damping: 22, stiffness: 52 } });
+          const delay    = colStart + stagger(i, 12);
+          const colProg  = skipIntro ? 1 : prog(frame, delay, 26, EASE.soft);
           const colOp    = interpolate(colProg, [0, 0.5], [0, 1],  { extrapolateRight: "clamp" });
           const colY     = interpolate(colProg, [0, 1],   [60, 0], { extrapolateRight: "clamp" });
 
-          const nameProg = skipIntro ? 1 : spring({ frame: frame - (delay + NAME_OFFSET), fps, config: { damping: 26, stiffness: 58 } });
+          const nameProg = skipIntro ? 1 : prog(frame, delay + NAME_OFFSET, 22, EASE.snap);
           const nameOp   = interpolate(nameProg, [0, 0.6], [0, 1],  { extrapolateRight: "clamp" });
           const nameY    = interpolate(nameProg, [0, 1],   [24, 0], { extrapolateRight: "clamp" });
 
@@ -197,10 +201,10 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
 
                 {/* Player name */}
                 <div style={{
-                  fontFamily: serifFontFamily,
+                  fontFamily: TYPE.serif,
                   fontSize: 54,
                   fontWeight: 900,
-                  color: COLORS.primary,
+                  color: t.ink,
                   letterSpacing: -2,
                   lineHeight: 1,
                   marginBottom: 12,
@@ -211,7 +215,7 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
                 {/* Club */}
                 {player.club && (
                   <div style={{ marginBottom: player.stat ? 10 : 0 }}>
-                    <ContextChip label={player.club} color={COLORS.muted} size={13} />
+                    <Kicker label={player.club} theme={t} frame={frame} />
                   </div>
                 )}
 
@@ -219,7 +223,7 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
                 {player.stat && (
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 4 }}>
                     <span style={{
-                      fontFamily: serifFontFamily,
+                      fontFamily: TYPE.serif,
                       fontSize: 32,
                       fontWeight: 900,
                       color: player.clubColor,
@@ -229,10 +233,10 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
                     </span>
                     {player.statLabel && (
                       <span style={{
-                        fontFamily,
+                        fontFamily: TYPE.mono,
                         fontSize: 13,
                         fontWeight: 500,
-                        color: COLORS.muted,
+                        color: t.muted,
                         letterSpacing: 0.3,
                       }}>
                         {player.statLabel}
@@ -245,6 +249,6 @@ export const PlayerTrio: React.FC<PlayerTrioProps> = ({ title, subtitle, players
           );
         })}
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };

@@ -1,11 +1,11 @@
 import React from "react";
-import { AbsoluteFill, spring, useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
 import { z } from "zod";
 import {
-  Grain, PaperBackground,
   COLORS, fontFamily, serifFontFamily, SmartImg, hexToRgb, WorldStateSchema,
   ContextChip, BadgeTreatment,
 } from "./shared";
+import { Ground, EASE, prog } from "./lib/kit";
 
 const PlayerSlotSchema = z.object({
   name:      z.string().optional().default(""),
@@ -63,26 +63,25 @@ export const SeasonComparison: React.FC<SeasonComparisonProps> = ({
   const [rR, rG, rB] = hexToRgb(right.color);
 
   // ── Entrance animations ─────────────────────────────────────────────────
-  const headerProg = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 55 } });
+  const headerProg = skipIntro ? 1 : prog(frame, 0, 20, EASE.snap);
   const headerOp   = interpolate(headerProg, [0, 1], [0, 1], { extrapolateRight: "clamp" });
   const headerY    = interpolate(headerProg, [0, 1], [-20, 0], { extrapolateRight: "clamp" });
 
-  const leftNameX  = skipIntro ? 0 : spring({ frame, fps, from: -60, to: 0, config: { damping: 22, stiffness: 60 }, delay: 8 });
-  const rightNameX = skipIntro ? 0 : spring({ frame, fps, from:  60, to: 0, config: { damping: 22, stiffness: 60 }, delay: 8 });
+  const leftNameX  = skipIntro ? 0 : interpolate(prog(frame, 8, 22, EASE.snap), [0, 1], [-60, 0]);
+  const rightNameX = skipIntro ? 0 : interpolate(prog(frame, 8, 22, EASE.snap), [0, 1], [60, 0]);
   const nameOp     = skipIntro ? 1 : interpolate(frame, [8, 30], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
-  const ruleW  = skipIntro ? 1 : spring({ frame, fps, from: 0, to: 1, config: { damping: 22, stiffness: 70 }, delay: 26 });
+  const ruleW  = skipIntro ? 1 : prog(frame, 26, 20, EASE.out);
   const colsOp = skipIntro ? 1 : interpolate(frame, [26, 40], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
 
   // ── Player image animations ─────────────────────────────────────────────
-  const imgProg  = spring({ frame, fps, config: { damping: 26, stiffness: 50 }, delay: 4 });
+  const imgProg  = prog(frame, 4, 26, EASE.soft);
   const imgOp    = interpolate(imgProg, [0, 1], [0, 0.82], { extrapolateRight: "clamp" });
   const leftImgX = interpolate(imgProg, [0, 1], [-60, 0], { extrapolateRight: "clamp" });
   const rightImgX= interpolate(imgProg, [0, 1], [ 60, 0], { extrapolateRight: "clamp" });
 
   return (
-    <AbsoluteFill>
-      <PaperBackground color={bgColor} />
+    <Ground ground="paper" bgColor={bgColor} domain="football" texture skipIntro={skipIntro} pad={0}>
 
       {/* ── Flanking player images ──────────────────────────────────── */}
       {left.image && (
@@ -125,9 +124,6 @@ export const SeasonComparison: React.FC<SeasonComparisonProps> = ({
         background: `linear-gradient(90deg, rgba(${lR},${lG},${lB},0.08) 0%, transparent 38%, transparent 62%, rgba(${rR},${rG},${rB},0.08) 100%)`,
       }} />
 
-      <div style={{ position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none" }}>
-        <Grain />
-      </div>
 
       {/* ── Content ─────────────────────────────────────────────────── */}
       <div style={{
@@ -161,12 +157,12 @@ export const SeasonComparison: React.FC<SeasonComparisonProps> = ({
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 0 }}>
           {rows.map((stat, i) => {
             const delay  = ROW_START + i * STAGGER;
-            const prog   = skipIntro ? 1 : spring({ frame: frame - delay, fps, config: { damping: 26, stiffness: 60 } });
-            const rowOp  = interpolate(prog, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
+            const rowP   = skipIntro ? 1 : prog(frame, delay, 20, EASE.snap);
+            const rowOp  = interpolate(rowP, [0, 0.5], [0, 1], { extrapolateRight: "clamp" });
 
             const maxV   = Math.max(stat.valueA, stat.valueB, 1);
-            const barWA  = interpolate(prog, [0, 1], [0, (stat.valueA / maxV) * BAR_MAX_W], { extrapolateRight: "clamp" });
-            const barWB  = interpolate(prog, [0, 1], [0, (stat.valueB / maxV) * BAR_MAX_W], { extrapolateRight: "clamp" });
+            const barWA  = interpolate(rowP, [0, 1], [0, (stat.valueA / maxV) * BAR_MAX_W], { extrapolateRight: "clamp" });
+            const barWB  = interpolate(rowP, [0, 1], [0, (stat.valueB / maxV) * BAR_MAX_W], { extrapolateRight: "clamp" });
 
             const leadsA = stat.valueA > stat.valueB;
             const leadsB = stat.valueB > stat.valueA;
@@ -328,6 +324,6 @@ export const SeasonComparison: React.FC<SeasonComparisonProps> = ({
         </div>
       </div>
 
-    </AbsoluteFill>
+    </Ground>
   );
 };

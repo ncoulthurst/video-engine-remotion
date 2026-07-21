@@ -19,7 +19,8 @@ import {
   useVideoConfig,
 } from "remotion";
 import { z } from "zod";
-import { fontFamily, PaperBackground, DarkBackground, Grain, Vignette, SmartImg, WorldStateSchema, ContextChip } from "./shared";
+import { fontFamily, SmartImg, WorldStateSchema, ContextChip } from "./shared";
+import { Ground, EASE, prog, beatDelay } from "./lib/kit";
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
@@ -163,20 +164,17 @@ export const AttackingRadar: React.FC<AttackingRadarProps> = ({
 
   // ── Springs ───────────────────────────────────────────────────────────────
 
-  const titleIn = skipIntro ? 1 : spring({ frame, fps, config: { damping: 22, stiffness: 60 }, delay: 0 });
-  const gridIn  = skipIntro ? 1 : spring({ frame, fps, config: { damping: 28, stiffness: 50 }, delay: 8 });
+  const titleIn = skipIntro ? 1 : prog(frame, 0, 22, EASE.snap);
+  const gridIn  = skipIntro ? 1 : prog(frame, 8, 26, EASE.soft);
 
   const metricSprings = metrics.map((m, i) =>
-    skipIntro ? 1 : spring({ frame, fps, config: { damping: 16, stiffness: 52 },
-             delay: getRevealFrame(m, i, introFrames, revealInterval) })
+    skipIntro ? 1 : prog(frame, getRevealFrame(m, i, introFrames, revealInterval), 26, EASE.soft)
   );
   const labelSprings = metrics.map((m, i) =>
-    skipIntro ? 1 : spring({ frame, fps, config: { damping: 22, stiffness: 80 },
-             delay: getRevealFrame(m, i, introFrames, revealInterval) + 10 })
+    skipIntro ? 1 : prog(frame, getRevealFrame(m, i, introFrames, revealInterval) + 10, 18, EASE.snap)
   );
   const tableRowSprings = metrics.map((m, i) =>
-    skipIntro ? 1 : spring({ frame, fps, config: { damping: 22, stiffness: 68 },
-             delay: getRevealFrame(m, i, introFrames, revealInterval) })
+    skipIntro ? 1 : prog(frame, getRevealFrame(m, i, introFrames, revealInterval), 20, EASE.snap)
   );
 
   // ── Active metric ─────────────────────────────────────────────────────────
@@ -225,15 +223,7 @@ export const AttackingRadar: React.FC<AttackingRadarProps> = ({
   const ROW_H = 70; const TABLE_TOP = 148; const HEADER_H = 52;
 
   return (
-    <AbsoluteFill style={{ fontFamily, overflow: "hidden" }}>
-
-      {/* Background */}
-      {lightMode
-        ? <PaperBackground color={bgColor} />
-        : <DarkBackground color={bgColor} />
-      }
-      {lightMode ? <Grain /> : null}
-      {lightMode ? <Vignette /> : null}
+    <Ground ground={lightMode ? "paper" : "ink"} bgColor={bgColor} domain="football" texture skipIntro={skipIntro} pad={0} style={{ fontFamily, padding: 0 }}>
 
       {/* ── Side image — far-right negative space only, never behind text ── */}
       {/* Starts at x≈1600, past the last text column (pill ends at ~1840).       */}
@@ -476,6 +466,6 @@ export const AttackingRadar: React.FC<AttackingRadarProps> = ({
           All units per 90 mins · percentile vs positional peers · {competition} {season}
         </div>
       </div>
-    </AbsoluteFill>
+    </Ground>
   );
 };
