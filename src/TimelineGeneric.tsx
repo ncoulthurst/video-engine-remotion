@@ -4,10 +4,13 @@
  * Pure time-axis with N event nodes — no club badges, no team colour palette.
  * Designed for non-football documentaries (tech, history, finance, etc.).
  *
- * Camera: rail draws left-to-right, then nodes pop in staggered with their
- * year/label cards above-and-below alternating to avoid crowding.
+ * Pacing: node reveals are DISTRIBUTED across the scene duration (not a fixed
+ * 6-frame stagger) so the board unfolds with the narration instead of spoiling
+ * every point in the first two seconds. A camera layer zooms to each node as
+ * it lands and settles back to the full view for the closing beat.
  *
- * Stack: Bg (0) → Rail (1) → Content (10) → Grain (last in JSX).
+ * Stack: Bg (0) → static header/footer (5) → camera layer [rail + nodes] (10)
+ *        → Grain (last in JSX).
  */
 
 import React from "react";
@@ -59,9 +62,10 @@ export type TimelineGenericProps = z.infer<typeof TimelineGenericPropsSchema>;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const PADDING_X = 160;
-const RAIL_Y    = 540; // canvas vertical centre
-const NODE_R    = 11;
+const PADDING_X  = 160;
+const RAIL_Y     = 560; // canvas vertical centre (below the static title block)
+const NODE_R     = 13;
+const TOUR_SCALE = 1.3; // camera zoom while stepping node-to-node
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -75,7 +79,7 @@ export const TimelineGeneric: React.FC<TimelineGenericProps> = ({
   skipIntro,
 }) => {
   const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
+  const { fps, width, durationInFrames } = useVideoConfig();
 
   const isDark = palette === "dark";
   const fg      = isDark ? "#f5f0e8" : COLORS.primary;
@@ -98,32 +102,72 @@ export const TimelineGeneric: React.FC<TimelineGenericProps> = ({
 
   const innerW = width - PADDING_X * 2;
   const railLeft  = PADDING_X;
-  const railRight = width - PADDING_X;
   const railWidth = innerW * railProgress;
 
-  // Compute node X positions evenly across the rail
+  // ── Duration-aware reveal schedule ─────────────────────────────────────────
+  // First node lands as the rail finishes; the last lands at ~78% of the scene,
+  // leaving the final stretch for the zoomed-out full view. Minimum spacing
+  // keeps short scenes from stacking reveals on one frame.
   const n = events.length || 1;
+  const tourStart = introOffset + 38;
+  const tourEnd   = Math.max(tourStart + (n - 1) * 15, Math.round(durationInFrames * 0.78));
+  const step      = n > 1 ? (tourEnd - tourStart) / (n - 1) : 0;
+
   const nodes = events.map((e, i) => ({
     ...e,
     x: PADDING_X + (innerW * (n === 1 ? 0.5 : i / (n - 1))),
     above: i % 2 === 0,
-    appearAt: introOffset + 32 + i * 6,
+    appearAt: Math.round(tourStart + step * i),
   }));
+
+  // ── Camera: full view → zoom to node 0 → travel node-to-node → settle out ──
+  const settleStart = Math.min(tourEnd + 12, durationInFrames - 40);
+  const settleEnd   = Math.min(settleStart + 34, Math.max(settleStart + 1, durationInFrames - 4));
+
+  const txFor = (nodeX: number, s: number) => {
+    const raw = width / 2 - s * nodeX;
+    return Math.min(0, Math.max(width - s * width, raw)); // never past canvas edges
+  };
+
+  // Keyframes must be strictly increasing for interpolate()
+  const camFrames: number[] = [];
+  const camXs: number[] = [];
+  const camScales: number[] = [];
+  const pushKey = (f: number, tx: number, s: number) => {
+    const ff = camFrames.length ? Math.max(f, camFrames[camFrames.length - 1] + 1) : f;
+    camFrames.push(ff);
+    camXs.push(tx);
+    camScales.push(s);
+  };
+  pushKey(0, 0, 1);
+  pushKey(tourStart - 10, 0, 1);
+  nodes.forEach((nd) => pushKey(nd.appearAt, txFor(nd.x, TOUR_SCALE), TOUR_SCALE));
+  pushKey(settleStart, txFor(nodes[n - 1].x, TOUR_SCALE), TOUR_SCALE);
+  pushKey(settleEnd, 0, 1);
+
+  const camOpts = {
+    extrapolateLeft: "clamp" as const,
+    extrapolateRight: "clamp" as const,
+    easing: Easing.inOut(Easing.cubic),
+  };
+  const camX     = interpolate(frame, camFrames, camXs, camOpts);
+  const camScale = interpolate(frame, camFrames, camScales, camOpts);
+  // Keep the rail band vertically centred while zoomed
+  const camY = RAIL_Y - camScale * RAIL_Y + (camScale - 1) * 30;
 
   return (
     <AbsoluteFill style={{ fontFamily }}>
       {isDark ? <DarkBackground color="#141414" /> : <PaperBackground />}
 
-      {/* Content layer */}
-      <AbsoluteFill style={{ zIndex: 10 }}>
-        {/* Dateline + source — folio top corners */}
+      {/* Static header/footer — outside the camera so they never crop */}
+      <AbsoluteFill style={{ zIndex: 5 }}>
         {dateline ? (
           <div
             style={{
               position: "absolute",
               top: 48,
               left: PADDING_X,
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 600,
               letterSpacing: 2,
               textTransform: "uppercase",
@@ -140,13 +184,13 @@ export const TimelineGeneric: React.FC<TimelineGenericProps> = ({
         <div
           style={{
             position: "absolute",
-            top: 96,
+            top: 92,
             left: PADDING_X,
             right: PADDING_X,
-            fontSize: 62,
+            fontSize: 68,
             fontWeight: 900,
             lineHeight: 1.05,
-            letterSpacing: -1.6,
+            letterSpacing: -1.8,
             color: fg,
             fontFamily: serifFontFamily,
             opacity: titleProgress,
@@ -155,127 +199,6 @@ export const TimelineGeneric: React.FC<TimelineGenericProps> = ({
         >
           {title}
         </div>
-
-        {/* Rail */}
-        <div
-          style={{
-            position: "absolute",
-            top: RAIL_Y,
-            left: railLeft,
-            height: 2,
-            width: railWidth,
-            background: railCol,
-            transformOrigin: "left center",
-          }}
-        />
-        {/* End-cap dot at the right tip of the rail */}
-        <div
-          style={{
-            position: "absolute",
-            top: RAIL_Y - 4,
-            left: railLeft + railWidth - 4,
-            width: 8,
-            height: 8,
-            background: accent,
-            borderRadius: 8,
-            opacity: railProgress,
-          }}
-        />
-
-        {/* Event nodes + cards */}
-        {nodes.map((node, i) => {
-          const local = frame - node.appearAt;
-          const reveal = spring({ frame: local, fps, config: SPRINGS.row });
-          if (reveal <= 0.001) return null;
-
-          const cardY = node.above ? RAIL_Y - 220 : RAIL_Y + 60;
-          const cardOpacity = reveal;
-          const cardTranslate = interpolate(reveal, [0, 1], [node.above ? 20 : -20, 0]);
-
-          return (
-            <React.Fragment key={i}>
-              {/* Node dot */}
-              <div
-                style={{
-                  position: "absolute",
-                  top:  RAIL_Y - NODE_R,
-                  left: node.x - NODE_R,
-                  width:  NODE_R * 2,
-                  height: NODE_R * 2,
-                  background: accent,
-                  borderRadius: NODE_R * 2,
-                  boxShadow: `0 0 0 4px ${isDark ? "#141414" : COLORS.bgFrom}`,
-                  transform: `scale(${reveal})`,
-                  transformOrigin: "center center",
-                }}
-              />
-              {/* Connector tick from rail to card */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: node.above ? RAIL_Y - 60 : RAIL_Y + 12,
-                  left: node.x - 1,
-                  width: 2,
-                  height: 48 * reveal,
-                  background: railCol,
-                  transformOrigin: node.above ? "bottom center" : "top center",
-                }}
-              />
-              {/* Card */}
-              <div
-                style={{
-                  position: "absolute",
-                  top: cardY,
-                  left: node.x - 180,
-                  width: 360,
-                  textAlign: "center",
-                  opacity: cardOpacity,
-                  transform: `translateY(${cardTranslate}px)`,
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 700,
-                    letterSpacing: 2.4,
-                    color: accent,
-                    textTransform: "uppercase",
-                    fontFamily,
-                    marginBottom: 6,
-                  }}
-                >
-                  {node.year}
-                </div>
-                <div
-                  style={{
-                    fontSize: 26,
-                    fontWeight: 700,
-                    color: fg,
-                    lineHeight: 1.15,
-                    letterSpacing: -0.4,
-                    fontFamily,
-                  }}
-                >
-                  {node.label}
-                </div>
-                {node.sub ? (
-                  <div
-                    style={{
-                      fontSize: 14,
-                      color: muted,
-                      marginTop: 8,
-                      lineHeight: 1.35,
-                      fontFamily,
-                      fontStyle: "italic",
-                    }}
-                  >
-                    {node.sub}
-                  </div>
-                ) : null}
-              </div>
-            </React.Fragment>
-          );
-        })}
 
         {/* Source attribution — bottom right */}
         {source ? (
@@ -296,6 +219,139 @@ export const TimelineGeneric: React.FC<TimelineGenericProps> = ({
             {source}
           </div>
         ) : null}
+      </AbsoluteFill>
+
+      {/* Camera layer — rail + nodes ride the zoom/pan */}
+      <AbsoluteFill style={{ zIndex: 10 }}>
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            transform: `translate(${camX}px, ${camY}px) scale(${camScale})`,
+            transformOrigin: "0 0",
+          }}
+        >
+          {/* Rail */}
+          <div
+            style={{
+              position: "absolute",
+              top: RAIL_Y,
+              left: railLeft,
+              height: 2,
+              width: railWidth,
+              background: railCol,
+              transformOrigin: "left center",
+            }}
+          />
+          {/* End-cap dot at the right tip of the rail */}
+          <div
+            style={{
+              position: "absolute",
+              top: RAIL_Y - 4,
+              left: railLeft + railWidth - 4,
+              width: 8,
+              height: 8,
+              background: accent,
+              borderRadius: 8,
+              opacity: railProgress,
+            }}
+          />
+
+          {/* Event nodes + cards */}
+          {nodes.map((node, i) => {
+            const local = frame - node.appearAt;
+            const reveal = spring({ frame: local, fps, config: SPRINGS.row });
+            if (reveal <= 0.001) return null;
+
+            const cardY = node.above ? RAIL_Y - 250 : RAIL_Y + 64;
+            const cardOpacity = reveal;
+            const cardTranslate = interpolate(reveal, [0, 1], [node.above ? 20 : -20, 0]);
+
+            return (
+              <React.Fragment key={i}>
+                {/* Node dot */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top:  RAIL_Y - NODE_R,
+                    left: node.x - NODE_R,
+                    width:  NODE_R * 2,
+                    height: NODE_R * 2,
+                    background: accent,
+                    borderRadius: NODE_R * 2,
+                    boxShadow: `0 0 0 4px ${isDark ? "#141414" : COLORS.bgFrom}`,
+                    transform: `scale(${reveal})`,
+                    transformOrigin: "center center",
+                  }}
+                />
+                {/* Connector tick from rail to card */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: node.above ? RAIL_Y - 60 : RAIL_Y + 12,
+                    left: node.x - 1,
+                    width: 2,
+                    height: 48 * reveal,
+                    background: railCol,
+                    transformOrigin: node.above ? "bottom center" : "top center",
+                  }}
+                />
+                {/* Card */}
+                <div
+                  style={{
+                    position: "absolute",
+                    top: cardY,
+                    left: node.x - 210,
+                    width: 420,
+                    textAlign: "center",
+                    opacity: cardOpacity,
+                    transform: `translateY(${cardTranslate}px)`,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 20,
+                      fontWeight: 700,
+                      letterSpacing: 2.4,
+                      color: accent,
+                      textTransform: "uppercase",
+                      fontFamily,
+                      marginBottom: 8,
+                    }}
+                  >
+                    {node.year}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 36,
+                      fontWeight: 700,
+                      color: fg,
+                      lineHeight: 1.12,
+                      letterSpacing: -0.5,
+                      fontFamily,
+                    }}
+                  >
+                    {node.label}
+                  </div>
+                  {node.sub ? (
+                    <div
+                      style={{
+                        fontSize: 18,
+                        color: muted,
+                        marginTop: 8,
+                        lineHeight: 1.35,
+                        fontFamily,
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {node.sub}
+                    </div>
+                  ) : null}
+                </div>
+              </React.Fragment>
+            );
+          })}
+        </div>
       </AbsoluteFill>
 
       <Grain />

@@ -560,7 +560,7 @@ export const DocumentaryFrame: React.FC<{ children: React.ReactNode }> = ({ chil
         {children}
       </div>
       <div style={{ position: "absolute", bottom: Math.round((1080 - FRAME_Y - FRAME_H) / 2) - 10, right: FRAME_X, fontFamily, fontSize: 22, fontWeight: 800, color: "#1660FF", opacity: 0.55, letterSpacing: -0.5, userSelect: "none" as const, pointerEvents: "none" }}>
-        Frequency
+        Friction
       </div>
     </AbsoluteFill>
   );

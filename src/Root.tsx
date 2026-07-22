@@ -475,7 +475,7 @@ export const Root: React.FC = () => {
             { heading: "Data", items: ["FBref", "CoinGecko", "Company filings — SEC EDGAR"] },
             { heading: "Music", items: ["Epidemic Sound — licensed score", "Artlist — additional cues"] },
           ],
-          footer: "Frequency — thanks for watching",
+          footer: "Friction — thanks for watching",
           skipIntro: false,
         }}
       />

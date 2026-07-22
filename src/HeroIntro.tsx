@@ -13,7 +13,7 @@ import { z } from "zod";
 import { SmartImg, WorldStateSchema } from "./shared";
 import { Ground, TYPE, resolveTheme } from "./lib/kit";
 
-const CHANNEL_NAME = "Frequency";
+const CHANNEL_NAME = "Friction";
 const H = 720;
 
 export const HeroIntroPropsSchema = z.object({

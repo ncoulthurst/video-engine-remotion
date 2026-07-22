@@ -137,21 +137,29 @@ export interface Theme {
  * (isInk = true) → dark-ground legibility + shadows everywhere.
  */
 const BRAND = {
-  bg: "#0A4AA0", // the main video background — ONE uniform blue across all grounds
-  surface: "#155BB5", // raised cards — a lift of the bg
+  // Contrast pass 2026-07-22 (WeWork feedback: "no contrast, hard to read,
+  // orange too faint"): grounds deepened so text/accent luminance separation
+  // roughly doubles; secondary text lifted from 0.60 → 0.72 alpha.
+  bg: "#073B84", // the main video background — ONE uniform blue across all grounds
+  surface: "#0D4E9E", // raised cards — a lift of the bg
   ink: "#F5F5F3", // primary text — near-white
-  muted: "rgba(245,245,243,0.60)", // secondary / labels — light grey
-  line: "rgba(245,245,243,0.15)", // hairlines on blue
+  muted: "rgba(245,245,243,0.72)", // secondary / labels — light grey
+  line: "rgba(245,245,243,0.20)", // hairlines on blue
   // structural accent = orange (big graphic mass); editorial highlight = warm gold
   // (text, ticks, image callouts) — legible + premium on navy, buzz-free at small scale.
   highlight: "#E8B24A",
 } as const;
 
+/** Default structural accent on DARK grounds — a brighter orange than the
+ *  paper-register #E8623A, which sat at ~1.7:1 against the deep green and read
+ *  as "too faint" on every WeWork board. Explicit accentColor still wins. */
+const DARK_ACCENT = "#FF7A45";
+
 /** ALT — the alternate ground: deep green, for the dramatic `ink` register
  *  (verdict / sentence / money-flow / court). Blue = default, green = the shadow. */
 const ALT = {
-  bg: "#0E5F38", // deep forest green
-  surface: "#197050", // raised cards — a lift of the green
+  bg: "#08341F", // deep forest green — near-black so cream/orange pop
+  surface: "#0E4A2E", // raised cards — a lift of the green
 } as const;
 
 /** Perceived luminance (0–255) of a hex colour; NaN-safe (returns 0 on non-hex). */
@@ -197,6 +205,7 @@ export function resolveTheme(
   // Two registers: blue (paper/structure = default/business) and green (ink = the
   // dramatic alternate). Within each, one uniform tone — no per-ground darkening.
   const isAlt = ground === "ink";
+  const darkAccent = accentColor || DARK_ACCENT;
   return {
     ground,
     isInk: true,
@@ -205,8 +214,8 @@ export function resolveTheme(
     ink: inkColor || BRAND.ink,
     muted: mutedColor || BRAND.muted,
     line: BRAND.line,
-    accent,
-    accentSoft: rgbaFromHex(accent, 0.16),
+    accent: darkAccent,
+    accentSoft: rgbaFromHex(darkAccent, 0.16),
     highlight,
     highlightSoft: rgbaFromHex(highlight, 0.16),
   };
@@ -388,9 +397,16 @@ export function beatDelay(
   fps: number,
   fallbackFrames: number,
 ): number {
-  return beats?.[role] !== undefined
-    ? Math.max(0, Math.round(beats[role] * fps) - 2)
-    : fallbackFrames;
+  if (beats?.[role] === undefined) return fallbackFrames;
+  // Cap the anchored delay at 3s: a late narration cue must never hold a
+  // board's content back so long the scene reads as blank ground (observed
+  // as multi-second green/blue empty frames in the WeWork export). Beyond
+  // the cap, showing the element early beats showing nothing.
+  const MAX_BEAT_FRAMES = Math.round(3 * fps);
+  return Math.min(
+    Math.max(0, Math.round(beats[role] * fps) - 2),
+    Math.max(fallbackFrames, MAX_BEAT_FRAMES),
+  );
 }
 
 /** fade-up — opacity 0→1 + translateY dist→0 (entry default). */

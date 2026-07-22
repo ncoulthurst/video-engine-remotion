@@ -42,7 +42,11 @@ export const FilmPlate: React.FC<{ intensity?: number }> = ({ intensity = 1 }) =
           left: -(TILE_W - 1920) / 2 + jx,
           width: TILE_W,
           height: TILE_H,
-          opacity: 0.05 * intensity,
+          opacity: 0.07 * intensity,
+          // overlay: grain modulates the underlying tone instead of compositing
+          // a flat mid-gray veil on top — a normal-blend gray layer lifted every
+          // black in the film and read as a "washed out" haze (WeWork export).
+          mixBlendMode: "overlay",
         }}
       >
         <svg width={TILE_W} height={TILE_H} style={{ display: "block" }}>

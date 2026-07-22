@@ -186,29 +186,70 @@ function pointAtDistance(distanceInput: number): { x: number; y: number } {
   return { x: riseX + TURN_R + Math.min(segment, SEG4), y: LINE_Y };
 }
 
-function renderHighlighted(text: string, highlights: string[], textColor: string): React.ReactNode {
-  if (!highlights.length) return text;
-
+/**
+ * Layout-stable typewriter: the FULL headline is laid out from frame 0 (so
+ * multi-line wrap points never move) and words flip from hidden to visible as
+ * the typing head passes them. The old `headline.slice(0, visibleChars)`
+ * approach re-wrapped the paragraph on every appended character — on two-line
+ * headlines, words visibly jumped between lines mid-animation (WeWork 6:56).
+ * The cursor rides the currently-typing word as an absolute overlay so it
+ * never participates in layout either.
+ */
+function renderTypedWords(
+  text: string,
+  highlights: string[],
+  textColor: string,
+  visibleChars: number,
+  showCursor: boolean,
+  cursorOn: boolean,
+): React.ReactNode {
   const escaped = highlights.map(escapeRegex);
-  const regex = new RegExp(`(${escaped.join("|")})`, "gi");
+  const parts = highlights.length
+    ? text.split(new RegExp(`(${escaped.join("|")})`, "gi"))
+    : [text];
 
-  return text.split(regex).map((part, index) => {
+  let acc = 0;
+  let lastVisibleKey: string | null = null;
+  const tokenMeta: Array<{ key: string; tok: string; isHighlight: boolean; start: number; end: number }> = [];
+  parts.forEach((part, pi) => {
     const isHighlight = highlights.some((item) => item.toLowerCase() === part.toLowerCase());
-    return isHighlight ? (
+    part.split(/(\s+)/).forEach((tok, ti) => {
+      if (!tok) return;
+      const start = acc;
+      acc += tok.length;
+      const key = `${pi}-${ti}`;
+      tokenMeta.push({ key, tok, isHighlight, start, end: acc });
+      if (start < visibleChars) lastVisibleKey = key;
+    });
+  });
+
+  return tokenMeta.map(({ key, tok, isHighlight, start }) => {
+    const visible = start < visibleChars;
+    const isActive = key === lastVisibleKey && showCursor;
+    return (
       <span
-        key={index}
+        key={key}
         style={{
-          backgroundColor: HIGHLIGHT_BG,
-          color: textColor,
-          padding: "0.02em 0.18em 0.08em",
-          boxDecorationBreak: "clone",
-          WebkitBoxDecorationBreak: "clone",
-          borderRadius: 2,
+          position: "relative",
+          visibility: visible ? ("visible" as const) : ("hidden" as const),
+          ...(isHighlight && visible
+            ? {
+                backgroundColor: HIGHLIGHT_BG,
+                color: textColor,
+                padding: "0.02em 0.06em 0.08em",
+                boxDecorationBreak: "clone" as const,
+                WebkitBoxDecorationBreak: "clone" as const,
+                borderRadius: 2,
+              }
+            : {}),
         }}
       >
-        {part}
+        {tok}
+        {isActive ? (
+          <span style={{ position: "absolute", right: "-0.55em", opacity: cursorOn ? 0.55 : 0 }}>▍</span>
+        ) : null}
       </span>
-    ) : part;
+    );
   });
 }
 
@@ -414,8 +455,7 @@ const StoryBlock: React.FC<StoryBlockProps> = ({ entry, phase, progress, textCol
           opacity: active ? (entering ? interpolate(progress, [0, 1], [0.12, 1]) : 1) : 0,
         }}
       >
-        {renderHighlighted(headline.slice(0, visibleChars), highlights, textColor)}
-        <span style={{ opacity: showCursor && cursorOn ? 0.55 : 0, marginLeft: 2 }}>▍</span>
+        {renderTypedWords(headline, highlights, textColor, visibleChars, showCursor, cursorOn)}
       </div>
 
       {body ? (

@@ -24,7 +24,7 @@ import { z } from "zod";
 import { fontFamily, serifFontFamily, SmartImg, WorldStateSchema } from "./shared";
 import { Ground, TYPE, EASE, prog, resolveTheme } from "./lib/kit";
 
-const CHANNEL_NAME = "Frequency";
+const CHANNEL_NAME = "Friction";
 
 export const HeroOutroPropsSchema = z.object({
   /** Topic-aware lead-in sentence (engine generates per-video). */
