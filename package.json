@@ -7,7 +7,8 @@
     "start": "remotion studio",
     "render": "remotion render",
     "upgrade": "remotion upgrade",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package",
+    "build:brand-preview": "node scripts/build-brand-preview.mjs"
   },
   "dependencies": {
     "@nivo/bar": "^0.99.0",
@@ -17,6 +18,7 @@
     "@remotion/google-fonts": "4.0.435",
     "@remotion/motion-blur": "4.0.435",
     "@remotion/noise": "4.0.435",
+    "@remotion/player": "4.0.435",
     "@remotion/shapes": "4.0.435",
     "@remotion/transitions": "4.0.435",
     "d3": "^7.9.0",
@@ -24,12 +26,16 @@
     "lottie-react": "^2.4.1",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "remotion": "4.0.435"
+    "remotion": "4.0.435",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "@types/d3": "^7.4.3",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
+    "@types/topojson-client": "^3.1.5",
+    "esbuild": "^0.28.1",
     "patch-package": "^8.0.1",
     "typescript": "^5.0.0"
   },

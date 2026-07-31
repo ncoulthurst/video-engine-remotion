@@ -14,10 +14,7 @@ export const TEMPLATE_WORLD: Record<string, TemplateWorld> = {
   ArticleHeadline:        "paper",
   ScoutReport:            "paper",
   QuoteCard:              "paper",
-  AnnotatedImage:         "paper",
   TimelineScroll:         "paper",
-  PortraitStatHero:       "paper",
-  PortraitWithBars:       "paper",
   HeroOutro:           "paper",
 
   // Dark world — high-contrast data + tactical compositions
@@ -25,12 +22,9 @@ export const TEMPLATE_WORLD: Record<string, TemplateWorld> = {
   HeroStatBars:        "dark",
   HeroBigStat:         "dark",
   HeroTactical:        "dark",
-  HeroLeagueGraph:     "dark",
   HeroFormRun:         "dark",
   HeroTransferRecord:  "dark",
-  HeroQuote:           "dark",
   HeroChapterWord:     "dark",
-  HeroScatterPlot:     "dark",
   HeroShotMap:         "dark",
   HeroComparisonRadar: "dark",
   HeroMatchTimeline:   "dark",
@@ -46,7 +40,6 @@ export const TEMPLATE_WORLD: Record<string, TemplateWorld> = {
   HeroClipCompare:     "dark",
   AttackingRadar:         "dark",
   PlayerTrio:             "dark",
-  TrioFeature:            "dark",
   CountdownReveal:        "dark",
   TeamLineup:             "dark",
   StatPulse:              "dark",
@@ -55,7 +48,6 @@ export const TEMPLATE_WORLD: Record<string, TemplateWorld> = {
 
   // Neutral — works in either world (no forced background)
   CareerTimeline:         "neutral",
-  HeroAwardsList:      "neutral",
   HeroSeasonTimeline:  "neutral",
   PremierLeagueTable:     "neutral",
   TopScorersTable:        "neutral",
@@ -69,7 +61,6 @@ export const TEMPLATE_WORLD: Record<string, TemplateWorld> = {
   MatchMoment:            "neutral",
   TransferProfit:         "neutral",
   TrophyGraphic:          "neutral",
-  MapCallout:             "neutral",
 };
 
 export const worldFor = (compositionId: string): TemplateWorld =>

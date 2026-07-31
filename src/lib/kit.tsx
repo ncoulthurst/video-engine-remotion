@@ -36,6 +36,8 @@ import {
   fontFamily,
   geistMonoFamily,
   serifFontFamily,
+  activeMonoFamily,
+  activeDisplayFamily,
   PALETTES,
   rgbaFromHex,
   SmartImg,
@@ -233,12 +235,12 @@ export const labelColumnBg = (t: Theme) => lift(t.bg, -0.72, 1);
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const TYPE = {
-  /** Display / body / hero numbers. */
-  sans: fontFamily,
-  /** Data / labels / meta — the technical signature (UPPERCASE + tracked). */
-  mono: geistMonoFamily,
-  /** Editorial gravity — chapter titles, pull-quotes, closing lines. Sparingly. */
-  serif: serifFontFamily,
+  /** Display / body / hero numbers. Getter — tracks setBrandFonts() overrides. */
+  get sans() { return fontFamily; },
+  /** Data / labels / meta — the technical signature (UPPERCASE + tracked). Getter — tracks setBrandFonts(). */
+  get mono() { return activeMonoFamily; },
+  /** Editorial gravity — chapter titles, pull-quotes, closing lines. Sparingly. Getter — tracks setBrandFonts(). */
+  get serif() { return activeDisplayFamily; },
 
   /** Type scale (px @ 1920×1080). */
   hero: 210, // 200–230 hero number

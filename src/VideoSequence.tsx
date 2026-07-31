@@ -9,7 +9,7 @@
  */
 import React from "react";
 import { AbsoluteFill } from "remotion";
-import { WorldStateRoot } from "./shared";
+import { WorldStateRoot, setBrandFonts } from "./shared";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { z } from "zod";
 
@@ -19,14 +19,10 @@ import { HeroStatBars } from "./HeroStatBars";
 import { HeroFormRun } from "./HeroFormRun";
 import { HeroTactical } from "./HeroTactical";
 import { HeroBigStat } from "./HeroBigStat";
-import { HeroLeagueGraph } from "./HeroLeagueGraph";
 import { HeroTransferRecord } from "./HeroTransferRecord";
-import { HeroQuote } from "./HeroQuote";
 import { HeroChapterWord } from "./HeroChapterWord";
 import { HeroClipCompare } from "./HeroClipCompare";
 import { HeroClipSingle } from "./HeroClipSingle";
-import { HeroScatterPlot } from "./HeroScatterPlot";
-import { TrioFeature } from "./TrioFeature";
 import { PlayerTrio } from "./PlayerTrio";
 import { CareerTimeline } from "./CareerTimeline";
 import { PremierLeagueTable } from "./PremierLeagueTable";
@@ -40,10 +36,8 @@ import { DisciplinaryRecord } from "./DisciplinaryRecord";
 import { QuoteCard } from "./QuoteCard";
 import { ArticleHeadline } from "./ArticleHeadline";
 import { AttackingRadar } from "./AttackingRadar";
-import { MapCallout } from "./MapCallout";
 import { AnimatedFactCard } from "./AnimatedFactCard";
 import { TitleCard } from "./TitleCard";
-import { AnnotatedImage } from "./AnnotatedImage";
 import { SplitComparison } from "./SplitComparison";
 import { TimelineScroll } from "./TimelineScroll";
 import { CountdownReveal } from "./CountdownReveal";
@@ -60,30 +54,48 @@ import { HeroGoalRush } from "./HeroGoalRush";
 import { HeroHeadlineStack } from "./HeroHeadlineStack";
 import { HeroShotMap } from "./HeroShotMap";
 import { HeroMatchTimeline } from "./HeroMatchTimeline";
-import { HeroAwardsList } from "./HeroAwardsList";
 import { HeroComparisonRadar } from "./HeroComparisonRadar";
 import { HeroDualPanel } from "./HeroDualPanel";
 import { HeroNewsFeed } from "./HeroNewsFeed";
 import { HeroSeasonTimeline } from "./HeroSeasonTimeline";
 import { TournamentBracket } from "./TournamentBracket";
 // Track E — new hybrid templates + world classification
-import { PortraitStatHero } from "./PortraitStatHero";
-import { PortraitWithBars } from "./PortraitWithBars";
 import { HeroOutro } from "./HeroOutro";
 // Domain-agnostic + finance variants — every composition the render chain can
 // emit for non-football domains must be in SCENE_REGISTRY or it exports as an
 // "Unknown scene" black panel (caught on the first fresh finance export).
 import { TimelineGeneric } from "./TimelineGeneric";
-import { StatComparison } from "./StatComparison";
 import { HeroIntroFinance } from "./HeroIntroFinance";
 import { HeroOutroFinance } from "./HeroOutroFinance";
-import { HeroQuoteFinance } from "./HeroQuoteFinance";
 import { BulletBreakdownFinance } from "./BulletBreakdownFinance";
 import { worldFor, type TemplateWorld } from "./lib/worldRegistry";
 
+// Charts & motion package — 22 templates wired 2026-07-27
+import { BarRowsAxis } from "./BarRowsAxis";
+import { RingStatReveal } from "./RingStatReveal";
+import { LineTrendChart } from "./LineTrendChart";
+import { PieShareChart } from "./PieShareChart";
+import { GaugeShareArc } from "./GaugeShareArc";
+import { BarColumnsChart } from "./BarColumnsChart";
+import { AxisRescaleShock } from "./AxisRescaleShock";
+import { ChangelogScrollBrake } from "./ChangelogScrollBrake";
+import { GrazeFaceTour } from "./GrazeFaceTour";
+import { HeroTravelMap } from "./HeroTravelMap";
+import { OscilloscopeStream } from "./OscilloscopeStream";
+import { ParticleSandFill } from "./ParticleSandFill";
+import { PillSlotCycle } from "./PillSlotCycle";
+import { TextColumnConverge } from "./TextColumnConverge";
+import { TimelineTravel } from "./TimelineTravel";
+import { TitleDemoteToLabel } from "./TitleDemoteToLabel";
+import { UnitDotSwarmRegroup } from "./UnitDotSwarmRegroup";
+import { ListStackPress } from "./ListStackPress";
+import { OdometerDigitRoll } from "./OdometerDigitRoll";
+import { VoiceWaveformLive } from "./VoiceWaveformLive";
+import { FreezeAnnotate } from "./FreezeAnnotate";
+import { SpeedRampReveal } from "./SpeedRampReveal";
+
 // ── Generated components (motion_agent.py) ────────────────────────────────────
 import { GEN_REGISTRY } from "./gen/index";
-import { SceneSequence } from "./SceneSequence";
 
 // ── Transitions ────────────────────────────────────────────────────────────────
 import {
@@ -112,14 +124,10 @@ export const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   HeroFormRun,
   HeroTactical,
   HeroBigStat,
-  HeroLeagueGraph,
   HeroTransferRecord,
-  HeroQuote,
   HeroChapterWord,
   HeroClipCompare,
   HeroClipSingle,
-  HeroScatterPlot,
-  TrioFeature,
   PlayerTrio,
   CareerTimeline,
   PremierLeagueTable,
@@ -133,10 +141,8 @@ export const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   QuoteCard,
   ArticleHeadline,
   AttackingRadar,
-  MapCallout,
   AnimatedFactCard,
   TitleCard,
-  AnnotatedImage,
   SplitComparison,
   TimelineScroll,
   CountdownReveal,
@@ -153,24 +159,40 @@ export const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   HeroHeadlineStack,
   HeroShotMap,
   HeroMatchTimeline,
-  HeroAwardsList,
   HeroComparisonRadar,
   HeroDualPanel,
   HeroNewsFeed,
   HeroSeasonTimeline,
   TournamentBracket,
-  // Track E hybrids
-  PortraitStatHero,
-  PortraitWithBars,
   // Domain-agnostic + finance variants
   TimelineGeneric,
-  StatComparison,
   HeroIntroFinance,
   HeroOutroFinance,
-  HeroQuoteFinance,
   BulletBreakdownFinance,
+  // Charts & motion package
+  BarRowsAxis,
+  RingStatReveal,
+  LineTrendChart,
+  PieShareChart,
+  GaugeShareArc,
+  BarColumnsChart,
+  AxisRescaleShock,
+  ChangelogScrollBrake,
+  GrazeFaceTour,
+  HeroTravelMap,
+  OscilloscopeStream,
+  ParticleSandFill,
+  PillSlotCycle,
+  TextColumnConverge,
+  TimelineTravel,
+  TitleDemoteToLabel,
+  UnitDotSwarmRegroup,
+  ListStackPress,
+  OdometerDigitRoll,
+  VoiceWaveformLive,
+  FreezeAnnotate,
+  SpeedRampReveal,
   // Merge generated components last — they can override defaults during dev
-  SceneSequence,
   ...GEN_REGISTRY,
 };
 
@@ -255,6 +277,12 @@ export const VideoSequencePropsSchema = z.object({
   scenes: z.array(SceneDefSchema).min(1),
   /** Fallback accent colour for transitions that need one */
   accentColor: z.string().optional().default("").default("#C8102E"),
+  /** Project's brand fonts (style_director.json → "fonts"), if any. */
+  brandFonts: z.object({
+    body: z.string().optional(),
+    mono: z.string().optional(),
+    display: z.string().optional(),
+  }).optional(),
 });
 
 export type VideoSequenceProps = z.infer<typeof VideoSequencePropsSchema>;
@@ -388,7 +416,14 @@ function getTiming(type: TransitionType, durationOverride?: number) {
 export const VideoSequence: React.FC<VideoSequenceProps> = ({
   scenes,
   accentColor = "#C8102E",
+  brandFonts,
 }) => {
+  // Apply the brand's fonts (if any) before any scene renders — setBrandFonts
+  // mutates shared.tsx's live-binding font exports synchronously, and React
+  // only descends into children after this function body returns, so every
+  // scene component below picks up the override with no prop drilling.
+  setBrandFonts(brandFonts);
+
   // Build a flat array of TransitionSeries.Sequence + TransitionSeries.Transition
   // alternating elements — required by @remotion/transitions.
   const elements: React.ReactNode[] = [];

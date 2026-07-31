@@ -14,7 +14,6 @@ import { HeroOutro, HeroOutroPropsSchema } from "./HeroOutro";
 import { HeroStatBars, HeroStatBarsPropsSchema } from "./HeroStatBars";
 import { HeroFormRun, HeroFormRunPropsSchema } from "./HeroFormRun";
 import { HeroTactical, HeroTacticalPropsSchema } from "./HeroTactical";
-import { HeroLeagueGraph, HeroLeagueGraphPropsSchema } from "./HeroLeagueGraph";
 import { HeroTransferRecord, HeroTransferRecordPropsSchema } from "./HeroTransferRecord";
 import { HeroTransferRecordVault, HeroTransferRecordVaultPropsSchema } from "./HeroTransferRecordVault";
 import { HeroValueChart, HeroValueChartPropsSchema, calculateMetadata as heroValueChartCalc } from "./HeroValueChart";
@@ -22,12 +21,9 @@ import { HeroStatComparison, HeroStatComparisonPropsSchema, calculateMetadata as
 import { HeroChapterWord, HeroChapterWordPropsSchema } from "./HeroChapterWord";
 import { HeroClipCompare, HeroClipComparePropsSchema } from "./HeroClipCompare";
 import { HeroClipSingle, HeroClipSinglePropsSchema } from "./HeroClipSingle";
-import { HeroScatterPlot, HeroScatterPlotPropsSchema } from "./HeroScatterPlot";
 import { AttackingRadar, AttackingRadarPropsSchema } from "./AttackingRadar";
 import { PlayerTrio, PlayerTrioPropsSchema } from "./PlayerTrio";
-import { TrioFeature, TrioFeaturePropsSchema } from "./TrioFeature";
-import { MapCallout, MapCalloutPropsSchema } from "./MapCallout";
-import { AnnotatedImage, AnnotatedImagePropsSchema } from "./AnnotatedImage";
+import { HeroTravelMap, HeroTravelMapPropsSchema, HERO_TRAVEL_MAP_DURATION } from "./HeroTravelMap";
 import { TimelineScroll, TimelineScrollPropsSchema } from "./TimelineScroll";
 import { CountdownReveal, CountdownRevealPropsSchema, calculateMetadata as countdownCalculateMetadata } from "./CountdownReveal";
 import { StatPulse, StatPulsePropsSchema } from "./StatPulse";
@@ -42,28 +38,18 @@ import {
 } from "./VideoSequence";
 import { Thumbnail, ThumbnailPropsSchema } from "./Thumbnail";
 import { HeroShotMap, HeroShotMapPropsSchema } from "./HeroShotMap";
-import { HeroAwardsList, HeroAwardsListPropsSchema } from "./HeroAwardsList";
 import { HeroBigStat, HeroBigStatPropsSchema } from "./HeroBigStat";
 import { HeroComparisonRadar, HeroComparisonRadarPropsSchema } from "./HeroComparisonRadar";
 import { HeroNewsFeed, HeroNewsFeedPropsSchema, calculateMetadata as calcNewsFeed } from "./HeroNewsFeed";
 import { HeroSeasonTimeline, HeroSeasonTimelinePropsSchema } from "./HeroSeasonTimeline";
 import { TournamentBracket, TournamentBracketPropsSchema } from "./TournamentBracket";
 // Track E — register HeroQuote (was missing) + new hybrid templates
-import { HeroQuote, HeroQuotePropsSchema } from "./HeroQuote";
-import { PortraitStatHero, PortraitStatHeroPropsSchema } from "./PortraitStatHero";
-import { PortraitWithBars, PortraitWithBarsPropsSchema } from "./PortraitWithBars";
 
 // Domain-agnostic compositions (Phase 10 — for non-football documentaries)
 import { TimelineGeneric, TimelineGenericPropsSchema, calculateMetadata as timelineGenericCalc } from "./TimelineGeneric";
-import { StatComparison, StatComparisonPropsSchema, calculateMetadata as statComparisonCalc } from "./StatComparison";
-import { BulletBreakdown, BulletBreakdownPropsSchema } from "./BulletBreakdown";
-import { RankingList, RankingListPropsSchema } from "./RankingList";
-import { MetricTrajectory, MetricTrajectoryPropsSchema } from "./MetricTrajectory";
-import { SceneSequence, SceneSequencePropsSchema } from "./SceneSequence";
 // Finance (paperOrange) variants + CreditsRoll
 import { HeroIntroFinance, HeroIntroFinancePropsSchema } from "./HeroIntroFinance";
 import { HeroOutroFinance, HeroOutroFinancePropsSchema } from "./HeroOutroFinance";
-import { HeroQuoteFinance, HeroQuoteFinancePropsSchema } from "./HeroQuoteFinance";
 import { BulletBreakdownFinance, BulletBreakdownFinancePropsSchema } from "./BulletBreakdownFinance";
 import { CreditsRoll, CreditsRollPropsSchema, calculateMetadata as creditsRollCalc } from "./CreditsRoll";
 // ── Finance & Business documentary graphics package (finance/kit.tsx system) ──
@@ -72,7 +58,6 @@ import { DateStamp, DateStampPropsSchema } from "./finance/DateStamp";
 import { PersonIntro, PersonIntroPropsSchema } from "./finance/PersonIntro";
 import { LowerThirdCard, LowerThirdCardPropsSchema } from "./finance/LowerThirdCard";
 import { MoneyFlow, MoneyFlowPropsSchema } from "./finance/MoneyFlow";
-import { PortfolioGrid, PortfolioGridPropsSchema } from "./finance/PortfolioGrid";
 import { BalanceSheet, BalanceSheetPropsSchema } from "./finance/BalanceSheet";
 import { CourtVerdict, CourtVerdictPropsSchema } from "./finance/CourtVerdict";
 import { SocialPost, SocialPostPropsSchema } from "./finance/SocialPost";
@@ -89,7 +74,6 @@ import { DocumentReveal, DocumentRevealPropsSchema } from "./finance/DocumentRev
 import { TokenWeb, TokenWebPropsSchema } from "./finance/TokenWeb";
 // Tier 3 + deferred Tier-2
 import { OrgChart, OrgChartPropsSchema } from "./finance/OrgChart";
-import { IndexCompare, IndexComparePropsSchema } from "./finance/IndexCompare";
 import { SankeyFlow, SankeyFlowPropsSchema } from "./finance/SankeyFlow";
 import { MarketPanel, MarketPanelPropsSchema } from "./finance/MarketPanel";
 import { AcquisitionTree, AcquisitionTreePropsSchema } from "./finance/AcquisitionTree";
@@ -98,10 +82,32 @@ import { DonutShare, DonutSharePropsSchema } from "./finance/DonutShare";
 import { MetricGrid, MetricGridPropsSchema } from "./finance/MetricGrid";
 import { ScaleCompare, ScaleComparePropsSchema } from "./finance/ScaleCompare";
 import { SplitScreen, SplitScreenPropsSchema } from "./finance/SplitScreen";
-import { GlobalReach, GlobalReachPropsSchema } from "./finance/GlobalReach";
 import { CastGrid, CastGridPropsSchema } from "./finance/CastGrid";
 import { EraBand, EraBandPropsSchema } from "./finance/EraBand";
 import { LegalTimeline, LegalTimelinePropsSchema } from "./finance/LegalTimeline";
+// ── video-shotcraft ports (2026-07-23) — motion-design techniques ported from
+// the Vincentwei1021/video-shotcraft template pack, reskinned onto lib/kit.tsx ──
+import { AxisRescaleShock, AxisRescaleShockPropsSchema } from "./AxisRescaleShock";
+import { UnitDotSwarmRegroup, UnitDotSwarmRegroupPropsSchema } from "./UnitDotSwarmRegroup";
+import { OscilloscopeStream, OscilloscopeStreamPropsSchema } from "./OscilloscopeStream";
+import { TimelineTravel, TimelineTravelPropsSchema } from "./TimelineTravel";
+import { GrazeFaceTour, GrazeFaceTourPropsSchema } from "./GrazeFaceTour";
+import { ChangelogScrollBrake, ChangelogScrollBrakePropsSchema } from "./ChangelogScrollBrake";
+import { OdometerDigitRoll, OdometerDigitRollPropsSchema } from "./OdometerDigitRoll";
+import { ParticleSandFill, ParticleSandFillPropsSchema } from "./ParticleSandFill";
+import { PillSlotCycle, PillSlotCyclePropsSchema } from "./PillSlotCycle";
+import { ListStackPress, ListStackPressPropsSchema } from "./ListStackPress";
+import { SpeedRampReveal, SpeedRampRevealPropsSchema } from "./SpeedRampReveal";
+import { FreezeAnnotate, FreezeAnnotatePropsSchema } from "./FreezeAnnotate";
+import { BarRowsAxis, BarRowsAxisPropsSchema } from "./BarRowsAxis";
+import { RingStatReveal, RingStatRevealPropsSchema } from "./RingStatReveal";
+import { LineTrendChart, LineTrendChartPropsSchema } from "./LineTrendChart";
+import { PieShareChart, PieShareChartPropsSchema } from "./PieShareChart";
+import { GaugeShareArc, GaugeShareArcPropsSchema } from "./GaugeShareArc";
+import { BarColumnsChart, BarColumnsChartPropsSchema } from "./BarColumnsChart";
+import { TextColumnConverge, TextColumnConvergePropsSchema } from "./TextColumnConverge";
+import { TitleDemoteToLabel, TitleDemoteToLabelPropsSchema } from "./TitleDemoteToLabel";
+import { VoiceWaveformLive, VoiceWaveformLivePropsSchema } from "./VoiceWaveformLive";
 
 import type { CareerTimelineProps } from "./CareerTimeline";
 import type { HeroTransferRecordProps } from "./HeroTransferRecord";
@@ -286,48 +292,6 @@ export const Root: React.FC = () => {
         }}
       />
       <Composition
-        id="HeroLeagueGraph"
-        component={HeroLeagueGraph}
-        schema={HeroLeagueGraphPropsSchema}
-        durationInFrames={300}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          season:      "2013–14",
-          title:       "Title Race",
-          competition: "Premier League",
-          source:      "Source · FBref",
-          maxPosition: 6,
-          bgColor:     "",
-          accentColor: "",
-          entityImage: "",
-          skipIntro: false,
-          teamA: {
-            name:      "Liverpool",
-            color:     "#C8102E",
-            badgeSlug: "",
-            data:  [
-              { matchday: 1,  position: 4 }, { matchday: 5,  position: 3 },
-              { matchday: 10, position: 2 }, { matchday: 20, position: 1 },
-              { matchday: 30, position: 1 }, { matchday: 36, position: 2 },
-              { matchday: 38, position: 2 },
-            ],
-          },
-          teamB: {
-            name:      "Manchester City",
-            color:     "#6CABDD",
-            badgeSlug: "",
-            data:  [
-              { matchday: 1,  position: 2 }, { matchday: 5,  position: 1 },
-              { matchday: 10, position: 3 }, { matchday: 20, position: 2 },
-              { matchday: 30, position: 2 }, { matchday: 36, position: 1 },
-              { matchday: 38, position: 1 },
-            ],
-          },
-        }}
-      />
-      <Composition
         id="HeroTransferRecord"
         component={HeroTransferRecord}
         schema={HeroTransferRecordPropsSchema}
@@ -421,24 +385,6 @@ export const Root: React.FC = () => {
         }}
       />
       <Composition
-        id="HeroQuoteFinance"
-        component={HeroQuoteFinance}
-        schema={HeroQuoteFinancePropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          quote: "“It wasn't an investment strategy; it was a high-stakes heist.”",
-          attribution: "The Verdict",
-          context: "",
-          playerImage: "",
-          accentColor: "#E8623A",
-          bgColor: "#F7F4EE",
-          skipIntro: false,
-        }}
-      />
-      <Composition
         id="BulletBreakdownFinance"
         component={BulletBreakdownFinance}
         schema={BulletBreakdownFinancePropsSchema}
@@ -488,7 +434,6 @@ export const Root: React.FC = () => {
       <Composition id="PersonIntro" component={PersonIntro} schema={PersonIntroPropsSchema} durationInFrames={130} fps={30} width={1920} height={1080} defaultProps={PersonIntroPropsSchema.parse({})} />
       <Composition id="LowerThirdCard" component={LowerThirdCard} schema={LowerThirdCardPropsSchema} durationInFrames={150} fps={30} width={1920} height={1080} defaultProps={LowerThirdCardPropsSchema.parse({})} />
       <Composition id="MoneyFlow" component={MoneyFlow} schema={MoneyFlowPropsSchema} durationInFrames={210} fps={30} width={1920} height={1080} defaultProps={MoneyFlowPropsSchema.parse({})} />
-      <Composition id="PortfolioGrid" component={PortfolioGrid} schema={PortfolioGridPropsSchema} durationInFrames={210} fps={30} width={1920} height={1080} defaultProps={PortfolioGridPropsSchema.parse({})} />
       <Composition id="BalanceSheet" component={BalanceSheet} schema={BalanceSheetPropsSchema} durationInFrames={235} fps={30} width={1920} height={1080} defaultProps={BalanceSheetPropsSchema.parse({})} />
       <Composition id="CourtVerdict" component={CourtVerdict} schema={CourtVerdictPropsSchema} durationInFrames={225} fps={30} width={1920} height={1080} defaultProps={CourtVerdictPropsSchema.parse({})} />
       <Composition id="SocialPost" component={SocialPost} schema={SocialPostPropsSchema} durationInFrames={155} fps={30} width={1920} height={1080} defaultProps={SocialPostPropsSchema.parse({})} />
@@ -505,7 +450,6 @@ export const Root: React.FC = () => {
       <Composition id="TokenWeb" component={TokenWeb} schema={TokenWebPropsSchema} durationInFrames={170} fps={30} width={1920} height={1080} defaultProps={TokenWebPropsSchema.parse({})} />
       {/* ── Tier 3 + deferred Tier-2 ─────────────────────────────────── */}
       <Composition id="OrgChart" component={OrgChart} schema={OrgChartPropsSchema} durationInFrames={185} fps={30} width={1920} height={1080} defaultProps={OrgChartPropsSchema.parse({})} />
-      <Composition id="IndexCompare" component={IndexCompare} schema={IndexComparePropsSchema} durationInFrames={185} fps={30} width={1920} height={1080} defaultProps={IndexComparePropsSchema.parse({})} />
       <Composition id="SankeyFlow" component={SankeyFlow} schema={SankeyFlowPropsSchema} durationInFrames={200} fps={30} width={1920} height={1080} defaultProps={SankeyFlowPropsSchema.parse({})} />
       <Composition id="MarketPanel" component={MarketPanel} schema={MarketPanelPropsSchema} durationInFrames={175} fps={30} width={1920} height={1080} defaultProps={MarketPanelPropsSchema.parse({})} />
       <Composition id="AcquisitionTree" component={AcquisitionTree} schema={AcquisitionTreePropsSchema} durationInFrames={185} fps={30} width={1920} height={1080} defaultProps={AcquisitionTreePropsSchema.parse({})} />
@@ -514,7 +458,6 @@ export const Root: React.FC = () => {
       <Composition id="MetricGrid" component={MetricGrid} schema={MetricGridPropsSchema} durationInFrames={160} fps={30} width={1920} height={1080} defaultProps={MetricGridPropsSchema.parse({})} />
       <Composition id="ScaleCompare" component={ScaleCompare} schema={ScaleComparePropsSchema} durationInFrames={195} fps={30} width={1920} height={1080} defaultProps={ScaleComparePropsSchema.parse({})} />
       <Composition id="SplitScreen" component={SplitScreen} schema={SplitScreenPropsSchema} durationInFrames={165} fps={30} width={1920} height={1080} defaultProps={SplitScreenPropsSchema.parse({})} />
-      <Composition id="GlobalReach" component={GlobalReach} schema={GlobalReachPropsSchema} durationInFrames={175} fps={30} width={1920} height={1080} defaultProps={GlobalReachPropsSchema.parse({})} />
       <Composition id="CastGrid" component={CastGrid} schema={CastGridPropsSchema} durationInFrames={165} fps={30} width={1920} height={1080} defaultProps={CastGridPropsSchema.parse({})} />
       <Composition id="EraBand" component={EraBand} schema={EraBandPropsSchema} durationInFrames={165} fps={30} width={1920} height={1080} defaultProps={EraBandPropsSchema.parse({})} />
       <Composition id="LegalTimeline" component={LegalTimeline} schema={LegalTimelinePropsSchema} durationInFrames={175} fps={30} width={1920} height={1080} defaultProps={LegalTimelinePropsSchema.parse({})} />
@@ -632,45 +575,6 @@ export const Root: React.FC = () => {
           ],
           sideImage: "",
           skipIntro: false,
-        }}
-      />
-      <Composition
-        id="HeroScatterPlot"
-        component={HeroScatterPlot}
-        schema={HeroScatterPlotPropsSchema}
-        durationInFrames={270}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          axisXLabel: "speed",
-          axisYLabel: "efficiency",
-          q1Label: "Wizard Zone",
-          q2Label: "maestros",
-          q3Label: "stiff",
-          q4Label: "robotic",
-          showWizardArrow: true,
-          players: [{ name: "Player A", image: "suarez.jpg", ringColor: "#C8102E", x: 72, y: 75 }],
-          bgColor: "#111111",
-          skipIntro: false,
-        }}
-      />
-      <Composition
-        id="TrioFeature"
-        component={TrioFeature}
-        schema={TrioFeaturePropsSchema}
-        durationInFrames={270}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          bgColor: "#f0ece4",
-          skipIntro: false,
-          players: [
-            { name: "Sergio Agüero",    image: "aguero.jpg",  nationality: "Argentina",    clubColor: "#6CABDD", badgeSlug: "manchester-city.svg" },
-            { name: "Wayne Rooney",     image: "rooney.jpg",  nationality: "England",      clubColor: "#DA291C", badgeSlug: "manchester-united.svg" },
-            { name: "Luis Suárez",      image: "suarez.jpg",  nationality: "Uruguay",      clubColor: "#C8102E", badgeSlug: "liverpool.svg" },
-          ],
         }}
       />
       <Composition
@@ -920,58 +824,15 @@ export const Root: React.FC = () => {
         }}
       />
 
-      {/* ── Motion Design Components ──────────────────────────────────────── */}
       <Composition
-        id="MapCallout"
-        component={MapCallout}
-        schema={MapCalloutPropsSchema}
-        durationInFrames={270}
+        id="HeroTravelMap"
+        component={HeroTravelMap}
+        schema={HeroTravelMapPropsSchema}
+        durationInFrames={HERO_TRAVEL_MAP_DURATION}
         fps={30}
         width={1920}
         height={1080}
-        defaultProps={{
-          title:           "Manchester",
-          titleSize:       64,
-          dateline:        "England · North West",
-          description:     "The industrial heart of the north — a city whose football clubs have shaped the modern English game.",
-          source:          "MAP · NATURAL EARTH",
-          calloutCity:     "manchester",
-          calloutText:     "",
-          highlightRegion: "england" as const,
-          accentColor:     "#C8102E",
-          bgColor:         "#f0ece4",
-          darkMode:        false,
-          skipIntro:       false,
-          pins: [
-            { city: "manchester",  label: "Manchester",  highlighted: true  },
-            { city: "london",      label: "London",      highlighted: false },
-            { city: "edinburgh",   label: "Edinburgh",   highlighted: false },
-            { city: "cardiff",     label: "Cardiff",     highlighted: false },
-          ],
-        }}
-      />
-      <Composition
-        id="AnnotatedImage"
-        component={AnnotatedImage}
-        schema={AnnotatedImagePropsSchema}
-        durationInFrames={300}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          imageSrc:     "",
-          title:        "Anfield — Capacity 61,276",
-          subtitle:     "The Kop end holds 12,390 standing supporters",
-          accentColor:  "#C8102E",
-          bgColor:      "#f0ece4",
-          kenBurns:     true,
-          annotations: [
-            { x: 50, y: 35, label: "The Pitch",     direction: "up",   color: "#ffffff" },
-            { x: 15, y: 55, label: "The Kop",       direction: "right", color: "#C8102E" },
-            { x: 82, y: 55, label: "Anfield Road",  direction: "left",  color: "#ffffff" },
-          ],
-          skipIntro: false,
-        }}
+        defaultProps={HeroTravelMapPropsSchema.parse({})}
       />
       <Composition
         id="TimelineScroll"
@@ -1187,10 +1048,6 @@ export const Root: React.FC = () => {
         }}
       />
 
-
-
-
-
       {/* ── VideoSequence — master composition with transitions ────────────── */}
       <Composition
         id="VideoSequence"
@@ -1360,41 +1217,6 @@ export const Root: React.FC = () => {
             label: "league average per season",
             value: 11,
           },
-        }}
-      />
-
-      {/* ── HeroAwardsList — year-by-year award podium ────────────────── */}
-      <Composition
-        id="HeroAwardsList"
-        component={HeroAwardsList}
-        schema={HeroAwardsListPropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          award: "Ballon d'Or",
-          entityName: "Lionel Messi",
-          accentColor: "#C9A84C",
-          bgColor: "#f0ece4",
-          stagger: 18,
-          holdDuration: 40,
-          years: [
-            { year: "2009", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
-            { year: "2010", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
-            { year: "2011", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
-            { year: "2012", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
-            { year: "2013", winner: "Cristiano Ronaldo", entity: "Lionel Messi", position: 2, detail: "Real Madrid" },
-            { year: "2014", winner: "Cristiano Ronaldo", entity: "Lionel Messi", position: 3, detail: "Real Madrid" },
-            { year: "2015", winner: "Lionel Messi",      entity: "Lionel Messi", position: 1, detail: "Barcelona" },
-          ],
-          subjectImage: "",
-          entityImage:  "",
-          awardImage:   "",
-          clubColor:    "",
-          dateline:     "",
-          source:       "",
-          skipIntro:    false,
         }}
       />
 
@@ -1569,72 +1391,6 @@ export const Root: React.FC = () => {
         }}
       />
 
-      {/* ── Track E — HeroQuote (was missing from registry) ── */}
-      <Composition
-        id="HeroQuote"
-        component={HeroQuote}
-        schema={HeroQuotePropsSchema}
-        durationInFrames={150}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          quote:       '"I am not a diver."',
-          attribution: "Luis Suárez",
-          context:     "",
-          playerImage: "suarez.jpg",
-          accentColor: "#C8102E",
-          bgColor:     "#f0ece4",
-          skipIntro:   false,
-        }}
-      />
-
-      {/* ── Track E — PortraitStatHero (hybrid portrait + big stat) ── */}
-      <Composition
-        id="PortraitStatHero"
-        component={PortraitStatHero}
-        schema={PortraitStatHeroPropsSchema}
-        durationInFrames={180}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          playerName:  "Luis Suárez",
-          playerImage: "suarez",
-          stat:        "31",
-          unit:        "goals",
-          caption:     "in a single Premier League season",
-          context:     "2013/14 — Liverpool",
-          accentColor: "#C8102E",
-          bgColor:     "#f0ece4",
-          skipIntro:   false,
-        }}
-      />
-
-      {/* ── Track E — PortraitWithBars (masked portrait + 3 stat bars) ── */}
-      <Composition
-        id="PortraitWithBars"
-        component={PortraitWithBars}
-        schema={PortraitWithBarsPropsSchema}
-        durationInFrames={210}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          playerName:  "Luis Suárez",
-          playerImage: "suarez",
-          title:       "2013/14 SEASON",
-          bars:        [
-            { label: "Goals",    value: 31,   unit: "", max: 40 },
-            { label: "Assists",  value: 12,   unit: "", max: 40 },
-            { label: "G+A / 90", value: 1.27, unit: "", max: 2  },
-          ],
-          accentColor: "#C8102E",
-          bgColor:     "#f0ece4",
-          skipIntro:   false,
-        }}
-      />
-
       {/* ── Phase 10 — Domain-agnostic compositions ─────────────────────── */}
 
       {/* TimelineGeneric — pure event timeline, no club badges or team colours */}
@@ -1664,161 +1420,31 @@ export const Root: React.FC = () => {
         }}
       />
 
-      {/* StatComparison — generic head-to-head bars, no badges */}
-      <Composition
-        id="StatComparison"
-        component={StatComparison}
-        schema={StatComparisonPropsSchema}
-        calculateMetadata={statComparisonCalc}
-        durationInFrames={300}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          title:       "OpenAI vs Anthropic — by the numbers",
-          leftLabel:   "OpenAI",
-          rightLabel:  "Anthropic",
-          leftAccent:  "",
-          rightAccent: "",
-          rows: [
-            { metric: "Founded",      left: 2015, right: 2021, unit: "" },
-            { metric: "Total raised", left: 13,   right: 8.5,  unit: "$B" },
-            { metric: "Employees",    left: 1700, right: 500,  unit: "" },
-            { metric: "Valuation",    left: 90,   right: 18,   unit: "$B" },
-          ],
-          palette:   "paper" as const,
-          source:    "",
-          dateline:  "",
-          skipIntro: false,
-        }}
-      />
-
-      {/* BulletBreakdown — generic titled argument/breakdown card */}
-      <Composition
-        id="BulletBreakdown"
-        component={BulletBreakdown}
-        schema={BulletBreakdownPropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          title:    "The case against",
-          subtitle: "",
-          points: [
-            { heading: "Unlimited risk appetite", detail: "A normal fund protects the downside. Alameda had billions it never had to answer for." },
-            { heading: "Survivorship bias",        detail: "We remember Solana and Anthropic. We forget the dead tokens and bad bets." },
-            { heading: "Paper vs realised",        detail: "A valuation is not a cheque. Most of it could never be cashed." },
-          ],
-          accent:  "",
-          palette: "ink" as const,
-        }}
-      />
-
-      {/* RankingList — generic ranked rows with bars */}
-      <Composition
-        id="RankingList"
-        component={RankingList}
-        schema={RankingListPropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          title:    "FTX estate — largest recovered stakes",
-          subtitle: "",
-          rows: [
-            { label: "Anthropic", value: 1.3, unit: "$B", secondary: "AI",        highlight: true },
-            { label: "Solana",    value: 1.1, unit: "$B", secondary: "crypto",    highlight: false },
-            { label: "SpaceX",    value: 0.5, unit: "$B", secondary: "aerospace", highlight: false },
-          ],
-          accent:  "",
-          palette: "ink" as const,
-        }}
-      />
-
-      {/* MetricTrajectory — generic value-over-time line/area chart */}
-      <Composition
-        id="MetricTrajectory"
-        component={MetricTrajectory}
-        schema={MetricTrajectoryPropsSchema}
-        durationInFrames={240}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          title:    "Solana (SOL) — price",
-          unit:     "$",
-          points: [
-            { t: "2020",      value: 0.1, label: "" },
-            { t: "early '21", value: 3,   label: "" },
-            { t: "May '21",   value: 40,  label: "" },
-            { t: "Nov 2021",  value: 260, label: "peak" },
-            { t: "Nov 2022",  value: 13,  label: "" },
-          ],
-          accent: "#FFCC00",
-          bg:     "#0033CC",
-        }}
-      />
-      {/* H3 — sequence-as-composition: panels on one canvas + travelling camera */}
-      <Composition
-        id="SceneSequence"
-        component={SceneSequence}
-        schema={SceneSequencePropsSchema}
-        durationInFrames={360}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{
-          ground: "paper" as const,
-          bgColor: "#f0ece4",
-          accentColor: "#C8102E",
-          domain: "football" as const,
-          travelSec: 1.2,
-          skipIntro: false,
-          beats: [
-            {
-              id: "b1",
-              template: "HeroBigStat",
-              props: { stat: "31", unit: "goals", label: "in a single Premier League season." },
-              anchor: { x: 0, y: 0 },
-              atSec: 0,
-              scale: 1,
-            },
-            {
-              id: "b2",
-              template: "PlayerStats",
-              props: {
-                playerName: "Luis Suárez",
-                club: "Liverpool",
-                season: "2013-14",
-                competition: "Premier League",
-                clubColor: "#C8102E",
-                stats: [
-                  { label: "Goals", value: 31, sub: "in 33 appearances" },
-                  { label: "Assists", value: 12 },
-                  { label: "Apps", value: 33 },
-                  { label: "Mins / Goal", value: 76 },
-                ],
-              },
-              anchor: { x: 2200, y: 0 },
-              atSec: 6,
-              scale: 1,
-            },
-          ],
-          persistent: [
-            {
-              id: "stat.goals",
-              kind: "stat" as const,
-              data: { unit: "goals" },
-              states: [
-                { beatId: "b1", rect: { x: 1450, y: 70, w: 380, h: 120 }, value: 31, opacity: 1 },
-                { beatId: "b2", rect: { x: 3650, y: 70, w: 380, h: 120 }, value: 82, opacity: 1 },
-              ],
-            },
-          ],
-        }}
-      />
+      {/* ── video-shotcraft ports (2026-07-23) ─────────────────────────────
+          Motion-design techniques ported from Vincentwei1021/video-shotcraft,
+          reskinned onto lib/kit.tsx (Ground/Theme/EASE/primitives). Compositions
+          only — not yet wired into storyboard tags / graphics_agent dispatch. */}
+      <Composition id="AxisRescaleShock" component={AxisRescaleShock} schema={AxisRescaleShockPropsSchema} durationInFrames={170} fps={30} width={1920} height={1080} defaultProps={AxisRescaleShockPropsSchema.parse({})} />
+      <Composition id="UnitDotSwarmRegroup" component={UnitDotSwarmRegroup} schema={UnitDotSwarmRegroupPropsSchema} durationInFrames={400} fps={30} width={1920} height={1080} defaultProps={UnitDotSwarmRegroupPropsSchema.parse({})} />
+      <Composition id="OscilloscopeStream" component={OscilloscopeStream} schema={OscilloscopeStreamPropsSchema} durationInFrames={170} fps={30} width={1920} height={1080} defaultProps={OscilloscopeStreamPropsSchema.parse({})} />
+      <Composition id="TimelineTravel" component={TimelineTravel} schema={TimelineTravelPropsSchema} durationInFrames={470} fps={30} width={1920} height={1080} defaultProps={TimelineTravelPropsSchema.parse({})} />
+      <Composition id="GrazeFaceTour" component={GrazeFaceTour} schema={GrazeFaceTourPropsSchema} durationInFrames={150} fps={30} width={1920} height={1080} defaultProps={GrazeFaceTourPropsSchema.parse({})} />
+      <Composition id="ChangelogScrollBrake" component={ChangelogScrollBrake} schema={ChangelogScrollBrakePropsSchema} durationInFrames={140} fps={30} width={1920} height={1080} defaultProps={ChangelogScrollBrakePropsSchema.parse({})} />
+      <Composition id="OdometerDigitRoll" component={OdometerDigitRoll} schema={OdometerDigitRollPropsSchema} durationInFrames={150} fps={30} width={1920} height={1080} defaultProps={OdometerDigitRollPropsSchema.parse({})} />
+      <Composition id="ParticleSandFill" component={ParticleSandFill} schema={ParticleSandFillPropsSchema} durationInFrames={150} fps={30} width={1920} height={1080} defaultProps={ParticleSandFillPropsSchema.parse({})} />
+      <Composition id="PillSlotCycle" component={PillSlotCycle} schema={PillSlotCyclePropsSchema} durationInFrames={222} fps={30} width={1920} height={1080} defaultProps={PillSlotCyclePropsSchema.parse({})} />
+      <Composition id="ListStackPress" component={ListStackPress} schema={ListStackPressPropsSchema} durationInFrames={190} fps={30} width={1920} height={1080} defaultProps={ListStackPressPropsSchema.parse({})} />
+      <Composition id="SpeedRampReveal" component={SpeedRampReveal} schema={SpeedRampRevealPropsSchema} durationInFrames={230} fps={30} width={1920} height={1080} defaultProps={SpeedRampRevealPropsSchema.parse({})} />
+      <Composition id="FreezeAnnotate" component={FreezeAnnotate} schema={FreezeAnnotatePropsSchema} durationInFrames={230} fps={30} width={1920} height={1080} defaultProps={FreezeAnnotatePropsSchema.parse({})} />
+      <Composition id="BarRowsAxis" component={BarRowsAxis} schema={BarRowsAxisPropsSchema} durationInFrames={160} fps={30} width={1920} height={1080} defaultProps={BarRowsAxisPropsSchema.parse({})} />
+      <Composition id="RingStatReveal" component={RingStatReveal} schema={RingStatRevealPropsSchema} durationInFrames={130} fps={30} width={1920} height={1080} defaultProps={RingStatRevealPropsSchema.parse({})} />
+      <Composition id="LineTrendChart" component={LineTrendChart} schema={LineTrendChartPropsSchema} durationInFrames={210} fps={30} width={1920} height={1080} defaultProps={LineTrendChartPropsSchema.parse({})} />
+      <Composition id="PieShareChart" component={PieShareChart} schema={PieShareChartPropsSchema} durationInFrames={150} fps={30} width={1920} height={1080} defaultProps={PieShareChartPropsSchema.parse({})} />
+      <Composition id="GaugeShareArc" component={GaugeShareArc} schema={GaugeShareArcPropsSchema} durationInFrames={150} fps={30} width={1920} height={1080} defaultProps={GaugeShareArcPropsSchema.parse({})} />
+      <Composition id="BarColumnsChart" component={BarColumnsChart} schema={BarColumnsChartPropsSchema} durationInFrames={210} fps={30} width={1920} height={1080} defaultProps={BarColumnsChartPropsSchema.parse({})} />
+      <Composition id="TextColumnConverge" component={TextColumnConverge} schema={TextColumnConvergePropsSchema} durationInFrames={160} fps={30} width={1920} height={1080} defaultProps={TextColumnConvergePropsSchema.parse({})} />
+      <Composition id="TitleDemoteToLabel" component={TitleDemoteToLabel} schema={TitleDemoteToLabelPropsSchema} durationInFrames={110} fps={30} width={1920} height={1080} defaultProps={TitleDemoteToLabelPropsSchema.parse({})} />
+      <Composition id="VoiceWaveformLive" component={VoiceWaveformLive} schema={VoiceWaveformLivePropsSchema} durationInFrames={150} fps={30} width={1920} height={1080} defaultProps={VoiceWaveformLivePropsSchema.parse({})} />
     </>
   );
 };

@@ -10,20 +10,98 @@ import { loadFont as loadPlexSans } from "@remotion/google-fonts/IBMPlexSans";
 import { loadFont as loadPlexMono } from "@remotion/google-fonts/IBMPlexMono";
 import { loadFont as loadGeist } from "@remotion/google-fonts/Geist";
 import { loadFont as loadGeistMono } from "@remotion/google-fonts/GeistMono";
+// Full brand font-picker roster (engine/server.py's brand editor "FONTS" list) —
+// loaded here so every choice in that picker actually renders, not just Geist's
+// pair + the four legacy faces above.
+import { loadFont as loadManrope } from "@remotion/google-fonts/Manrope";
+import { loadFont as loadOutfit } from "@remotion/google-fonts/Outfit";
+import { loadFont as loadSpaceGrotesk } from "@remotion/google-fonts/SpaceGrotesk";
+import { loadFont as loadArchivoSans } from "@remotion/google-fonts/Archivo";
+import { loadFont as loadSourceSans3 } from "@remotion/google-fonts/SourceSans3";
+import { loadFont as loadBricolage } from "@remotion/google-fonts/BricolageGrotesque";
+import { loadFont as loadFraunces } from "@remotion/google-fonts/Fraunces";
+import { loadFont as loadDMSerifDisplay } from "@remotion/google-fonts/DMSerifDisplay";
+import { loadFont as loadLora } from "@remotion/google-fonts/Lora";
+import { loadFont as loadCormorantGaramond } from "@remotion/google-fonts/CormorantGaramond";
+import { loadFont as loadJetBrainsMono } from "@remotion/google-fonts/JetBrainsMono";
 
 // ── Geist — primary type family across all templates (sans + mono) ───────────
 // Geist + Geist Mono are a designed pair (Vercel); the neutral-grotesque + mono
 // combination is the finance / investigative / data-journalism register.
 export const { fontFamily: geistFontFamily } = loadGeist("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
 export const { fontFamily: geistMonoFamily } = loadGeistMono("normal", { weights: ["400", "500", "600", "700"] });
-// `fontFamily` is the default sans used everywhere → Geist.
-export const fontFamily = geistFontFamily;
+// `fontFamily` is the default sans used everywhere → Geist. `let`, not `const`:
+// setBrandFonts() below reassigns it (and the two "active" faces) per render
+// when a project carries a brand font — every existing `import { fontFamily }`
+// site keeps working unchanged because ES module imports are live bindings.
+export let fontFamily = geistFontFamily;
 
 export const { fontFamily: serifFontFamily } = loadPlayfair("normal", { weights: ["400", "700", "900"] });
 // Legacy faces — still loaded so existing comps keep working; prefer Geist for new work.
 export const { fontFamily: interFontFamily } = loadFont("normal", { weights: ["400", "500", "600", "700", "800", "900"] });
 export const { fontFamily: plexFontFamily } = loadPlexSans("normal", { weights: ["400", "500", "600", "700"] });
 export const { fontFamily: plexMonoFamily } = loadPlexMono("normal", { weights: ["400", "500", "600"] });
+
+// Remaining brand-picker faces — loaded once, only ever reached via the brand
+// font registry below (no template hardcodes these directly).
+export const { fontFamily: manropeFontFamily }    = loadManrope("normal", { weights: ["400", "600", "700"] });
+export const { fontFamily: outfitFontFamily }     = loadOutfit("normal", { weights: ["400", "600", "700"] });
+export const { fontFamily: spaceGroteskFamily }   = loadSpaceGrotesk("normal", { weights: ["400", "600", "700"] });
+export const { fontFamily: archivoSansFamily }    = loadArchivoSans("normal", { weights: ["400", "600", "700"] });
+export const { fontFamily: sourceSans3Family }    = loadSourceSans3("normal", { weights: ["400", "600"] });
+export const { fontFamily: bricolageFamily }      = loadBricolage("normal", { weights: ["400", "600", "800"] });
+export const { fontFamily: frauncesFamily }       = loadFraunces("normal", { weights: ["400", "700"] });
+export const { fontFamily: dmSerifDisplayFamily } = loadDMSerifDisplay("normal", { weights: ["400"] });
+export const { fontFamily: loraFamily }           = loadLora("normal", { weights: ["400", "700"] });
+export const { fontFamily: cormorantGaramondFamily } = loadCormorantGaramond("normal", { weights: ["400", "700"] });
+export const { fontFamily: jetBrainsMonoFamily }  = loadJetBrainsMono("normal", { weights: ["400", "600"] });
+
+// "Active" mono/display faces — same live-binding trick as `fontFamily` above,
+// read by `TYPE.mono` / `TYPE.serif` getters in lib/kit.tsx.
+export let activeMonoFamily = geistMonoFamily;
+export let activeDisplayFamily = serifFontFamily;
+
+// ── Brand font override (per-render, from the project's Sequencely brand kit) ─
+// Remotion's google-fonts packages are static per-font imports, so brand font
+// selection is matched against this small curated allow-list rather than
+// loading an arbitrary Google Font string at render time. Unknown/blank names
+// silently fall back to the Geist default instead of breaking the render.
+const _BRAND_FONT_REGISTRY: Record<string, string> = {
+  "geist":               geistFontFamily,
+  "geist mono":          geistMonoFamily,
+  "inter":               interFontFamily,
+  "playfair display":    serifFontFamily,
+  "ibm plex sans":       plexFontFamily,
+  "ibm plex mono":       plexMonoFamily,
+  // Full engine/server.py brand-picker roster:
+  "manrope":             manropeFontFamily,
+  "outfit":              outfitFontFamily,
+  "space grotesk":       spaceGroteskFamily,
+  "archivo":             archivoSansFamily,
+  "source sans 3":       sourceSans3Family,
+  "bricolage grotesque": bricolageFamily,
+  "fraunces":            frauncesFamily,
+  "dm serif display":    dmSerifDisplayFamily,
+  "lora":                loraFamily,
+  "cormorant garamond":  cormorantGaramondFamily,
+  "jetbrains mono":      jetBrainsMonoFamily,
+};
+
+function _resolveBrandFont(name: string | null | undefined): string | null {
+  if (!name) return null;
+  return _BRAND_FONT_REGISTRY[name.trim().toLowerCase()] ?? null;
+}
+
+/** Called once at the top of VideoSequence's render from the project's brand
+ * fonts (style_director.json → "fonts": {body, mono, display}). Anything not
+ * in _BRAND_FONT_REGISTRY falls back to the Geist default. */
+export function setBrandFonts(
+  fonts: { body?: string | null; mono?: string | null; display?: string | null } | null | undefined,
+): void {
+  fontFamily          = _resolveBrandFont(fonts?.body)    ?? geistFontFamily;
+  activeMonoFamily     = _resolveBrandFont(fonts?.mono)    ?? geistMonoFamily;
+  activeDisplayFamily  = _resolveBrandFont(fonts?.display) ?? serifFontFamily;
+}
 
 // ── Archivo (variable) — the display TITLE face ──────────────────────────────
 // @remotion/google-fonts/Archivo only ships the weight axis, so the width (wdth)
@@ -566,7 +644,7 @@ export const DocumentaryFrame: React.FC<{ children: React.ReactNode }> = ({ chil
   );
 };
 
-// ── Trio portrait masks — shared by PlayerTrio + TrioFeature ─────────────────
+// ── Trio portrait masks — shared by trio-of-portraits templates ──────────────
 // Soft-edged radial alpha mask: prevents both the bottom hard-cut at the feet
 // AND the side hard-cut at column borders. The two trio templates MUST share
 // these so the cutouts read as part of the same studio look.
