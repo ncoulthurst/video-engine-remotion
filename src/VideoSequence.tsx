@@ -68,7 +68,46 @@ import { TimelineGeneric } from "./TimelineGeneric";
 import { HeroIntroFinance } from "./HeroIntroFinance";
 import { HeroOutroFinance } from "./HeroOutroFinance";
 import { BulletBreakdownFinance } from "./BulletBreakdownFinance";
+import { HeroValueChart } from "./HeroValueChart";
+import { HeroStatComparison } from "./HeroStatComparison";
+import { HeroTransferRecordVault } from "./HeroTransferRecordVault";
+import { CreditsRoll } from "./CreditsRoll";
 import { worldFor, type TemplateWorld } from "./lib/worldRegistry";
+
+// Finance & Business documentary package (src/finance/) — registered here so
+// every tag graphics_agent.py can emit for the finance domain actually
+// resolves to a real component instead of the "Unknown scene" black panel.
+import { MoneyFlow } from "./finance/MoneyFlow";
+import { BalanceSheet } from "./finance/BalanceSheet";
+import { OrgChart } from "./finance/OrgChart";
+import { SankeyFlow } from "./finance/SankeyFlow";
+import { CourtVerdict } from "./finance/CourtVerdict";
+import { TokenWeb } from "./finance/TokenWeb";
+import { FundingRounds } from "./finance/FundingRounds";
+import { LegalTimeline } from "./finance/LegalTimeline";
+import { AcquisitionTree } from "./finance/AcquisitionTree";
+import { DrawdownChart } from "./finance/DrawdownChart";
+import { SystemDiagram } from "./finance/SystemDiagram";
+import { ComparisonTable } from "./finance/ComparisonTable";
+import { SentenceCard } from "./finance/SentenceCard";
+import { ThesisCard } from "./finance/ThesisCard";
+import { DocumentReveal } from "./finance/DocumentReveal";
+import { MarketPanel } from "./finance/MarketPanel";
+import { PercentBreakdown } from "./finance/PercentBreakdown";
+import { DonutShare } from "./finance/DonutShare";
+import { MetricGrid } from "./finance/MetricGrid";
+import { ScaleCompare } from "./finance/ScaleCompare";
+import { SplitScreen } from "./finance/SplitScreen";
+import { CastGrid } from "./finance/CastGrid";
+import { EraBand } from "./finance/EraBand";
+import { ChapterCard } from "./finance/ChapterCard";
+import { DateStamp } from "./finance/DateStamp";
+import { PersonIntro } from "./finance/PersonIntro";
+import { LowerThirdCard } from "./finance/LowerThirdCard";
+import { StakeCard } from "./finance/StakeCard";
+import { EntityCard } from "./finance/EntityCard";
+import { MultiplierCard } from "./finance/MultiplierCard";
+import { SocialPost } from "./finance/SocialPost";
 
 // Charts & motion package — 22 templates wired 2026-07-27
 import { BarRowsAxis } from "./BarRowsAxis";
@@ -169,6 +208,42 @@ export const SCENE_REGISTRY: Record<string, React.ComponentType<any>> = {
   HeroIntroFinance,
   HeroOutroFinance,
   BulletBreakdownFinance,
+  HeroValueChart,
+  HeroStatComparison,
+  HeroTransferRecordVault,
+  CreditsRoll,
+  // Finance & Business documentary package (src/finance/)
+  MoneyFlow,
+  BalanceSheet,
+  OrgChart,
+  SankeyFlow,
+  CourtVerdict,
+  TokenWeb,
+  FundingRounds,
+  LegalTimeline,
+  AcquisitionTree,
+  DrawdownChart,
+  SystemDiagram,
+  ComparisonTable,
+  SentenceCard,
+  ThesisCard,
+  DocumentReveal,
+  MarketPanel,
+  PercentBreakdown,
+  DonutShare,
+  MetricGrid,
+  ScaleCompare,
+  SplitScreen,
+  CastGrid,
+  EraBand,
+  ChapterCard,
+  DateStamp,
+  PersonIntro,
+  LowerThirdCard,
+  StakeCard,
+  EntityCard,
+  MultiplierCard,
+  SocialPost,
   // Charts & motion package
   BarRowsAxis,
   RingStatReveal,
